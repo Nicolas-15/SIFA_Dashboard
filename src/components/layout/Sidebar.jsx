@@ -1,4 +1,4 @@
-import { X, User, LayoutDashboard, Receipt } from 'lucide-react';
+import { X, User, LayoutDashboard, Receipt, LogOut } from 'lucide-react';
 
 function NavItem({ icon, label, active, onClick, badge }) {
   return (
@@ -28,7 +28,7 @@ function NavItem({ icon, label, active, onClick, badge }) {
   );
 }
 
-export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0 }) {
+export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLogout }) {
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
 
@@ -74,10 +74,17 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0 }) {
           <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
             <User size={18} className="text-slate-300" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white truncate">Inspector Admin</p>
             <p className="text-xs text-slate-400">ID: ADM-001</p>
           </div>
+          <button 
+            onClick={onLogout}
+            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors group relative"
+            title="Cerrar sesión"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </aside>

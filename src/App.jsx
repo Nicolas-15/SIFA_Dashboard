@@ -4,6 +4,8 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Toast } from './components/ui/Toast';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { InfraccionesView } from './components/infracciones/InfraccionesView';
+import { LoginView } from './components/auth/LoginView';
+import { RecoveryView } from './components/auth/RecoveryView';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -13,6 +15,10 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [headerSearch, setHeaderSearch] = useState('');
+
+  // Estados de Autenticación
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authView, setAuthView] = useState('login'); // 'login' o 'recovery'
 
   useEffect(() => {
     fetch('http://localhost:8000/infractions')
@@ -54,11 +60,24 @@ function App() {
     setSidebarOpen(false);
   };
 
-  /* Fecha del día en español */
   const todayLabel = new Date().toLocaleDateString('es-CL', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
   const todayCapitalized = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1);
+
+  const handleLogin = (email, password) => {
+    // Validamos credenciales hardcodeadas (quemadas) tal cual pidieron
+    if (email === 'admin@elquisco.cl' && password === '123456') {
+      setIsAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setAuthView('login');
+  };
 
   if (loading) {
     return (
@@ -91,6 +110,24 @@ function App() {
     );
   }
 
+  // Si no está autenticado, interceptamos todo y dibujamos las pantallas de acceso
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen w-full font-sans text-slate-800 bg-slate-900">
+        {authView === 'login' ? (
+          <LoginView 
+            onLogin={handleLogin} 
+            onNavigateToRecovery={() => setAuthView('recovery')} 
+          />
+        ) : (
+          <RecoveryView 
+            onNavigateToLogin={() => setAuthView('login')} 
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
 
@@ -113,6 +150,7 @@ function App() {
           onNavigate={navigate}
           onClose={() => setSidebarOpen(false)}
           pendingCount={infractions.filter(i => i.status === 'pending').length}
+          onLogout={handleLogout}
         />
       </div>
 
