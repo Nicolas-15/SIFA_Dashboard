@@ -1,0 +1,10 @@
+{
+  "css.customData": [
+    ".vscode/tailwind.json"
+  ],
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "tailwindCSS.emmetCompletions": true,
+  "git.ignoreLimitWarning": true
+}
