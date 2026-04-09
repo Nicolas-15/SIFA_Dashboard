@@ -6,6 +6,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { InfraccionesView } from './components/infracciones/InfraccionesView';
 import { LoginView } from './components/auth/LoginView';
 import { RecoveryView } from './components/auth/RecoveryView';
+import { UserManagementView } from './components/usuarios/UserManagementView';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -200,6 +201,9 @@ function App() {
               headerSearch={headerSearch}
               onClearHeaderSearch={() => setHeaderSearch('')}
             />
+          )}
+          {activeTab === 'usuarios' && (
+            <UserManagementView showToast={showToast} />
           )}
         </div>
       </main>

@@ -1,4 +1,4 @@
-import { X, User, LayoutDashboard, Receipt, LogOut } from 'lucide-react';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut } from 'lucide-react';
 
 function NavItem({ icon, label, active, onClick, badge }) {
   return (
@@ -65,6 +65,12 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
           active={activeTab === 'infracciones'}
           onClick={() => onNavigate('infracciones')}
           badge={pendingCount}
+        />
+        <NavItem
+          icon={<Users size={18} />}
+          label="Gestión de Usuarios"
+          active={activeTab === 'usuarios'}
+          onClick={() => onNavigate('usuarios')}
         />
       </nav>
 
