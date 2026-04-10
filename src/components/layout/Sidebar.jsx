@@ -28,7 +28,7 @@ function NavItem({ icon, label, active, onClick, badge }) {
   );
 }
 
-export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLogout }) {
+export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLogout, currentUser }) {
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
 
@@ -66,12 +66,14 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
           onClick={() => onNavigate('infracciones')}
           badge={pendingCount}
         />
-        <NavItem
-          icon={<Users size={18} />}
-          label="Gestión de Usuarios"
-          active={activeTab === 'usuarios'}
-          onClick={() => onNavigate('usuarios')}
-        />
+        {currentUser?.role === 'Administrador' && (
+          <NavItem
+            icon={<Users size={18} />}
+            label="Gestión de Usuarios"
+            active={activeTab === 'usuarios'}
+            onClick={() => onNavigate('usuarios')}
+          />
+        )}
       </nav>
 
       {/* Usuario */}
@@ -81,8 +83,12 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
             <User size={18} className="text-slate-300" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-white truncate">Inspector Admin</p>
-            <p className="text-xs text-slate-400">ID: ADM-001</p>
+            <p className="text-sm font-semibold text-white truncate">
+              {currentUser ? `${currentUser.name} ${currentUser.lastname}` : 'Cargando...'}
+            </p>
+            <p className="text-xs text-slate-400">
+              {currentUser ? currentUser.role : '...'}
+            </p>
           </div>
           <button 
             onClick={onLogout}

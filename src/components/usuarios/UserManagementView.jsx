@@ -16,7 +16,7 @@ export function UserManagementView({ showToast }) {
     email: '',
     phone: '+569',
     password: '',
-    role: 'Administrativo',
+    role: 'Administrativo JPL',
     status: 'active'
   });
 
@@ -90,7 +90,7 @@ export function UserManagementView({ showToast }) {
       showToast('✅ Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
       setFormData({
-        name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: 'Administrativo', status: 'active'
+        name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: 'Administrativo JPL', status: 'active'
       });
       fetchUsers();
     } catch (err) {
@@ -201,7 +201,7 @@ export function UserManagementView({ showToast }) {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
-                        user.role === 'Administrativo' ? 'bg-purple-100 text-purple-700' :
+                        user.role === 'Administrador' ? 'bg-purple-100 text-purple-700' :
                         user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
                         'bg-amber-100 text-amber-700'
                       }`}>
@@ -358,9 +358,9 @@ export function UserManagementView({ showToast }) {
                         onChange={e => setFormData({...formData, role: e.target.value})}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
                       >
-                        <option value="Administrativo">Administrativo</option>
+                        <option value="Administrador">Administrador</option>
                         <option value="Supervisor">Supervisor</option>
-                        <option value="JPL">JPL (Juez de Policía Local)</option>
+                        <option value="Administrativo JPL">Administrativo JPL</option>
                       </select>
                     </div>
                   </div>

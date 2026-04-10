@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Menu } from 'lucide-react';
+import { Search, Menu, Shield } from 'lucide-react';
 import { Sidebar } from './components/layout/Sidebar';
 import { Toast } from './components/ui/Toast';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -18,7 +18,10 @@ function App() {
   const [headerSearch, setHeaderSearch] = useState('');
 
   // Estados de Autenticación
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')); } catch (e) { return null; }
+  });
   const [authView, setAuthView] = useState('login'); // 'login' o 'recovery'
 
   useEffect(() => {
@@ -66,16 +69,32 @@ function App() {
   });
   const todayCapitalized = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1);
 
-  const handleLogin = (email, password) => {
-    // Validamos credenciales hardcodeadas (quemadas) tal cual pidieron
-    if (email === 'admin@elquisco.cl' && password === '123456') {
+  const handleLogin = async (email, password) => {
+    try {
+      const res = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!res.ok) {
+        return false;
+      }
+      const data = await res.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setCurrentUser(data.user);
       setIsAuthenticated(true);
       return true;
+    } catch (err) {
+      console.error("Login fetch error:", err);
+      return false;
     }
-    return false;
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setCurrentUser(null);
     setIsAuthenticated(false);
     setAuthView('login');
   };
@@ -152,6 +171,7 @@ function App() {
           onClose={() => setSidebarOpen(false)}
           pendingCount={infractions.filter(i => i.status === 'pending').length}
           onLogout={handleLogout}
+          currentUser={currentUser}
         />
       </div>
 
@@ -200,10 +220,19 @@ function App() {
               showToast={showToast}
               headerSearch={headerSearch}
               onClearHeaderSearch={() => setHeaderSearch('')}
+              currentUser={currentUser}
             />
           )}
-          {activeTab === 'usuarios' && (
+          {activeTab === 'usuarios' && currentUser?.role === 'Administrador' && (
             <UserManagementView showToast={showToast} />
+          )}
+          {activeTab === 'usuarios' && currentUser?.role !== 'Administrador' && (
+             <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm pb-10">
+               <Shield size={64} className="mb-4 text-slate-300" />
+               <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest">Acceso Denegado</h2>
+               <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role} no tiene privilegios operativos para gestionar usuarios.</p>
+               <button onClick={() => navigate('dashboard')} className="mt-6 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark shadow-sm">Volver al Resumen</button>
+             </div>
           )}
         </div>
       </main>
