@@ -9,9 +9,10 @@ const FILTERS = [
   { key: 'pending', label: 'Pendiente' },
   { key: 'accepted', label: 'Aceptada' },
   { key: 'exported', label: 'Exportada' },
+  { key: 'rejected', label: 'Rechazada' },
 ];
 
-export function InfraccionesView({ infractions, updateStatus, updateInfraction, showToast, headerSearch = '', onClearHeaderSearch }) {
+export function InfraccionesView({ infractions, updateStatus, updateInfraction, showToast, headerSearch = '', onClearHeaderSearch, currentUser }) {
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(headerSearch);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -34,9 +35,10 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
   const filtered = infractions.filter(inf => {
     const q = searchQuery.toLowerCase();
     const matchSearch = !q
-      || inf.plate.toLowerCase().includes(q)
-      || inf.infractionType.toLowerCase().includes(q)
-      || inf.id.toLowerCase().includes(q);
+      || (inf.vehicle?.plate || '').toLowerCase().includes(q)
+      || (inf.infractionDescription || '').toLowerCase().includes(q)
+      || (inf.numeroBoleta || '').toLowerCase().includes(q)
+      || (inf.numeroParte || '').toLowerCase().includes(q);
     const matchFilter = activeFilter === 'all' || inf.status === activeFilter;
     return matchSearch && matchFilter;
   });
@@ -97,10 +99,10 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
               <table className="w-full text-left border-collapse min-w-[640px]">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider sticky top-0">
-                    <th className="px-5 py-4">ID</th>
+                    <th className="px-5 py-4">Parte/Boleta</th>
                     <th className="px-5 py-4">Patente</th>
-                    <th className="px-5 py-4">Tipo</th>
-                    <th className="px-5 py-4">Fecha y Hora</th>
+                    <th className="px-5 py-4">Infracción</th>
+                    <th className="px-5 py-4">F. Citación</th>
                     <th className="px-5 py-4">Estado</th>
                     <th className="px-5 py-4"></th>
                   </tr>
@@ -112,15 +114,23 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
                       className="hover:bg-slate-50 transition-colors cursor-pointer"
                       onClick={() => setSelectedId(inf.id)}
                     >
-                      <td className="px-5 py-4 text-sm text-slate-500 font-mono">{inf.id}</td>
+                      <td className="px-5 py-4 text-sm text-slate-600 font-bold">
+                        P: {inf.numeroParte}<br/>
+                        <span className="text-xs text-slate-400 font-normal">B: {inf.numeroBoleta}</span>
+                      </td>
                       <td className="px-5 py-4">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-white font-mono text-sm font-bold tracking-widest uppercase">
-                          {inf.plate}
+                          {inf.vehicle?.plate}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-sm font-medium text-slate-700">{inf.infractionType}</td>
-                      <td className="px-5 py-4 text-sm text-slate-500">
-                        {new Date(inf.timestamp).toLocaleString('es-CL')}
+                      <td className="px-5 py-4">
+                        <div className="max-w-[150px] truncate" title={inf.infractionDescription}>
+                          <span className="text-xs font-bold text-primary mr-1">Cod {inf.infractionCode}</span>
+                          <span className="text-sm font-medium text-slate-700">{inf.infractionDescription}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-slate-600 font-semibold">
+                        {inf.tramitacion?.fechaCitacion}
                       </td>
                       <td className="px-5 py-4"><StatusBadge status={inf.status} /></td>
                       <td className="px-5 py-4 text-right">
@@ -149,13 +159,13 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-white font-mono text-sm font-bold tracking-widest uppercase">
-                  {inf.plate}
+                  {inf.vehicle?.plate}
                 </span>
                 <StatusBadge status={inf.status} />
               </div>
-              <p className="text-sm font-semibold text-slate-700 mb-1">{inf.infractionType}</p>
+              <p className="text-sm font-semibold text-slate-700 mb-1">{inf.infractionDescription}</p>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-slate-400">{new Date(inf.timestamp).toLocaleString('es-CL')}</p>
+                <p className="text-xs text-slate-400">Citación: {inf.tramitacion?.fechaCitacion}</p>
                 <span className="text-xs font-bold text-primary">Ver detalle →</span>
               </div>
             </button>
@@ -171,6 +181,7 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
           updateInfraction={updateInfraction}
           showToast={showToast}
           onClose={() => setSelectedId(null)}
+          currentUser={currentUser}
         />
       )}
     </div>

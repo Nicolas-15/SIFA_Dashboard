@@ -2,6 +2,7 @@ export const STATUS_MAP = {
   pending: { label: 'PENDIENTE', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
   accepted: { label: 'ACEPTADA', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   exported: { label: 'EXPORTADA', cls: 'bg-slate-100 text-slate-600 border-slate-200' },
+  rejected: { label: 'RECHAZADA', cls: 'bg-red-50 text-red-700 border-red-200' },
 };
 
 export function StatusBadge({ status, tiny = false }) {
