@@ -7,19 +7,21 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
     setIsLoading(true);
 
-    // Mock API call delay
-    setTimeout(() => {
-      setIsLoading(false);
-      const success = onLogin(email, password);
+    try {
+      const success = await onLogin(email, password);
       if (!success) {
         setLocalError('Correo o contraseña incorrectos. Verifica tus credenciales.');
       }
-    }, 1200);
+    } catch (err) {
+      setLocalError('Error de conexión con el sistema central.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
