@@ -67,7 +67,7 @@ export function UserManagementView({ showToast }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     // Validar RUT
     if (!/^\d{1,2}\.\d{3}\.\d{3}-[0-9K]$/.test(formData.rut)) {
       showToast('⚠️ El formato del RUT no es válido', 'error');
@@ -81,12 +81,12 @@ export function UserManagementView({ showToast }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || 'Error al crear');
       }
-      
+
       showToast('✅ Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
       setFormData({
@@ -109,7 +109,7 @@ export function UserManagementView({ showToast }) {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error('Error al actualizar');
-      
+
       setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
       showToast('✅ Estado de usuario actualizado', 'success');
     } catch (err) {
@@ -117,7 +117,7 @@ export function UserManagementView({ showToast }) {
     }
   };
 
-  const filteredUsers = users.filter(u => 
+  const filteredUsers = users.filter(u =>
     (u.name + ' ' + u.lastname + ' ' + u.rut + ' ' + u.email).toLowerCase().includes(search.toLowerCase())
   );
 
@@ -129,11 +129,11 @@ export function UserManagementView({ showToast }) {
           <h2 className="text-2xl font-black text-slate-800">Gestión de Usuarios</h2>
           <p className="text-sm text-slate-500">Administra los accesos y roles del sistema.</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
+            <input
               type="text"
               placeholder="Buscar usuario..."
               value={search}
@@ -141,7 +141,7 @@ export function UserManagementView({ showToast }) {
               className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-64"
             />
           </div>
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors shadow-sm"
           >
@@ -200,11 +200,10 @@ export function UserManagementView({ showToast }) {
                       <p className="text-xs text-slate-400">{user.phone}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
-                        user.role === 'Administrador' ? 'bg-purple-100 text-purple-700' :
-                        user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
-                        'bg-amber-100 text-amber-700'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Administrador' ? 'bg-purple-100 text-purple-700' :
+                          user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
+                            'bg-amber-100 text-amber-700'
+                        }`}>
                         {user.role}
                       </span>
                     </td>
@@ -222,13 +221,12 @@ export function UserManagementView({ showToast }) {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button 
+                      <button
                         onClick={() => toggleStatus(user.id, user.status)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                          user.status === 'active' 
-                            ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${user.status === 'active'
+                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
                             : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                        }`}
+                          }`}
                       >
                         {user.status === 'active' ? 'Revocar' : 'Activar'}
                       </button>
@@ -251,7 +249,7 @@ export function UserManagementView({ showToast }) {
                 <h3 className="text-xl font-black text-slate-800">Crear Nuevo Usuario</h3>
                 <p className="text-sm text-slate-500">Completa los datos del nuevo funcionario.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
               >
@@ -267,10 +265,10 @@ export function UserManagementView({ showToast }) {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Nombres</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        required 
+                      <input
+                        required
                         value={formData.name}
-                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         placeholder="Juan"
                       />
@@ -278,10 +276,10 @@ export function UserManagementView({ showToast }) {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Apellidos</label>
-                    <input 
-                      required 
+                    <input
+                      required
                       value={formData.lastname}
-                      onChange={e => setFormData({...formData, lastname: e.target.value})}
+                      onChange={e => setFormData({ ...formData, lastname: e.target.value })}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       placeholder="Pérez"
                     />
@@ -293,8 +291,8 @@ export function UserManagementView({ showToast }) {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">RUT (Chileno)</label>
                     <div className="relative">
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        required 
+                      <input
+                        required
                         value={formData.rut}
                         onChange={handleRutChange}
                         maxLength={12}
@@ -307,8 +305,8 @@ export function UserManagementView({ showToast }) {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Teléfono (+569)</label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        required 
+                      <input
+                        required
                         value={formData.phone}
                         onChange={handlePhoneChange}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
@@ -322,11 +320,11 @@ export function UserManagementView({ showToast }) {
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Correo Institucional</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input 
-                      required 
+                    <input
+                      required
                       type="email"
                       value={formData.email}
-                      onChange={e => setFormData({...formData, email: e.target.value})}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       placeholder="correo@elquisco.cl"
                     />
@@ -338,12 +336,12 @@ export function UserManagementView({ showToast }) {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        required 
+                      <input
+                        required
                         type="password"
                         minLength={6}
                         value={formData.password}
-                        onChange={e => setFormData({...formData, password: e.target.value})}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         placeholder="••••••••"
                       />
@@ -353,9 +351,9 @@ export function UserManagementView({ showToast }) {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Rol en el Sistema</label>
                     <div className="relative">
                       <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <select 
+                      <select
                         value={formData.role}
-                        onChange={e => setFormData({...formData, role: e.target.value})}
+                        onChange={e => setFormData({ ...formData, role: e.target.value })}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
                       >
                         <option value="Administrador">Administrador</option>
@@ -370,14 +368,14 @@ export function UserManagementView({ showToast }) {
 
             {/* Footer Modal */}
             <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl shrink-0 flex items-center justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 rounded-xl transition-colors"
                 type="button"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="submit"
                 form="createUserForm"
                 disabled={submitting}

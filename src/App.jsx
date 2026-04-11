@@ -8,6 +8,20 @@ import { LoginView } from './components/auth/LoginView';
 import { RecoveryView } from './components/auth/RecoveryView';
 import { UserManagementView } from './components/usuarios/UserManagementView';
 
+// Función para decodificar JWT sin librerías externas
+const decodeJWT = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [infractions, setInfractions] = useState([]);
@@ -71,18 +85,38 @@ function App() {
 
   const handleLogin = async (email, password) => {
     try {
-      const res = await fetch('http://localhost:8000/login', {
+      const res = await fetch('/auth-api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username: email, password })
       });
       if (!res.ok) {
         return false;
       }
       const data = await res.json();
+      
+      // Decodificar token para obtener roles y simular el objeto user que el frontend espera
+      const payload = decodeJWT(data.token);
+      let userRole = "Administrativo JPL";
+      
+      if (payload && payload.roles) {
+        if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN")) {
+          userRole = "Administrador";
+        }
+      }
+
+      // Crear un objeto de usuario compatible con el Dashboard
+      const mappedUser = {
+        name: data.username || payload?.sub || email,
+        lastname: "(Autenticado vía JWT)",
+        rut: "00.000.000-0",
+        email: email,
+        role: userRole
+      };
+
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setCurrentUser(data.user);
+      localStorage.setItem('user', JSON.stringify(mappedUser));
+      setCurrentUser(mappedUser);
       setIsAuthenticated(true);
       return true;
     } catch (err) {
@@ -135,13 +169,13 @@ function App() {
     return (
       <div className="h-screen w-full font-sans text-slate-800 bg-slate-900">
         {authView === 'login' ? (
-          <LoginView 
-            onLogin={handleLogin} 
-            onNavigateToRecovery={() => setAuthView('recovery')} 
+          <LoginView
+            onLogin={handleLogin}
+            onNavigateToRecovery={() => setAuthView('recovery')}
           />
         ) : (
-          <RecoveryView 
-            onNavigateToLogin={() => setAuthView('login')} 
+          <RecoveryView
+            onNavigateToLogin={() => setAuthView('login')}
           />
         )}
       </div>
@@ -227,12 +261,12 @@ function App() {
             <UserManagementView showToast={showToast} />
           )}
           {activeTab === 'usuarios' && currentUser?.role !== 'Administrador' && (
-             <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm pb-10">
-               <Shield size={64} className="mb-4 text-slate-300" />
-               <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest">Acceso Denegado</h2>
-               <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role} no tiene privilegios operativos para gestionar usuarios.</p>
-               <button onClick={() => navigate('dashboard')} className="mt-6 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark shadow-sm">Volver al Resumen</button>
-             </div>
+            <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm pb-10">
+              <Shield size={64} className="mb-4 text-slate-300" />
+              <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest">Acceso Denegado</h2>
+              <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role} no tiene privilegios operativos para gestionar usuarios.</p>
+              <button onClick={() => navigate('dashboard')} className="mt-6 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark shadow-sm">Volver al Resumen</button>
+            </div>
           )}
         </div>
       </main>

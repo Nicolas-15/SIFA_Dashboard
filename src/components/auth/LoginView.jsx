@@ -65,15 +65,15 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-2 ml-1">
-                  Correo Institucional
+                  Usuario o Correo Institucional
                 </label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@elquisco.cl"
+                    placeholder="nicolas o admin@elquisco.cl"
                     required
                     className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl outline-none focus:bg-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
                   />
@@ -135,7 +135,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
         {/* Helper Note for testing */}
         <div className="mt-8 text-center opacity-40">
           <p className="text-[10px] text-slate-200">
-            Login de prueba: admin@elquisco.cl / 123456
+            Login de prueba: nicolas o admin@elquisco.cl / 123456
           </p>
         </div>
 
