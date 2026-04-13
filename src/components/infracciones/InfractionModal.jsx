@@ -60,8 +60,11 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
     let cleanVal = val.replace(/[^0-9kK]/g, '').toUpperCase();
     if (cleanVal.length === 0) return '';
     if (cleanVal.length <= 1) return cleanVal;
-    const body = cleanVal.slice(0, -1);
+    const body = cleanVal.slice(0, -1).replace(/K/g, ''); // Evitar 'K' adicionales en el cuerpo
     const dv = cleanVal.slice(-1);
+    
+    if (!body && dv) return dv;
+
     let formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `${formattedBody}-${dv}`;
   };

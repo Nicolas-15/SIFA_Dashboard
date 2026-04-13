@@ -39,7 +39,7 @@ function App() {
   const [authView, setAuthView] = useState('login'); // 'login' o 'recovery'
 
   useEffect(() => {
-    fetch('http://localhost:8000/infractions', {
+    fetch('/api/infractions', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
@@ -55,7 +55,7 @@ function App() {
       prev.map(inf => inf.id === id ? { ...inf, status: newStatus } : inf)
     );
     try {
-      const res = await fetch(`http://localhost:8000/infractions/${id}`, {
+      const res = await fetch(`/api/infractions/${id}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ function App() {
             Asegúrate de que <span className="font-mono font-bold text-slate-700">FAKE_API</span> esté corriendo en el puerto 8000.
           </p>
           <button
-            onClick={() => { setError(false); setLoading(true); fetch('http://localhost:8000/infractions', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).then(d => { setInfractions(d); setLoading(false); }).catch(() => { setError(true); setLoading(false); }); }}
+            onClick={() => { setError(false); setLoading(true); fetch('/api/infractions', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).then(d => { setInfractions(d); setLoading(false); }).catch(() => { setError(true); setLoading(false); }); }}
             className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors"
           >
             Reintentar conexión

@@ -23,7 +23,7 @@ export function UserManagementView({ showToast }) {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (!res.ok) throw new Error('Error fetch');
       const data = await res.json();
       setUsers(data);
@@ -41,8 +41,12 @@ export function UserManagementView({ showToast }) {
   const formatRUT = (value) => {
     let rut = value.replace(/[^0-9kK]/g, '').toUpperCase();
     if (rut.length <= 1) return rut;
-    let body = rut.slice(0, -1);
+    let body = rut.slice(0, -1).replace(/K/g, ''); // Evitar 'K' adicionales en el cuerpo
     let dv = rut.slice(-1);
+    
+    // Si al borrar las 'K' extras nos quedamos sin body, solo devolvemos el dv
+    if (!body && dv) return dv;
+
     body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `${body}-${dv}`;
   };
@@ -76,7 +80,7 @@ export function UserManagementView({ showToast }) {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/users', {
+      const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -106,7 +110,7 @@ export function UserManagementView({ showToast }) {
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'revoked' : 'active';
     try {
-      const res = await fetch(`http://localhost:8000/users/${id}/status`, {
+      const res = await fetch(`/api/users/${id}/status`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
