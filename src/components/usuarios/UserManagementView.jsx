@@ -23,7 +23,7 @@ export function UserManagementView({ showToast }) {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/users');
+      const res = await fetch('http://localhost:8000/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (!res.ok) throw new Error('Error fetch');
       const data = await res.json();
       setUsers(data);
@@ -78,7 +78,10 @@ export function UserManagementView({ showToast }) {
     try {
       const res = await fetch('http://localhost:8000/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(formData)
       });
 
@@ -105,7 +108,10 @@ export function UserManagementView({ showToast }) {
     try {
       const res = await fetch(`http://localhost:8000/users/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error('Error al actualizar');

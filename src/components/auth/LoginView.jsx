@@ -26,7 +26,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 relative overflow-hidden">
-      
+
       {/* Background decorations */}
       <div className="absolute inset-0 bg-slate-900 pointer-events-none" />
       <div className="absolute top-0 w-full h-[500px] pointer-events-none overflow-hidden">
@@ -35,7 +35,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
       </div>
 
       <div className="w-full max-w-sm px-4 relative z-10">
-        
+
         {/* Header/Logo */}
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 mb-6 relative overflow-hidden group">
@@ -53,7 +53,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
         {/* Form Card */}
         <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-3xl shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-5">
-            
+
             {(localError || extError) && (
               <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-xl">
                 <p className="text-xs text-red-200 text-center font-medium">
@@ -122,7 +122,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
 
           {/* Footer link */}
           <div className="mt-6 text-center">
-            <button 
+            <button
               onClick={onNavigateToRecovery}
               type="button"
               className="text-xs text-slate-400 font-medium hover:text-white transition-colors"
@@ -131,7 +131,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             </button>
           </div>
         </div>
-        
+
         {/* Helper Note for testing */}
         <div className="mt-8 text-center opacity-40">
           <p className="text-[10px] text-slate-200">
