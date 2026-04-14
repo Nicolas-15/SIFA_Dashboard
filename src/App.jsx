@@ -25,7 +25,8 @@ const decodeJWT = (token) => {
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [infractions, setInfractions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // loading arranca en false: no hay fetch hasta que el usuario se autentique
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -38,16 +39,29 @@ function App() {
   });
   const [authView, setAuthView] = useState('login'); // 'login' o 'recovery'
 
-  useEffect(() => {
+  /**
+   * Carga (o recarga) las infracciones desde la API.
+   * Solo debe llamarse cuando el usuario está autenticado.
+   */
+  const fetchInfractions = () => {
+    setLoading(true);
+    setError(false);
     fetch('/api/infractions', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
-      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
       .then(data => { setInfractions(data); setLoading(false); })
-      .catch(err => { console.error('Error fetching data:', err); setError(true); setLoading(false); });
-  }, []);
+      .catch(err => { console.error('Error fetching infractions:', err); setError(true); setLoading(false); });
+  };
+
+  // Cargar infracciones solo cuando el usuario está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchInfractions();
+    }
+  }, [isAuthenticated]);
 
   /* Actualiza el estado localmente (optimista) y persiste en la API */
   const updateStatus = async (id, newStatus) => {
@@ -102,22 +116,24 @@ function App() {
       }
       const data = await res.json();
       
-      // Decodificar token para obtener roles y simular el objeto user que el frontend espera
+      // Decodificar token para obtener roles y construir el objeto usuario
       const payload = decodeJWT(data.token);
       let userRole = "Administrativo JPL";
       
       if (payload && payload.roles) {
         if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN")) {
           userRole = "Administrador";
+        } else if (payload.roles.includes("SUPERVISOR")) {
+          userRole = "Supervisor";
         }
       }
 
-      // Crear un objeto de usuario compatible con el Dashboard
+      // Si el payload trae name/lastname (Cambio 5 futuro), usarlos; sino fallback al username
       const mappedUser = {
-        name: data.username || payload?.sub || email,
-        lastname: "(Autenticado vía JWT)",
-        rut: "00.000.000-0",
-        email: email,
+        name: payload?.name || data.username || payload?.sub || email,
+        lastname: payload?.lastname || "(JWT)",
+        rut: payload?.rut || "00.000.000-0",
+        email: payload?.email || email,
         role: userRole
       };
 
@@ -125,6 +141,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(mappedUser));
       setCurrentUser(mappedUser);
       setIsAuthenticated(true);
+      // fetchInfractions() se dispara automáticamente via useEffect([isAuthenticated])
       return true;
     } catch (err) {
       console.error("Login fetch error:", err);
@@ -137,13 +154,42 @@ function App() {
     localStorage.removeItem('user');
     setCurrentUser(null);
     setIsAuthenticated(false);
+    setInfractions([]); // limpiar datos al cerrar sesión
+    setError(false);
+    setLoading(false);
     setAuthView('login');
   };
+
+  // ── ORDEN CORRECTO DE RENDERS ──
+  // 1ro: auth guard → el login NUNCA queda bloqueado por spinner o error de API
+  // 2do: loading (solo ocurre post-login)
+  // 3ro: error de conexión (solo ocurre post-login)
+  // 4to: dashboard completo
+
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen w-full font-sans text-slate-800 bg-slate-900">
+        {authView === 'login' ? (
+          <LoginView
+            onLogin={handleLogin}
+            onNavigateToRecovery={() => setAuthView('recovery')}
+          />
+        ) : (
+          <RecoveryView
+            onNavigateToLogin={() => setAuthView('login')}
+          />
+        )}
+      </div>
+    );
+  }
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+          <p className="text-sm text-slate-500 font-medium">Cargando infracciones...</p>
+        </div>
       </div>
     );
   }
@@ -161,30 +207,12 @@ function App() {
             Asegúrate de que <span className="font-mono font-bold text-slate-700">FAKE_API</span> esté corriendo en el puerto 8000.
           </p>
           <button
-            onClick={() => { setError(false); setLoading(true); fetch('/api/infractions', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()).then(d => { setInfractions(d); setLoading(false); }).catch(() => { setError(true); setLoading(false); }); }}
+            onClick={fetchInfractions}
             className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors"
           >
             Reintentar conexión
           </button>
         </div>
-      </div>
-    );
-  }
-
-  // Si no está autenticado, interceptamos todo y dibujamos las pantallas de acceso
-  if (!isAuthenticated) {
-    return (
-      <div className="h-screen w-full font-sans text-slate-800 bg-slate-900">
-        {authView === 'login' ? (
-          <LoginView
-            onLogin={handleLogin}
-            onNavigateToRecovery={() => setAuthView('recovery')}
-          />
-        ) : (
-          <RecoveryView
-            onNavigateToLogin={() => setAuthView('login')}
-          />
-        )}
       </div>
     );
   }
@@ -262,6 +290,7 @@ function App() {
               headerSearch={headerSearch}
               onClearHeaderSearch={() => setHeaderSearch('')}
               currentUser={currentUser}
+              onRefresh={fetchInfractions}
             />
           )}
           {activeTab === 'usuarios' && currentUser?.role === 'Administrador' && (
