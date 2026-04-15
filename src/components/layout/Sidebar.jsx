@@ -1,4 +1,5 @@
-import { X, User, Users, LayoutDashboard, Receipt, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle } from 'lucide-react';
 
 function NavItem({ icon, label, active, onClick, badge }) {
   return (
@@ -29,6 +30,8 @@ function NavItem({ icon, label, active, onClick, badge }) {
 }
 
 export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLogout, currentUser }) {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
 
@@ -76,28 +79,57 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
         )}
       </nav>
 
-      {/* Usuario */}
+      {/* Usuario + Logout */}
       <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
-            <User size={18} className="text-slate-300" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-white truncate">
-              {currentUser ? `${currentUser.name} ${currentUser.lastname}` : 'Cargando...'}
+
+        {/* Panel de confirmación de logout */}
+        {showLogoutConfirm ? (
+          <div className="bg-slate-800 border border-red-500/30 rounded-xl p-3 space-y-3 animate-in slide-in-from-bottom-2 duration-200">
+            <div className="flex items-center gap-2 text-red-400">
+              <AlertTriangle size={15} className="shrink-0" />
+              <p className="text-xs font-bold">¿Cerrar sesión?</p>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Perderás el acceso hasta que vuelvas a iniciar sesión.
             </p>
-            <p className="text-xs text-slate-400">
-              {currentUser ? currentUser.role : '...'}
-            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-1.5 text-xs font-bold text-slate-300 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={onLogout}
+                className="flex-1 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Sí, salir
+              </button>
+            </div>
           </div>
-          <button 
-            onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors group relative"
-            title="Cerrar sesión"
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+              <User size={18} className="text-slate-300" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-white truncate">
+                {currentUser ? `${currentUser.name} ${currentUser.lastname}` : 'Cargando...'}
+              </p>
+              <p className="text-xs text-slate-400">
+                {currentUser ? currentUser.role : '...'}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        )}
+
       </div>
     </aside>
   );
