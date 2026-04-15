@@ -131,14 +131,6 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             </button>
           </div>
         </div>
-
-        {/* Helper Note for testing */}
-        <div className="mt-8 text-center opacity-40">
-          <p className="text-[10px] text-slate-200">
-            Login de prueba: nicolas o admin@elquisco.cl / 123456
-          </p>
-        </div>
-
       </div>
     </div>
   );

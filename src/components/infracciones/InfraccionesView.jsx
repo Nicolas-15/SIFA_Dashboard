@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Receipt } from 'lucide-react';
+import { Search, X, Receipt, RefreshCw } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
 import { EmptyState } from '../ui/EmptyState';
 import { InfractionModal } from './InfractionModal';
@@ -12,10 +12,11 @@ const FILTERS = [
   { key: 'rejected', label: 'Rechazada' },
 ];
 
-export function InfraccionesView({ infractions, updateStatus, updateInfraction, showToast, headerSearch = '', onClearHeaderSearch, currentUser }) {
+export function InfraccionesView({ infractions, updateStatus, updateInfraction, showToast, headerSearch = '', onClearHeaderSearch, currentUser, onRefresh }) {
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(headerSearch);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [refreshing, setRefreshing] = useState(false);
 
   /* Sincronizar con el buscador del header cuando cambia */
   useEffect(() => {
@@ -68,8 +69,8 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
           )}
         </div>
 
-        {/* Filtros de estado */}
-        <div className="flex gap-2 flex-wrap">
+        {/* Filtros de estado + botón actualizar */}
+        <div className="flex gap-2 flex-wrap items-center">
           {filters.map(f => (
             <button
               key={f.key}
@@ -87,6 +88,14 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
               </span>
             </button>
           ))}
+          <button
+            onClick={async () => { setRefreshing(true); await onRefresh?.(); setRefreshing(false); }}
+            title="Actualizar infracciones"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary transition-all duration-150 ml-auto"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Actualizando...' : 'Actualizar'}
+          </button>
         </div>
       </div>
 
@@ -115,7 +124,7 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
                       onClick={() => setSelectedId(inf.id)}
                     >
                       <td className="px-5 py-4 text-sm text-slate-600 font-bold">
-                        P: {inf.numeroParte}<br/>
+                        P: {inf.numeroParte}<br />
                         <span className="text-xs text-slate-400 font-normal">B: {inf.numeroBoleta}</span>
                       </td>
                       <td className="px-5 py-4">
@@ -124,9 +133,9 @@ export function InfraccionesView({ infractions, updateStatus, updateInfraction, 
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="max-w-[150px] truncate" title={inf.infractionDescription}>
-                          <span className="text-xs font-bold text-primary mr-1">Cod {inf.infractionCode}</span>
-                          <span className="text-sm font-medium text-slate-700">{inf.infractionDescription}</span>
+                        <div className="max-w-[300px]">
+                          <p className="text-xs font-bold text-primary">Cod {inf.infractionCode}</p>
+                          <p className="text-sm font-medium text-slate-700 truncate" title={inf.infractionDescription}>{inf.infractionDescription}</p>
                         </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-600 font-semibold">

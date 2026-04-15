@@ -32,8 +32,20 @@ function App() {
   const [toast, setToast] = useState(null);
   const [headerSearch, setHeaderSearch] = useState('');
 
-  // Estados de Autenticación
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  // Estados de Autenticación — valida expiración del token al arrancar
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    const payload = decodeJWT(token);
+    // Si el token no es un JWT válido o ya expiró, limpiar y forzar login
+    if (!payload) { localStorage.removeItem('token'); localStorage.removeItem('user'); return false; }
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return false;
+    }
+    return true;
+  });
   const [currentUser, setCurrentUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')); } catch (e) { return null; }
   });
@@ -128,11 +140,13 @@ function App() {
         }
       }
 
-      // Si el payload trae name/lastname (Cambio 5 futuro), usarlos; sino fallback al username
+      // Si el payload trae name/lastname los usamos; sino usamos el username/email como nombre
+      const displayName = payload?.name || data.username || payload?.sub || email;
+      const displayLastname = payload?.lastname || '';
       const mappedUser = {
-        name: payload?.name || data.username || payload?.sub || email,
-        lastname: payload?.lastname || "(JWT)",
-        rut: payload?.rut || "00.000.000-0",
+        name: displayName,
+        lastname: displayLastname,
+        rut: payload?.rut || '',
         email: payload?.email || email,
         role: userRole
       };
