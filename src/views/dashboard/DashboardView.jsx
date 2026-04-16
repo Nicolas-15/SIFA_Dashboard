@@ -3,8 +3,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
-import { KpiCard } from '../ui/KpiCard';
-import { StatusBadge } from '../ui/StatusBadge';
+import { KpiCard } from '../../components/ui/KpiCard';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 
 const BAR_COLORS = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
 

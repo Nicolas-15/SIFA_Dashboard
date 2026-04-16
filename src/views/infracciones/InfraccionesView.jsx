@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, X, Receipt, RefreshCw } from 'lucide-react';
-import { StatusBadge } from '../ui/StatusBadge';
-import { EmptyState } from '../ui/EmptyState';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { InfractionModal } from './InfractionModal';
 
 const FILTERS = [

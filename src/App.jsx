@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Search, Menu, Shield } from 'lucide-react';
 import { Sidebar } from './components/layout/Sidebar';
 import { Toast } from './components/ui/Toast';
-import { DashboardView } from './components/dashboard/DashboardView';
-import { InfraccionesView } from './components/infracciones/InfraccionesView';
-import { LoginView } from './components/auth/LoginView';
-import { RecoveryView } from './components/auth/RecoveryView';
-import { UserManagementView } from './components/usuarios/UserManagementView';
+import { DashboardView } from './views/dashboard/DashboardView';
+import { InfraccionesView } from './views/infracciones/InfraccionesView';
+import { LoginView } from './views/auth/LoginView';
+import { RecoveryView } from './views/auth/RecoveryView';
+import { UserManagementView } from './views/usuarios/UserManagementView';
 
 // Función para decodificar JWT sin librerías externas
 const decodeJWT = (token) => {

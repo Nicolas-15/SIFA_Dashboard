@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { X, MapPin, Clock, Car, Download, CheckCircle, Pencil, Save, RotateCcw, AlertTriangle, User } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { StatusBadge, STATUS_MAP } from '../ui/StatusBadge';
+import { StatusBadge, STATUS_MAP } from '../../components/ui/StatusBadge';
 
 const VEHICLE_TYPES = ['Automóvil', 'Camioneta', 'Furgón', 'Motocicleta', 'Camión', 'Bus'];
 const VEHICLE_COLORS = ['Blanco', 'Negro', 'Gris', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Plateado', 'Café', 'Naranja'];
