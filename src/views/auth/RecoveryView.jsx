@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Mail, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export function RecoveryView({ onNavigateToLogin }) {
   const [email, setEmail] = useState('');
@@ -61,38 +63,26 @@ export function RecoveryView({ onNavigateToLogin }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2 ml-1">
-                  Correo Institucional
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ejemplo@elquisco.cl"
-                    required
-                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl outline-none focus:bg-white/10 focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all text-sm font-medium"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Correo Institucional"
+                icon={Mail}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@elquisco.cl"
+                required
+                variant="dark"
+                className="focus:border-secondary focus:ring-secondary/20"
+              />
 
-              <button
+              <Button
                 type="submit"
-                disabled={isLoading}
-                className={`
-                  w-full py-3.5 rounded-xl font-bold text-sm tracking-wide text-slate-900 
-                  transition-all duration-300 flex items-center justify-center gap-2
-                  ${isLoading ? 'bg-secondary/70 cursor-wait' : 'bg-secondary hover:bg-[#fcda46] hover:shadow-lg hover:shadow-secondary/20 hover:-translate-y-0.5'}
-                `}
+                isLoading={isLoading}
+                variant="secondary"
+                className="text-slate-900 bg-secondary hover:bg-[#fcda46]"
               >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
-                ) : (
-                  <span>Recuperar Contraseña</span>
-                )}
-              </button>
+                Recuperar Contraseña
+              </Button>
             </form>
           )}
 

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
 
     try {
       const success = await onLogin(email, password);
+      // Si success es false, el context devolvió un error (localError)
       if (!success) {
         setLocalError('Correo o contraseña incorrectos. Verifica tus credenciales.');
       }
@@ -63,61 +66,38 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             )}
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2 ml-1">
-                  Usuario o Correo Institucional
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nicolas o admin@elquisco.cl"
-                    required
-                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl outline-none focus:bg-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Usuario o Correo Institucional"
+                icon={Mail}
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nicolas o admin@elquisco.cl"
+                required
+                variant="dark"
+              />
 
-              <div>
-                <div className="flex items-center justify-between mb-2 ml-1">
-                  <label className="block text-xs font-semibold text-slate-300">
-                    Contraseña
-                  </label>
-                </div>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-slate-500 rounded-xl outline-none focus:bg-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium tracking-wider"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Contraseña"
+                icon={Lock}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                variant="dark"
+                className="tracking-wider"
+              />
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className={`
-                w-full py-3.5 rounded-xl font-bold text-sm tracking-wide text-white 
-                shadow-lg transition-all duration-300 flex items-center justify-center gap-2
-                ${isLoading ? 'bg-primary/70 cursor-wait shadow-none' : 'bg-primary hover:bg-primary/90 hover:shadow-primary/50 hover:-translate-y-0.5'}
-              `}
+              isLoading={isLoading}
+              loadingText="Autenticando..."
+              variant="primary"
             >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Autenticando...</span>
-                </>
-              ) : (
-                <span>Ingresar al Sistema</span>
-              )}
-            </button>
+              Ingresar al Sistema
+            </Button>
           </form>
 
           {/* Footer link */}
