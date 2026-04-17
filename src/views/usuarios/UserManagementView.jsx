@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle } from 'lucide-react';
 
-export function UserManagementView({ showToast }) {
+import { useOutletContext } from 'react-router-dom';
+
+export function UserManagementView() {
+  const { showToast } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

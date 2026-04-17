@@ -4,6 +4,8 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { InfractionModal } from './InfractionModal';
 
+import { useOutletContext } from 'react-router-dom';
+
 const FILTERS = [
   { key: 'all', label: 'Todas' },
   { key: 'pending', label: 'Pendiente' },
@@ -12,7 +14,8 @@ const FILTERS = [
   { key: 'rejected', label: 'Rechazada' },
 ];
 
-export function InfraccionesView({ infractions, updateStatus, updateInfraction, showToast, headerSearch = '', onClearHeaderSearch, currentUser, onRefresh }) {
+export function InfraccionesView() {
+  const { infractions, updateStatus, updateInfractionLocal: updateInfraction, showToast, headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser } = useOutletContext();
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(headerSearch);
   const [activeFilter, setActiveFilter] = useState('all');

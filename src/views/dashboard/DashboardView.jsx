@@ -17,7 +17,10 @@ function getDashboardStats(infractions) {
   };
 }
 
-export function DashboardView({ infractions }) {
+import { useOutletContext } from 'react-router-dom';
+
+export function DashboardView() {
+  const { infractions } = useOutletContext();
   const stats = getDashboardStats(infractions);
 
   /* Agrupa infracciones por tipo para el gráfico de barras */
