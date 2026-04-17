@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-function NavItem({ icon, label, active, onClick, badge }) {
+function NavItem({ icon, label, path, badge }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const active = location.pathname.includes(path);
+
   return (
     <button
-      onClick={onClick}
+      onClick={() => navigate(`/${path}`)}
       className={`
         w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
         transition-all duration-150 text-sm font-semibold
@@ -29,7 +34,7 @@ function NavItem({ icon, label, active, onClick, badge }) {
   );
 }
 
-export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLogout, currentUser }) {
+export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
@@ -38,17 +43,16 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
       {/* Logo */}
       <div className="p-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-lg shrink-0">
-            S
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-lg shrink-0 overflow-hidden relative group">
+            <ShieldCheck size={20} className="relative z-10" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-widest text-white leading-tight">
-              SIFA <span className="text-secondary">El Quisco</span>
+              SIFA <span className="text-secondary text-xs align-top font-black">PRO</span>
             </h1>
             <p className="text-[10px] text-slate-400 mt-0.5">I. Municipalidad de El Quisco</p>
           </div>
         </div>
-        {/* Botón cerrar — solo en móvil */}
         <button onClick={onClose} className="md:hidden p-1 text-slate-400 hover:text-white">
           <X size={18} />
         </button>
@@ -59,30 +63,25 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
         <NavItem
           icon={<LayoutDashboard size={18} />}
           label="Dashboard"
-          active={activeTab === 'dashboard'}
-          onClick={() => onNavigate('dashboard')}
+          path="dashboard"
         />
         <NavItem
           icon={<Receipt size={18} />}
           label="Infracciones"
-          active={activeTab === 'infracciones'}
-          onClick={() => onNavigate('infracciones')}
+          path="infracciones"
           badge={pendingCount}
         />
         {currentUser?.role === 'Administrador' && (
           <NavItem
             icon={<Users size={18} />}
             label="Gestión de Usuarios"
-            active={activeTab === 'usuarios'}
-            onClick={() => onNavigate('usuarios')}
+            path="usuarios"
           />
         )}
       </nav>
 
       {/* Usuario + Logout */}
       <div className="p-4 border-t border-white/10">
-
-        {/* Panel de confirmación de logout */}
         {showLogoutConfirm ? (
           <div className="bg-slate-800 border border-red-500/30 rounded-xl p-3 space-y-3 animate-in slide-in-from-bottom-2 duration-200">
             <div className="flex items-center gap-2 text-red-400">
@@ -116,7 +115,7 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
               <p className="text-sm font-semibold text-white truncate">
                 {currentUser ? `${currentUser.name} ${currentUser.lastname}` : 'Cargando...'}
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-[10px] text-slate-400">
                 {currentUser ? currentUser.role : '...'}
               </p>
             </div>
@@ -129,7 +128,6 @@ export function Sidebar({ activeTab, onNavigate, onClose, pendingCount = 0, onLo
             </button>
           </div>
         )}
-
       </div>
     </aside>
   );
