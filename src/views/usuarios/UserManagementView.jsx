@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 
 import { useOutletContext } from 'react-router-dom';
+import { SYSTEM_ROLES } from '../../utils/constants';
 
 export function UserManagementView() {
   const { showToast } = useOutletContext();
@@ -20,7 +21,7 @@ export function UserManagementView() {
     email: '',
     phone: '+569',
     password: '',
-    role: 'Administrativo JPL',
+    role: SYSTEM_ROLES.DEFAULT,
     status: 'active'
   });
 
@@ -107,7 +108,7 @@ export function UserManagementView() {
       showToast('Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
       setFormData({
-        name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: 'Administrativo JPL', status: 'active'
+        name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: SYSTEM_ROLES.DEFAULT, status: 'active'
       });
       fetchUsers();
     } catch (err) {
@@ -238,8 +239,8 @@ export function UserManagementView() {
                       <p className="text-xs text-slate-400">{user.phone}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Administrador' ? 'bg-purple-100 text-purple-700' :
-                        user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
+                        user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' :
                           'bg-amber-100 text-amber-700'
                         }`}>
                         {user.role}
@@ -411,9 +412,9 @@ export function UserManagementView() {
                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
                       >
-                        <option value="Administrador">Administrador</option>
-                        <option value="Supervisor">Supervisor</option>
-                        <option value="Administrativo JPL">Administrativo JPL</option>
+                        {Object.values(SYSTEM_ROLES).map(role => (
+                          <option key={role} value={role}>{role}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

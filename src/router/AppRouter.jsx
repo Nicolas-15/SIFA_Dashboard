@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth, AuthProvider } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { SYSTEM_ROLES } from '../utils/constants';
 
 // Vistas
 import { LoginView } from '../views/auth/LoginView';
@@ -18,12 +19,12 @@ const ProtectedRoute = ({ children }) => {
 
 const AdminRoute = ({ children }) => {
   const { currentUser } = useAuth();
-  if (currentUser?.role !== 'Administrador') {
+  if (currentUser?.role !== SYSTEM_ROLES.ADMIN) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm pb-10">
         <Shield size={64} className="mb-4 text-slate-300" />
         <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest">Acceso Denegado</h2>
-        <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role} no tiene privilegios operativos para gestionar usuarios.</p>
+        <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role || 'Invitado'} no tiene privilegios operativos para gestionar usuarios.</p>
       </div>
     );
   }

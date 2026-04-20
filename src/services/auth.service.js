@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { SYSTEM_ROLES } from '../utils/constants';
 
 export const decodeJWT = (token) => {
   try {
@@ -13,31 +14,38 @@ export const decodeJWT = (token) => {
   }
 };
 
+export const getUserFromToken = (token) => {
+  const payload = decodeJWT(token);
+  if (!payload) return null;
+
+  let userRole = SYSTEM_ROLES.DEFAULT;
+  if (payload.roles) {
+    if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN")) {
+      userRole = SYSTEM_ROLES.ADMIN;
+    } else if (payload.roles.includes("SUPERVISOR")) {
+      userRole = SYSTEM_ROLES.SUPERVISOR;
+    }
+  }
+
+  return {
+    name: payload.name || payload.sub,
+    lastname: payload.lastname || '',
+    rut: payload.rut || '',
+    email: payload.email || payload.sub,
+    role: userRole
+  };
+};
+
 export const login = async (email, password) => {
   const data = await apiFetch('/auth-api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username: email, password })
   });
 
-  const payload = decodeJWT(data.token);
-  let userRole = "Administrativo JPL";
-  
-  if (payload && payload.roles) {
-    if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN")) {
-      userRole = "Administrador";
-    } else if (payload.roles.includes("SUPERVISOR")) {
-      userRole = "Supervisor";
-    }
-  }
-
-  const displayName = payload?.name || data.username || payload?.sub || email;
-  const displayLastname = payload?.lastname || '';
-  const mappedUser = {
-    name: displayName,
-    lastname: displayLastname,
-    rut: payload?.rut || '',
-    email: payload?.email || email,
-    role: userRole
+  const mappedUser = getUserFromToken(data.token) || { 
+    name: data.username || email, 
+    email: email, 
+    role: SYSTEM_ROLES.DEFAULT
   };
 
   return { token: data.token, user: mappedUser };
