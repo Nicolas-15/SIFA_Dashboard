@@ -72,7 +72,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nicolas o admin@elquisco.cl"
+                placeholder="usuario@correo.com"
                 required
                 variant="dark"
               />

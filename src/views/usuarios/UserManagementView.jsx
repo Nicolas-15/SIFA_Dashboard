@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle } from 'lucide-react';
+import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 
 import { useOutletContext } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ export function UserManagementView() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ export function UserManagementView() {
       const data = await res.json();
       setUsers(data);
     } catch (err) {
-      showToast('⚠️ No se pudieron cargar los usuarios', 'error');
+      showToast('No se pudieron cargar los usuarios', 'error');
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export function UserManagementView() {
     if (rut.length <= 1) return rut;
     let body = rut.slice(0, -1).replace(/K/g, ''); // Evitar 'K' adicionales en el cuerpo
     let dv = rut.slice(-1);
-    
+
     // Si al borrar las 'K' extras nos quedamos sin body, solo devolvemos el dv
     if (!body && dv) return dv;
 
@@ -77,7 +78,7 @@ export function UserManagementView() {
 
     // Validar RUT
     if (!/^\d{1,2}\.\d{3}\.\d{3}-[0-9K]$/.test(formData.rut)) {
-      showToast('⚠️ El formato del RUT no es válido', 'error');
+      showToast('El formato del RUT no es válido', 'error');
       setSubmitting(false);
       return;
     }
@@ -85,7 +86,7 @@ export function UserManagementView() {
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -94,17 +95,23 @@ export function UserManagementView() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.detail || 'Error al crear');
+        let errorMessage = 'Error al crear';
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(e => e.msg || e.type).join(', ');
+        } else if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        }
+        throw new Error(errorMessage);
       }
 
-      showToast('✅ Usuario creado exitosamente', 'success');
+      showToast('Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
       setFormData({
         name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: 'Administrativo JPL', status: 'active'
       });
       fetchUsers();
     } catch (err) {
-      showToast(`⚠️ ${err.message}`, 'error');
+      showToast(err.message, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -115,7 +122,7 @@ export function UserManagementView() {
     try {
       const res = await fetch(`/api/users/${id}/status`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -124,9 +131,27 @@ export function UserManagementView() {
       if (!res.ok) throw new Error('Error al actualizar');
 
       setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
-      showToast('✅ Estado de usuario actualizado', 'success');
+      showToast('Estado de usuario actualizado', 'success');
     } catch (err) {
-      showToast('⚠️ No se pudo actualizar el estado', 'error');
+      showToast('No se pudo actualizar el estado', 'error');
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!res.ok) throw new Error('Error al eliminar');
+
+      setUsers(prev => prev.filter(u => u.id !== id));
+      showToast('Usuario eliminado exitosamente', 'success');
+      setConfirmDeleteId(null);
+    } catch (err) {
+      showToast('No se pudo eliminar el usuario', 'error');
     }
   };
 
@@ -214,8 +239,8 @@ export function UserManagementView() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Administrador' ? 'bg-purple-100 text-purple-700' :
-                          user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
-                            'bg-amber-100 text-amber-700'
+                        user.role === 'Supervisor' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
                         }`}>
                         {user.role}
                       </span>
@@ -234,15 +259,32 @@ export function UserManagementView() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => toggleStatus(user.id, user.status)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${user.status === 'active'
-                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                            : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                          }`}
-                      >
-                        {user.status === 'active' ? 'Revocar' : 'Activar'}
-                      </button>
+                      {confirmDeleteId === user.id ? (
+                        <div className="flex items-center justify-center gap-2 animate-in slide-in-from-right-4 duration-300">
+                          <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1.5 rounded-lg whitespace-nowrap">¿Eliminar usuario?</span>
+                          <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-1.5 bg-slate-200 font-bold rounded-lg hover:bg-slate-300 text-slate-600 text-[10px] transition-colors tracking-wide uppercase">Cancelar</button>
+                          <button onClick={() => deleteUser(user.id)} className="px-3 py-1.5 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-[10px] transition-colors tracking-wide uppercase">Sí, eliminar</button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => toggleStatus(user.id, user.status)}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${user.status === 'active'
+                              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                              }`}
+                          >
+                            {user.status === 'active' ? 'Revocar' : 'Activar'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(user.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar usuario"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
