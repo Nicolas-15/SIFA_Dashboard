@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInfractions, updateInfractionStatus } from '../services/infractions.service';
+import { getInfractions, updateInfractionStatus, updateInfractionData } from '../services/infractions.service';
 import { useAuth } from '../contexts/AuthContext';
 
 export const useInfractions = () => {
@@ -43,10 +43,17 @@ export const useInfractions = () => {
     }
   };
 
-  const updateInfractionLocal = (id, updatedFields) => {
-    setInfractions(prev =>
-      prev.map(inf => inf.id === id ? { ...inf, ...updatedFields } : inf)
-    );
+  const saveInfractionEdit = async (id, updatedFields) => {
+    try {
+      await updateInfractionData(id, updatedFields);
+      setInfractions(prev =>
+        prev.map(inf => inf.id === id ? { ...inf, ...updatedFields } : inf)
+      );
+      return true;
+    } catch (err) {
+      console.error('Error al persistir edición en la API:', err);
+      throw err;
+    }
   };
 
   return {
@@ -55,6 +62,6 @@ export const useInfractions = () => {
     error,
     fetchInfractions,
     updateStatus,
-    updateInfractionLocal
+    saveInfractionEdit
   };
 };

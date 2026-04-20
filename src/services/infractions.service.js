@@ -10,3 +10,10 @@ export const updateInfractionStatus = (id, newStatus) => {
     body: JSON.stringify({ status: newStatus }),
   });
 };
+
+export const updateInfractionData = (id, updatedFields) => {
+  return apiFetch(`/api/infractions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updatedFields),
+  });
+};

@@ -12,7 +12,7 @@ export function DashboardLayout() {
   const [headerSearch, setHeaderSearch] = useState('');
   
   const { currentUser, logout } = useAuth();
-  const { infractions, loading, error, fetchInfractions, updateStatus, updateInfractionLocal } = useInfractions();
+  const { infractions, loading, error, fetchInfractions, updateStatus, saveInfractionEdit } = useInfractions();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -124,7 +124,7 @@ export function DashboardLayout() {
           <Outlet context={{
             infractions,
             updateStatus,
-            updateInfractionLocal,
+            saveInfractionEdit,
             showToast,
             headerSearch,
             onClearHeaderSearch: () => setHeaderSearch(''),

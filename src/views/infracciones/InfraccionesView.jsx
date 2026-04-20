@@ -15,7 +15,7 @@ const FILTERS = [
 ];
 
 export function InfraccionesView() {
-  const { infractions, updateStatus, updateInfractionLocal: updateInfraction, showToast, headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser } = useOutletContext();
+  const { infractions, updateStatus, saveInfractionEdit: updateInfraction, showToast, headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser } = useOutletContext();
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(headerSearch);
   const [activeFilter, setActiveFilter] = useState('all');
