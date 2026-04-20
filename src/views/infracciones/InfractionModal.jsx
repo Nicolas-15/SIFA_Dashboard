@@ -7,22 +7,29 @@ import { StatusBadge, STATUS_MAP } from '../../components/ui/StatusBadge';
 const VEHICLE_TYPES = ['Automóvil', 'Camioneta', 'Furgón', 'Motocicleta', 'Camión', 'Bus'];
 const VEHICLE_COLORS = ['Blanco', 'Negro', 'Gris', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Plateado', 'Café', 'Naranja'];
 
-function EditableField({ editing, value, onChange, label, type = 'text', options, mono = false }) {
-  const base = 'w-full text-sm rounded-lg border px-2.5 py-1.5 outline-none transition-all';
-  const active = 'border-primary/60 bg-primary/5 ring-1 ring-primary/20 shadow-sm';
-  const inactive = 'border-transparent bg-transparent cursor-default';
+function EditableField({ editing, value, onChange, label, type = 'text', options, mono = false, textColor = "text-slate-800", align = "text-left" }) {
+  const base = `w-full text-sm rounded-lg border outline-none transition-all ${align}`;
+  const active = 'px-3 py-2 border-slate-300 bg-white hover:border-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm';
+  const inactive = 'px-3 py-2 border-transparent bg-transparent cursor-default pointer-events-none truncate';
 
   // Safe default for undefined
   const safeVal = value || '';
 
-  if (!editing) return <span className={`text-sm font-semibold text-slate-800 ${mono ? 'font-mono tracking-widest' : ''}`}>{safeVal || '-'}</span>;
-  if (options) return <select value={safeVal} onChange={e => onChange(e.target.value)} className={`${base} ${active} font-medium text-slate-800`}><option value="">- Seleccione -</option>{options.map(o => <option key={o} value={o}>{o}</option>)}</select>;
-  return <input type={type} value={safeVal} onChange={e => onChange(e.target.value)} className={`${base} ${active} font-semibold text-slate-800 ${mono ? 'font-mono tracking-wider' : ''}`} />;
+  if (!editing) {
+    return <input type="text" value={safeVal || '-'} readOnly className={`${base} ${inactive} font-semibold ${textColor} h-[38px] ${mono ? 'font-mono' : ''} tracking-wide`} />;
+  }
+
+  if (options) {
+    return <select value={safeVal} onChange={e => onChange(e.target.value)} className={`${base} ${active} font-semibold text-slate-800 h-[38px] ${mono ? 'font-mono' : ''} tracking-wide`}><option value="">- Seleccione -</option>{options.map(o => <option key={o} value={o}>{o}</option>)}</select>;
+  }
+
+  return <input type={type} value={safeVal} onChange={e => onChange(e.target.value)} className={`${base} ${active} font-semibold text-slate-800 h-[38px] ${mono ? 'font-mono' : ''} tracking-wide`} />;
 }
 
 export function InfractionModal({ infraction, updateStatus, updateInfraction, showToast, onClose, currentUser }) {
   const citationRef = useRef();
   const [isExporting, setIsExporting] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(null);
   const [confirmAccept, setConfirmAccept] = useState(false);
@@ -46,11 +53,18 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
 
   const cancelEdit = () => { setDraft(null); setEditing(false); };
 
-  const saveEdit = () => {
-    updateInfraction(infraction.id, draft);
-    showToast(`✏️ Infracción Boleta ${draft.numeroBoleta || draft.id} actualizada`);
-    setEditing(false);
-    setDraft(null);
+  const saveEdit = async () => {
+    try {
+      setIsSavingEdit(true);
+      await updateInfraction(infraction.id, draft);
+      showToast(`Infracción Boleta ${draft.numeroBoleta || draft.id} actualizada`);
+      setEditing(false);
+      setDraft(null);
+    } catch (err) {
+      showToast('Error al actualizar la infracción en BD', 'error');
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const setField = (key, val) => setDraft(d => ({ ...d, [key]: val }));
@@ -79,13 +93,28 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
     return cleaned;
   };
 
+  const parseToDateLocal = (val) => {
+    if (!val) return '';
+    const [datePart] = val.split(' ');
+    if (!datePart) return '';
+    const [dd, mm, yyyy] = datePart.split('/');
+    if (!dd || !mm || !yyyy) return ''; 
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const parseFromDateLocal = (val) => {
+    if (!val) return '';
+    const [yyyy, mm, dd] = val.split('-');
+    if (!yyyy || !mm || !dd) return '';
+    return `${dd}/${mm}/${yyyy} 09:00`;
+  };
+
   const data = editing ? draft : infraction;
 
   const handleAccept = () => {
     updateStatus(infraction.id, 'accepted');
-    showToast(`✓ Infracción ${infraction.numeroBoleta || infraction.id} aceptada`);
+    showToast(`Infracción ${infraction.numeroBoleta || infraction.id} aceptada`);
     setConfirmAccept(false);
-    onClose();
   };
 
   const exportPDF = async () => {
@@ -97,7 +126,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfWidth, (canvas.height * pdfWidth) / canvas.width);
       pdf.save(`empadronado-${infraction.numeroBoleta || infraction.id}.pdf`);
       updateStatus(infraction.id, 'exported');
-      showToast(`↓ Citación PDF exportada exitosamente`);
+      showToast('Citación PDF exportada exitosamente');
     } catch (e) {
       showToast('Error al generar el PDF', 'error');
     } finally {
@@ -124,7 +153,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
       <div className="bg-white w-full sm:max-w-4xl rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[93vh] animate-in slide-in-from-bottom-4 duration-300">
 
         {/* Header */}
-        <div className={`flex items-center justify-between px-5 py-4 border-b rounded-t-2xl shrink-0 transition-colors ${editing ? 'bg-amber-50 border-amber-200' : 'bg-slate-50'}`}>
+        <div className={`flex items-center justify-between px-5 py-4 border-b rounded-t-2xl shrink-0 transition-colors ${editing ? 'bg-blue-50/50 border-blue-200' : 'bg-slate-50'}`}>
           <div className="flex items-center gap-3">
             <StatusBadge status={infraction.status} />
             <div>
@@ -165,7 +194,12 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Citación</p>
-              <EditableField editing={editing} value={data.tramitacion?.fechaCitacion} onChange={v => setNested('tramitacion', 'fechaCitacion', v)} />
+              <EditableField 
+                editing={editing} 
+                type="date" 
+                value={editing ? parseToDateLocal(data.tramitacion?.fechaCitacion) : data.tramitacion?.fechaCitacion} 
+                onChange={v => setNested('tramitacion', 'fechaCitacion', parseFromDateLocal(v))} 
+              />
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Agente / Fiscalizador</p>
@@ -181,13 +215,16 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
                 <span className="flex items-center gap-1"><Clock size={12} /> {new Date(infraction.timestamp).toLocaleString('es-CL')}</span>
                 <span className="flex items-center gap-1 truncate max-w-[50%]"><MapPin size={12} /> {location.address}</span>
               </div>
-              <div className="absolute bottom-3 right-3 bg-black/70 px-3 py-1.5 text-white font-mono rounded shadow-lg backdrop-blur-sm">
-                PATENTE: <EditableField editing={editing} value={data.vehicle?.plate} onChange={v => setNested('vehicle', 'plate', formatPlate(v))} mono />
+              <div className="absolute bottom-3 right-3 bg-black/80 pl-3 pr-2 py-1 flex items-center rounded-lg shadow-xl backdrop-blur-md border border-white/20">
+                <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest mr-2">Patente</span>
+                <div className="w-[100px]">
+                  <EditableField editing={editing} value={data.vehicle?.plate} onChange={v => setNested('vehicle', 'plate', formatPlate(v))} mono textColor="text-white" align="text-center" />
+                </div>
               </div>
             </div>
 
             {/* Infracción Detallada */}
-            <div className={`rounded-xl border p-4 space-y-3 ${editing ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
+            <div className={`rounded-xl border p-4 space-y-3 transition-colors ${editing ? 'border-blue-200 bg-white shadow-sm ring-1 ring-blue-50' : 'border-slate-200 bg-slate-50'}`}>
               <h4 className="text-[11px] font-bold uppercase text-slate-500">Motivo e Infracción Cometida</h4>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Cód. Infracción</p>
@@ -207,7 +244,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             {/* Box 1: Infractor */}
-            <div className={`rounded-xl border p-4 space-y-3 ${editing ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
+            <div className={`rounded-xl border p-4 space-y-3 transition-colors ${editing ? 'border-blue-200 bg-white shadow-sm ring-1 ring-blue-50' : 'border-slate-200 bg-slate-50'}`}>
               <h4 className="text-[11px] font-bold uppercase text-slate-500 flex items-center gap-1"><User size={13} /> Denunciado / Infractor</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
@@ -242,7 +279,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
             </div>
 
             {/* Box 2: Vehiculo y GPS */}
-            <div className={`rounded-xl border p-4 space-y-3 flex flex-col ${editing ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
+            <div className={`rounded-xl border p-4 space-y-3 flex flex-col transition-colors ${editing ? 'border-blue-200 bg-white shadow-sm ring-1 ring-blue-50' : 'border-slate-200 bg-slate-50'}`}>
               <h4 className="text-[11px] font-bold uppercase text-slate-500 flex items-center gap-1"><Car size={13} /> Vehículo Interviniente</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -268,11 +305,11 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Latitud</p>
-                    <EditableField editing={editing} value={data.location?.lat} onChange={v => setNested('location', 'lat', parseFloat(v))} type="number" mono />
+                    <EditableField editing={editing} value={data.location?.lat} onChange={v => setNested('location', 'lat', v)} type="text" mono />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Longitud</p>
-                    <EditableField editing={editing} value={data.location?.lng} onChange={v => setNested('location', 'lng', parseFloat(v))} type="number" mono />
+                    <EditableField editing={editing} value={data.location?.lng} onChange={v => setNested('location', 'lng', v)} type="text" mono />
                   </div>
                 </div>
                 {/* Mini Mapa OpenStreetMap */}
@@ -292,19 +329,19 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
         <div className="px-5 py-4 border-t flex items-center justify-end gap-3 bg-slate-50">
           {editing ? (
             <>
-              <button onClick={saveEdit} className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl"><Save size={16} /> Guardar Cambios</button>
+              <button disabled={isSavingEdit} onClick={saveEdit} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-bold rounded-xl shadow-md transition-all"><Save size={18} /> {isSavingEdit ? 'Guardando...' : 'Guardar Cambios'}</button>
             </>
           ) : (
             <>
               {infraction.status === 'pending' && !confirmAccept && canAccept && (
                 <div className="flex gap-2">
-                  <button onClick={() => { updateStatus(infraction.id, 'rejected'); showToast(`❌ Infracción rechazada y anulada`); onClose(); }} className="px-5 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl flex items-center gap-2 border border-red-200 hover:bg-red-100 transition-colors"><X size={16} /> Rechazar</button>
+                  <button onClick={() => { updateStatus(infraction.id, 'rejected'); showToast('Infracción rechazada y anulada'); onClose(); }} className="px-5 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl flex items-center gap-2 border border-red-200 hover:bg-red-100 transition-colors"><X size={16} /> Rechazar</button>
                   <button onClick={() => setConfirmAccept(true)} className="px-5 py-2.5 bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-emerald-600 transition-colors"><CheckCircle size={16} /> Revisar / Aceptar</button>
                 </div>
               )}
               {infraction.status === 'pending' && confirmAccept && canAccept && (
                 <div className="flex gap-2 animate-in slide-in-from-right-4 duration-300">
-                  <span className="text-xs font-semibold text-slate-500 flex items-center bg-slate-200 px-3 py-2 rounded-xl">¿Confirmar validez Legal?</span>
+                  <span className="text-xs font-semibold text-slate-500 flex items-center bg-slate-200 px-3 py-2 rounded-xl">¿Confirmar validez legal?</span>
                   <button onClick={() => setConfirmAccept(false)} className="px-3 py-2 bg-slate-200 font-bold rounded-xl hover:bg-slate-300 text-slate-600">Cancelar</button>
                   <button onClick={handleAccept} className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700">Sí, Aceptar</button>
                 </div>
