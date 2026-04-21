@@ -11,8 +11,6 @@ function EditableField({ editing, value, onChange, label, type = 'text', options
   const base = `w-full text-sm rounded-lg border outline-none transition-all ${align}`;
   const active = 'px-3 py-2 border-slate-300 bg-white hover:border-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm';
   const inactive = 'px-3 py-2 border-transparent bg-transparent cursor-default pointer-events-none truncate';
-
-  // Safe default for undefined
   const safeVal = value || '';
 
   if (!editing) {
@@ -93,20 +91,21 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
     return cleaned;
   };
 
-  const parseToDateLocal = (val) => {
+  const parseToDatetimeLocal = (val) => {
     if (!val) return '';
-    const [datePart] = val.split(' ');
-    if (!datePart) return '';
+    const [datePart, timePart] = val.split(' ');
+    if (!datePart || !timePart) return '';
     const [dd, mm, yyyy] = datePart.split('/');
-    if (!dd || !mm || !yyyy) return ''; 
-    return `${yyyy}-${mm}-${dd}`;
+    if (!dd || !mm || !yyyy) return '';
+    return `${yyyy}-${mm}-${dd}T${timePart}`;
   };
 
-  const parseFromDateLocal = (val) => {
+  const parseFromDatetimeLocal = (val) => {
     if (!val) return '';
-    const [yyyy, mm, dd] = val.split('-');
-    if (!yyyy || !mm || !dd) return '';
-    return `${dd}/${mm}/${yyyy} 09:00`;
+    const [datePart, timePart] = val.split('T');
+    if (!datePart || !timePart) return '';
+    const [yyyy, mm, dd] = datePart.split('-');
+    return `${dd}/${mm}/${yyyy} ${timePart}`;
   };
 
   const data = editing ? draft : infraction;
@@ -134,7 +133,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
     }
   };
 
-  // Generate date formats for PDF
+  // Generar formato de fecha para PDF
   const infDate = new Date(infraction.timestamp);
   const formattedDay = infDate.toLocaleDateString('es-CL');
   const formattedTime = infDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
@@ -142,7 +141,7 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
 
   const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-  // Safeguard against missing nested properties in old data
+  // Guardado seguro de propiedades anidadas
   const vehicle = infraction.vehicle || {};
   const denunciado = infraction.denunciado || {};
   const location = infraction.location || {};
@@ -194,11 +193,11 @@ export function InfractionModal({ infraction, updateStatus, updateInfraction, sh
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Citación</p>
-              <EditableField 
-                editing={editing} 
-                type="date" 
-                value={editing ? parseToDateLocal(data.tramitacion?.fechaCitacion) : data.tramitacion?.fechaCitacion} 
-                onChange={v => setNested('tramitacion', 'fechaCitacion', parseFromDateLocal(v))} 
+              <EditableField
+                editing={editing}
+                type="datetime-local"
+                value={editing ? parseToDatetimeLocal(data.tramitacion?.fechaCitacion) : data.tramitacion?.fechaCitacion}
+                onChange={v => setNested('tramitacion', 'fechaCitacion', parseFromDatetimeLocal(v))}
               />
             </div>
             <div>
