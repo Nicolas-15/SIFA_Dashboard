@@ -20,9 +20,9 @@ export const getUserFromToken = (token) => {
 
   let userRole = SYSTEM_ROLES.DEFAULT;
   if (payload.roles) {
-    if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN")) {
+    if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN") || payload.roles.includes("ROLE_ADMIN")) {
       userRole = SYSTEM_ROLES.ADMIN;
-    } else if (payload.roles.includes("SUPERVISOR")) {
+    } else if (payload.roles.includes("SUPERVISOR") || payload.roles.includes("ROLE_SUPERVISOR")) {
       userRole = SYSTEM_ROLES.SUPERVISOR;
     }
   }
@@ -37,16 +37,16 @@ export const getUserFromToken = (token) => {
 };
 
 export const login = async (email, password) => {
-  const data = await apiFetch('/auth-api/auth/login', {
+  const data = await apiFetch('/auth-api/api/v1/login', {
     method: 'POST',
-    body: JSON.stringify({ username: email, password })
+    body: JSON.stringify({ email, password })
   });
 
-  const mappedUser = getUserFromToken(data.token) || { 
-    name: data.username || email, 
+  const mappedUser = getUserFromToken(data.accessToken) || { 
+    name: email, 
     email: email, 
     role: SYSTEM_ROLES.DEFAULT
   };
 
-  return { token: data.token, user: mappedUser };
+  return { token: data.accessToken, user: mappedUser };
 };

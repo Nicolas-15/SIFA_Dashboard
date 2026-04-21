@@ -28,10 +28,27 @@ export function UserManagementView() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const res = await fetch('/auth-api/api/v1/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (!res.ok) throw new Error('Error fetch');
       const data = await res.json();
-      setUsers(data);
+
+      const mappedUsers = data.map(user => {
+        let mappedRole = SYSTEM_ROLES.DEFAULT;
+        if (user.role === 'USER_ADMIN') mappedRole = SYSTEM_ROLES.ADMIN;
+        else if (user.role === 'USER_SUPERVISOR') mappedRole = SYSTEM_ROLES.SUPERVISOR;
+
+        return {
+          id: user.rut,
+          name: user.name,
+          lastname: user.lastName,
+          rut: `${user.rut}-${user.dv}`,
+          email: user.email,
+          phone: '+569',
+          role: mappedRole,
+          status: user.active ? 'active' : 'revoked'
+        };
+      });
+      setUsers(mappedUsers);
     } catch (err) {
       showToast('No se pudieron cargar los usuarios', 'error');
     } finally {
@@ -85,24 +102,31 @@ export function UserManagementView() {
     }
 
     try {
-      const res = await fetch('/api/users', {
+      const rutSinPuntos = formData.rut.replace(/\./g, '');
+      const [rutBody, dv] = rutSinPuntos.split('-');
+
+      const payload = {
+        rut: rutBody,
+        dv: dv,
+        name: formData.name,
+        lastName: formData.lastname,
+        birthDate: '1990-01-01', // Valor por defecto
+        email: formData.email,
+        password: formData.password
+      };
+
+      const res = await fetch('/auth-api/api/v1/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        let errorMessage = 'Error al crear';
-        if (Array.isArray(errorData.detail)) {
-          errorMessage = errorData.detail.map(e => e.msg || e.type).join(', ');
-        } else if (typeof errorData.detail === 'string') {
-          errorMessage = errorData.detail;
-        }
-        throw new Error(errorMessage);
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || 'Error al crear');
       }
 
       showToast('Usuario creado exitosamente', 'success');
@@ -119,28 +143,30 @@ export function UserManagementView() {
   };
 
   const toggleStatus = async (id, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'revoked' : 'active';
-    try {
-      const res = await fetch(`/api/users/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (!res.ok) throw new Error('Error al actualizar');
+    // La API actual permite desactivar enviando DELETE
+    if (currentStatus === 'active') {
+      try {
+        const res = await fetch(`/auth-api/api/v1/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!res.ok) throw new Error('Error al desactivar');
 
-      setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
-      showToast('Estado de usuario actualizado', 'success');
-    } catch (err) {
-      showToast('No se pudo actualizar el estado', 'error');
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'revoked' } : u));
+        showToast('Usuario desactivado', 'success');
+      } catch (err) {
+        showToast('No se pudo desactivar el usuario', 'error');
+      }
+    } else {
+      showToast('La API actual no soporta reactivar con un solo clic. Debes usar modificar.', 'error');
     }
   };
 
   const deleteUser = async (id) => {
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`/auth-api/api/v1/users/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

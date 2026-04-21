@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Validación con la API
-        await apiFetch('/auth-api/auth/validate');
+        await apiFetch('/auth-api/api/v1/validate');
         const user = getUserFromToken(token);
         if (user) {
           setCurrentUser(user);
