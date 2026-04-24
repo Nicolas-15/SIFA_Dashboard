@@ -1,19 +1,19 @@
-import mockData from '../utils/mockInfractions.json';
+import { apiFetch } from './api';
 
 export const getInfractions = async () => {
-  // Simular delay de red
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockData.infractions || mockData;
+  return apiFetch('/api/infractions');
 };
 
 export const updateInfractionStatus = async (id, newStatus) => {
-  // Simular delay y retornar ok
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return { success: true };
+  return apiFetch(`/api/infractions/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: newStatus })
+  });
 };
 
 export const updateInfractionData = async (id, updatedFields) => {
-  // Simular delay y retornar ok
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return { success: true };
+  return apiFetch(`/api/infractions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updatedFields)
+  });
 };

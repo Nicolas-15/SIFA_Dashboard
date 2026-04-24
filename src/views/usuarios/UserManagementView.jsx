@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle } from 'lucide-react';
 
 import { useOutletContext } from 'react-router-dom';
 import { SYSTEM_ROLES } from '../../utils/constants';
+import * as userService from '../../services/user.service';
 
 export function UserManagementView() {
   const { showToast } = useOutletContext();
@@ -11,7 +12,6 @@ export function UserManagementView() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -28,9 +28,7 @@ export function UserManagementView() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/auth-api/api/v1/users', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-      if (!res.ok) throw new Error('Error fetch');
-      const data = await res.json();
+      const data = await userService.getUsers();
 
       const mappedUsers = data.map(user => {
         let mappedRole = SYSTEM_ROLES.DEFAULT;
@@ -45,7 +43,7 @@ export function UserManagementView() {
           email: user.email,
           phone: '+569',
           role: mappedRole,
-          status: user.active ? 'active' : 'revoked'
+          status: (user.active || user.isActive) ? 'active' : 'revoked'
         };
       });
       setUsers(mappedUsers);
@@ -115,19 +113,7 @@ export function UserManagementView() {
         password: formData.password
       };
 
-      const res = await fetch('/auth-api/api/v1/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || 'Error al crear');
-      }
+      const res = await userService.createUser(payload);
 
       showToast('Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
@@ -143,42 +129,18 @@ export function UserManagementView() {
   };
 
   const toggleStatus = async (id, currentStatus) => {
-    // La API actual permite desactivar enviando DELETE
-    if (currentStatus === 'active') {
-      try {
-        const res = await fetch(`/auth-api/api/v1/users/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (!res.ok) throw new Error('Error al desactivar');
-
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'revoked' } : u));
-        showToast('Usuario desactivado', 'success');
-      } catch (err) {
-        showToast('No se pudo desactivar el usuario', 'error');
-      }
-    } else {
-      showToast('La API actual no soporta reactivar con un solo clic. Debes usar modificar.', 'error');
-    }
-  };
-
-  const deleteUser = async (id) => {
     try {
-      const res = await fetch(`/auth-api/api/v1/users/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
-
-      setUsers(prev => prev.filter(u => u.id !== id));
-      showToast('Usuario eliminado exitosamente', 'success');
-      setConfirmDeleteId(null);
+      if (currentStatus === 'active') {
+        await userService.revokeUser(id);
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'revoked' } : u));
+        showToast('Usuario revocado exitosamente', 'success');
+      } else {
+        await userService.activateUser(id);
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'active' } : u));
+        showToast('Usuario activado exitosamente', 'success');
+      }
     } catch (err) {
-      showToast('No se pudo eliminar el usuario', 'error');
+      showToast(err.message, 'error');
     }
   };
 
@@ -286,32 +248,23 @@ export function UserManagementView() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {confirmDeleteId === user.id ? (
-                        <div className="flex items-center justify-center gap-2 animate-in slide-in-from-right-4 duration-300">
-                          <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1.5 rounded-lg whitespace-nowrap">¿Eliminar usuario?</span>
-                          <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-1.5 bg-slate-200 font-bold rounded-lg hover:bg-slate-300 text-slate-600 text-[10px] transition-colors tracking-wide uppercase">Cancelar</button>
-                          <button onClick={() => deleteUser(user.id)} className="px-3 py-1.5 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-[10px] transition-colors tracking-wide uppercase">Sí, eliminar</button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
+                        {user.status === 'active' ? (
                           <button
                             onClick={() => toggleStatus(user.id, user.status)}
-                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${user.status === 'active'
-                              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
-                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                              }`}
+                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors bg-amber-50 text-amber-600 hover:bg-amber-100"
                           >
-                            {user.status === 'active' ? 'Revocar' : 'Activar'}
+                            Revocar
                           </button>
+                        ) : (
                           <button
-                            onClick={() => setConfirmDeleteId(user.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar usuario"
+                            onClick={() => toggleStatus(user.id, user.status)}
+                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                           >
-                            <Trash2 size={16} />
+                            Activar
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
