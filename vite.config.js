@@ -9,6 +9,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/auth': {
+        target: 'http://localhost:9000',
+        changeOrigin: true
+      },
       '/auth-api': {
         target: 'http://localhost:9000',
         changeOrigin: true,
