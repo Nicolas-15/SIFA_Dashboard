@@ -6,7 +6,7 @@ import { SYSTEM_ROLES } from '../../utils/constants';
 import * as userService from '../../services/user.service';
 
 export function UserManagementView() {
-  const { showToast } = useOutletContext();
+  const { showToast, currentUser } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -252,7 +252,13 @@ export function UserManagementView() {
                         {user.status === 'active' ? (
                           <button
                             onClick={() => toggleStatus(user.id, user.status)}
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors bg-amber-50 text-amber-600 hover:bg-amber-100"
+                            disabled={user.email === currentUser?.email}
+                            title={user.email === currentUser?.email ? 'No puedes revocar tu propia cuenta' : ''}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                              user.email === currentUser?.email
+                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                : 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                            }`}
                           >
                             Revocar
                           </button>

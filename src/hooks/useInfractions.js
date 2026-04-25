@@ -22,7 +22,7 @@ export const useInfractions = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, []);
 
   useEffect(() => {
     fetchInfractions();

@@ -10,12 +10,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/auth-api': {
-        target: 'http://localhost:9001',
+        target: 'http://localhost:9000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/auth-api/, '/auth')
       },
       '/api': {
-        target: 'http://localhost:9001',
+        target: 'http://localhost:9000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/mock')
       }
