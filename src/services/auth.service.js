@@ -5,7 +5,7 @@ export const decodeJWT = (token) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(jsonPayload);
@@ -37,14 +37,14 @@ export const getUserFromToken = (token) => {
 };
 
 export const login = async (email, password) => {
-  const data = await apiFetch('auth/api/v1/users', {
+  const data = await apiFetch('/auth/api/v1/login', {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });
 
-  const mappedUser = getUserFromToken(data.accessToken) || { 
-    name: email, 
-    email: email, 
+  const mappedUser = getUserFromToken(data.accessToken) || {
+    name: email,
+    email: email,
     role: SYSTEM_ROLES.DEFAULT
   };
 
