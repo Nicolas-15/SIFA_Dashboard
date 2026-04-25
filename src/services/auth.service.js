@@ -37,7 +37,7 @@ export const getUserFromToken = (token) => {
 };
 
 export const login = async (email, password) => {
-  const data = await apiFetch('/auth-api/api/v1/login', {
+  const data = await apiFetch('auth/api/v1/users', {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });
