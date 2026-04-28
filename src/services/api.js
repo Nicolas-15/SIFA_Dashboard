@@ -10,7 +10,7 @@ export const apiFetch = async (url, options = {}) => {
   const response = await fetch(url, { ...options, headers });
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.clear();
       window.dispatchEvent(new Event('auth:unauthorized'));

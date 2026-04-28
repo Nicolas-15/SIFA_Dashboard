@@ -14,7 +14,7 @@ export function UserManagementView() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -129,7 +129,13 @@ export function UserManagementView() {
         payload.password = formData.password;
       }
       await userService.updateUser(rutSinPuntos, payload);
-      if (formData.role !== selectedUser.role) await userService.updateUserRole(rutSinPuntos, formData.role);
+      if (formData.role !== selectedUser.role) {
+        let backendRole = 'USER_APP'; // Default or USER_JPL
+        if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
+        else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
+        
+        await userService.updateUserRole(rutSinPuntos, backendRole);
+      }
       showToast('Usuario actualizado exitosamente', 'success');
       setIsEditModalOpen(false);
       fetchUsers();
@@ -165,17 +171,17 @@ export function UserManagementView() {
           <p className="text-sm text-slate-500">Administra los accesos y roles del sistema.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Input 
-            placeholder="Buscar usuario..." 
+          <Input
+            placeholder="Buscar usuario..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             icon={Search}
             className="w-64 !py-2"
           />
           <Button onClick={() => {
-            setFormData({ 
-              name: '', lastname: '', rut: '', email: '', phone: '', 
-              password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active' 
+            setFormData({
+              name: '', lastname: '', rut: '', email: '', phone: '',
+              password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active'
             });
             setIsModalOpen(true);
           }} className="!w-auto px-4 !py-2.5">
@@ -227,10 +233,9 @@ export function UserManagementView() {
                       <p className="text-xs text-slate-400">{user.phone}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
-                        user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
-                        user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
-                      }`}>{user.role}</span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
+                          user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                        }`}>{user.role}</span>
                     </td>
                     <td className="px-6 py-4 text-xs text-slate-400 font-mono">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Pendiente'}</td>
                     <td className="px-6 py-4">
@@ -245,11 +250,10 @@ export function UserManagementView() {
                         <button
                           onClick={() => toggleStatus(user.id, user.status)}
                           disabled={user.email === currentUser?.email}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                            user.status === 'active' 
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${user.status === 'active'
                               ? (user.email === currentUser?.email ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-amber-50 text-amber-600 hover:bg-amber-100')
                               : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                          }`}
+                            }`}
                         >{user.status === 'active' ? 'Revocar' : 'Activar'}</button>
                         <button onClick={() => handleEditClick(user)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"><Edit2 size={16} /></button>
                       </div>
@@ -262,7 +266,7 @@ export function UserManagementView() {
         </div>
       </div>
 
-      <UserModals 
+      <UserModals
         isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}
         isEditModalOpen={isEditModalOpen} setIsEditModalOpen={setIsEditModalOpen}
         formData={formData} setFormData={setFormData}

@@ -9,7 +9,7 @@ import { RecoveryView } from '../views/auth/RecoveryView';
 import { DashboardView } from '../views/dashboard/DashboardView';
 import { InfraccionesView } from '../views/infracciones/InfraccionesView';
 import { UserManagementView } from '../views/usuarios/UserManagementView';
-import { Shield } from 'lucide-react';
+import { AccessDeniedView } from '../views/auth/AccessDeniedView';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -20,13 +20,7 @@ const ProtectedRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { currentUser } = useAuth();
   if (currentUser?.role !== SYSTEM_ROLES.ADMIN) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm pb-10">
-        <Shield size={64} className="mb-4 text-slate-300" />
-        <h2 className="text-xl font-black text-slate-700 uppercase tracking-widest">Acceso Denegado</h2>
-        <p className="font-semibold text-sm mt-3">Tu rol de {currentUser?.role || 'Invitado'} no tiene privilegios operativos para gestionar usuarios.</p>
-      </div>
-    );
+    return <AccessDeniedView />;
   }
   return children;
 };
@@ -34,7 +28,7 @@ const AdminRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
-  
+
   return (
     <div className="h-screen w-full font-sans text-slate-800 bg-slate-900">
       {children}
@@ -48,21 +42,21 @@ export const AppRouter = () => {
       <AuthProvider>
         <Routes>
           {/* Rutas Públicas */}
-          <Route 
-            path="/login" 
+          <Route
+            path="/login"
             element={
               <PublicRoute>
                 <AuthWrapperView view="login" />
               </PublicRoute>
-            } 
+            }
           />
-          <Route 
-            path="/recovery" 
+          <Route
+            path="/recovery"
             element={
               <PublicRoute>
                 <AuthWrapperView view="recovery" />
               </PublicRoute>
-            } 
+            }
           />
 
           {/* Rutas Privadas / Dashboard */}
