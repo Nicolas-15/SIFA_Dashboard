@@ -1,36 +1,36 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, X, User, Mail, Phone, Lock, CreditCard, Shield, CheckCircle2, XCircle } from 'lucide-react';
-
+import { Search, Plus, User, CheckCircle2, XCircle, Edit2 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
+
 import { SYSTEM_ROLES } from '../../utils/constants';
 import * as userService from '../../services/user.service';
+import { UserModals } from './UserModals';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 export function UserManagementView() {
-  const { showToast } = useOutletContext();
+  const { showToast, currentUser } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState({
-    name: '',
-    lastname: '',
-    rut: '',
-    email: '',
-    phone: '+569',
-    password: '',
-    role: SYSTEM_ROLES.DEFAULT,
-    status: 'active'
+    name: '', lastname: '', rut: '', email: '', phone: '', password: '', confirmPassword: '',
+    role: SYSTEM_ROLES.DEFAULT, status: 'active'
   });
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const data = await userService.getUsers();
-
-      const mappedUsers = data.map(user => {
+      const usersList = Array.isArray(data) ? data : [];
+      const mappedUsers = usersList.map(user => {
         let mappedRole = SYSTEM_ROLES.DEFAULT;
         if (user.role === 'USER_ADMIN') mappedRole = SYSTEM_ROLES.ADMIN;
         else if (user.role === 'USER_SUPERVISOR') mappedRole = SYSTEM_ROLES.SUPERVISOR;
@@ -41,9 +41,10 @@ export function UserManagementView() {
           lastname: user.lastName,
           rut: `${user.rut}-${user.dv}`,
           email: user.email,
-          phone: '+569',
+          phone: user.phone || '+569',
           role: mappedRole,
-          status: (user.active || user.isActive) ? 'active' : 'revoked'
+          status: (user.active || user.isActive) ? 'active' : 'revoked',
+          createdAt: user.createdAt
         };
       });
       setUsers(mappedUsers);
@@ -54,37 +55,21 @@ export function UserManagementView() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const formatRUT = (value) => {
-    let rut = value.replace(/[^0-9kK]/g, '').toUpperCase();
-    if (rut.length <= 1) return rut;
-    let body = rut.slice(0, -1).replace(/K/g, ''); // Evitar 'K' adicionales en el cuerpo
-    let dv = rut.slice(-1);
-
-    // Si al borrar las 'K' extras nos quedamos sin body, solo devolvemos el dv
-    if (!body && dv) return dv;
-
-    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return `${body}-${dv}`;
-  };
+  useEffect(() => { fetchUsers(); }, []);
 
   const handleRutChange = (e) => {
-    setFormData({ ...formData, rut: formatRUT(e.target.value) });
+    let value = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (value.length <= 1) { setFormData({ ...formData, rut: value }); return; }
+    let body = value.slice(0, -1).replace(/K/g, '');
+    let dv = value.slice(-1);
+    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    setFormData({ ...formData, rut: `${body}-${dv}` });
   };
 
   const handlePhoneChange = (e) => {
     let val = e.target.value;
-    // Prefix lock for Chile +569
-    if (!val.startsWith('+569')) {
-      val = '+569' + val.replace(/[^\d]/g, '');
-    }
-    // Limit to +569 plus 8 digits = 12 characters
-    if (val.length > 12) {
-      val = val.slice(0, 12);
-    }
+    if (!val.startsWith('+569')) val = '+569' + val.replace(/[^\d]/g, '');
+    if (val.length > 12) val = val.slice(0, 12);
     setFormData({ ...formData, phone: val });
   };
 
@@ -92,34 +77,61 @@ export function UserManagementView() {
     e.preventDefault();
     setSubmitting(true);
 
-    // Validar RUT
     if (!/^\d{1,2}\.\d{3}\.\d{3}-[0-9K]$/.test(formData.rut)) {
       showToast('El formato del RUT no es válido', 'error');
-      setSubmitting(false);
-      return;
+      setSubmitting(false); return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      showToast('Las contraseñas no coinciden', 'error');
+      setSubmitting(false); return;
     }
 
     try {
       const rutSinPuntos = formData.rut.replace(/\./g, '');
       const [rutBody, dv] = rutSinPuntos.split('-');
-
       const payload = {
-        rut: rutBody,
-        dv: dv,
-        name: formData.name,
-        lastName: formData.lastname,
-        birthDate: '1990-01-01', // Valor por defecto
-        email: formData.email,
-        password: formData.password
+        rut: rutBody, dv, name: formData.name, lastName: formData.lastname,
+        birthDate: '1990-01-01', email: formData.email, phone: formData.phone, password: formData.password
       };
-
-      const res = await userService.createUser(payload);
-
+      await userService.createUser(payload);
       showToast('Usuario creado exitosamente', 'success');
       setIsModalOpen(false);
-      setFormData({
-        name: '', lastname: '', rut: '', email: '', phone: '+569', password: '', role: SYSTEM_ROLES.DEFAULT, status: 'active'
-      });
+      setFormData({ name: '', lastname: '', rut: '', email: '', phone: '', password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active' });
+      fetchUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditClick = (user) => {
+    setSelectedUser(user);
+    setFormData({
+      name: user.name, lastname: user.lastname, rut: user.rut, email: user.email, phone: user.phone,
+      password: '', confirmPassword: '', role: user.role, status: user.status
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const rutSinPuntos = formData.rut.split('-')[0].replace(/\./g, '');
+      const payload = { name: formData.name, lastName: formData.lastname, email: formData.email, phone: formData.phone };
+      if (formData.password) {
+        if (formData.password !== formData.confirmPassword) {
+          showToast('Las contraseñas no coinciden', 'error');
+          setSubmitting(false); return;
+        }
+        payload.password = formData.password;
+      }
+      await userService.updateUser(rutSinPuntos, payload);
+      if (formData.role !== selectedUser.role) await userService.updateUserRole(rutSinPuntos, formData.role);
+      showToast('Usuario actualizado exitosamente', 'success');
+      setIsEditModalOpen(false);
       fetchUsers();
     } catch (err) {
       showToast(err.message, 'error');
@@ -132,16 +144,13 @@ export function UserManagementView() {
     try {
       if (currentStatus === 'active') {
         await userService.revokeUser(id);
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'revoked' } : u));
         showToast('Usuario revocado exitosamente', 'success');
       } else {
         await userService.activateUser(id);
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'active' } : u));
         showToast('Usuario activado exitosamente', 'success');
       }
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
+      fetchUsers();
+    } catch (err) { showToast(err.message, 'error'); }
   };
 
   const filteredUsers = users.filter(u =>
@@ -150,35 +159,31 @@ export function UserManagementView() {
 
   return (
     <div className="flex flex-col h-full space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-800">Gestión de Usuarios</h2>
           <p className="text-sm text-slate-500">Administra los accesos y roles del sistema.</p>
         </div>
-
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar usuario..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-64"
-            />
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors shadow-sm"
-          >
-            <Plus size={18} />
-            Nuevo Usuario
-          </button>
+          <Input 
+            placeholder="Buscar usuario..." 
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            icon={Search}
+            className="w-64 !py-2"
+          />
+          <Button onClick={() => {
+            setFormData({ 
+              name: '', lastname: '', rut: '', email: '', phone: '', 
+              password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active' 
+            });
+            setIsModalOpen(true);
+          }} className="!w-auto px-4 !py-2.5">
+            <Plus size={18} /> Nuevo Usuario
+          </Button>
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse min-w-[800px]">
@@ -188,21 +193,18 @@ export function UserManagementView() {
                 <th className="px-6 py-4">RUT</th>
                 <th className="px-6 py-4">Contacto</th>
                 <th className="px-6 py-4">Rol</th>
+                <th className="px-6 py-4">Creado el</th>
                 <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
-                    Cargando usuarios...
-                  </td>
-                </tr>
+                <tr><td colSpan="7" className="px-6 py-24 text-center text-slate-400">Cargando usuarios reales...</td></tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
-                    {search ? 'No se encontraron resultados' : 'No hay usuarios registrados'}
+                  <td colSpan="7">
+                    <EmptyState query={search} />
                   </td>
                 </tr>
               ) : (
@@ -219,51 +221,37 @@ export function UserManagementView() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-slate-600">{user.rut}</span>
-                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-slate-600">{user.rut}</td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-slate-700">{user.email}</p>
                       <p className="text-xs text-slate-400">{user.phone}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
-                        user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' :
-                          'bg-amber-100 text-amber-700'
-                        }`}>
-                        {user.role}
-                      </span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
+                        user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
+                        user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                      }`}>{user.role}</span>
                     </td>
+                    <td className="px-6 py-4 text-xs text-slate-400 font-mono">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Pendiente'}</td>
                     <td className="px-6 py-4">
                       {user.status === 'active' ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600">
-                          <CheckCircle2 size={16} />
-                          <span className="text-sm font-bold">Activo</span>
-                        </div>
+                        <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm"><CheckCircle2 size={16} /> Activo</div>
                       ) : (
-                        <div className="flex items-center gap-1.5 text-red-500">
-                          <XCircle size={16} />
-                          <span className="text-sm font-bold">Revocado</span>
-                        </div>
+                        <div className="flex items-center gap-1.5 text-red-500 font-bold text-sm"><XCircle size={16} /> Revocado</div>
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {user.status === 'active' ? (
-                          <button
-                            onClick={() => toggleStatus(user.id, user.status)}
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors bg-amber-50 text-amber-600 hover:bg-amber-100"
-                          >
-                            Revocar
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => toggleStatus(user.id, user.status)}
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                          >
-                            Activar
-                          </button>
-                        )}
+                        <button
+                          onClick={() => toggleStatus(user.id, user.status)}
+                          disabled={user.email === currentUser?.email}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                            user.status === 'active' 
+                              ? (user.email === currentUser?.email ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-amber-50 text-amber-600 hover:bg-amber-100')
+                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                          }`}
+                        >{user.status === 'active' ? 'Revocar' : 'Activar'}</button>
+                        <button onClick={() => handleEditClick(user)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"><Edit2 size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -274,154 +262,14 @@ export function UserManagementView() {
         </div>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl">
-            {/* Header Modal */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
-              <div>
-                <h3 className="text-xl font-black text-slate-800">Crear Nuevo Usuario</h3>
-                <p className="text-sm text-slate-500">Completa los datos del nuevo funcionario.</p>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Body Modal */}
-            <div className="p-6 overflow-y-auto">
-              <form id="createUserForm" onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Nombres</label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input
-                        required
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        placeholder="Juan"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Apellidos</label>
-                    <input
-                      required
-                      value={formData.lastname}
-                      onChange={e => setFormData({ ...formData, lastname: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      placeholder="Pérez"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">RUT (Chileno)</label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input
-                        required
-                        value={formData.rut}
-                        onChange={handleRutChange}
-                        maxLength={12}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
-                        placeholder="12.345.678-9"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Teléfono (+569)</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input
-                        required
-                        value={formData.phone}
-                        onChange={handlePhoneChange}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
-                        placeholder="+56912345678"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Correo Institucional</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                      required
-                      type="email"
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                      placeholder="correo@elquisco.cl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input
-                        required
-                        type="password"
-                        minLength={6}
-                        value={formData.password}
-                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Rol en el Sistema</label>
-                    <div className="relative">
-                      <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <select
-                        value={formData.role}
-                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
-                      >
-                        {Object.values(SYSTEM_ROLES).map(role => (
-                          <option key={role} value={role}>{role}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            {/* Footer Modal */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl shrink-0 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 rounded-xl transition-colors"
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                form="createUserForm"
-                disabled={submitting}
-                className="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {submitting ? 'Guardando...' : 'Crear Usuario'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <UserModals 
+        isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}
+        isEditModalOpen={isEditModalOpen} setIsEditModalOpen={setIsEditModalOpen}
+        formData={formData} setFormData={setFormData}
+        handleRutChange={handleRutChange} handlePhoneChange={handlePhoneChange}
+        handleSubmit={handleSubmit} handleEditSubmit={handleEditSubmit}
+        submitting={submitting} selectedUser={selectedUser}
+      />
     </div>
   );
 }

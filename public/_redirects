@@ -1,1 +1,4 @@
-/*    /index.html   200
+/auth/*   http://54.161.59.28/auth/:splat   200!
+/api/*    http://54.161.59.28/:splat        200!
+
+/*        /index.html                       200

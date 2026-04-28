@@ -21,7 +21,7 @@ export function Toast({ message, type = 'success', onClose }) {
         ? <CheckCircle size={18} className="text-emerald-500 shrink-0" />
         : <AlertCircle size={18} className="text-red-500 shrink-0" />
       }
-      <p className="text-sm font-semibold">{message}</p>
+      <p className="text-sm font-semibold whitespace-pre-line">{message}</p>
       <button onClick={onClose} className="ml-1 opacity-40 hover:opacity-80 transition-opacity">
         <X size={15} />
       </button>

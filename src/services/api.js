@@ -11,13 +11,26 @@ export const apiFetch = async (url, options = {}) => {
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      // Protocolo estricto de expulsion
       localStorage.removeItem('token');
       localStorage.clear();
       window.dispatchEvent(new Event('auth:unauthorized'));
     }
     const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.detail || errorData?.message || `HTTP Error ${response.status}`);
+    
+    let errorMessage = `HTTP Error ${response.status}`;
+
+    if (errorData) {
+      const rawError = errorData.error || errorData;
+      errorMessage = (typeof rawError === 'object' && rawError !== null)
+        ? Object.values(rawError).flat().join('\n')
+        : String(rawError);
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  if (response.status === 204) {
+    return null;
   }
 
   return response.json();

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { login as authLogin, decodeJWT, getUserFromToken } from '../services/auth.service';
-import { apiFetch } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -13,41 +12,33 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  // Validar token y setear sesión al inicializar
+  // Restaurar sesión al inicializar desde el token en localStorage
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setIsInitializing(false);
-        return;
-      }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setIsInitializing(false);
+      return;
+    }
 
-      const payload = decodeJWT(token);
-      if (!payload || (payload.exp && payload.exp * 1000 < Date.now())) {
-        logout();
-        setIsInitializing(false);
-        return;
-      }
+    const payload = decodeJWT(token);
+    // Si el token no se puede decodificar o está expirado, limpiar sesión
+    if (!payload || (payload.exp && payload.exp * 1000 < Date.now())) {
+      logout();
+      setIsInitializing(false);
+      return;
+    }
 
-      try {
-        // Validación con la API
-        await apiFetch('/auth-api/api/v1/validate');
-        const user = getUserFromToken(token);
-        if (user) {
-          setCurrentUser(user);
-          setIsAuthenticated(true);
-        } else {
-          logout();
-        }
-      } catch (err) {
-        console.error("Token inválido según la API:", err);
-        logout();
-      } finally {
-        setIsInitializing(false);
-      }
-    };
+    // Token válido localmente: restaurar usuario desde el token
+    // El API Gateway se encargará de rechazar peticiones si el token no es válido en el servidor
+    const user = getUserFromToken(token);
+    if (user) {
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+    } else {
+      logout();
+    }
 
-    initializeAuth();
+    setIsInitializing(false);
   }, []);
 
   // Escuchar evento de 401 que lanza la API global
