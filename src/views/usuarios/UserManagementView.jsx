@@ -130,7 +130,7 @@ export function UserManagementView() {
       }
       await userService.updateUser(rutSinPuntos, payload);
       if (formData.role !== selectedUser.role) {
-        let backendRole = 'USER_APP'; // Default or USER_JPL
+        let backendRole = 'USER_APP'; // Usuario base como Administrador JPL
         if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
         else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
         
