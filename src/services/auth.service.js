@@ -20,9 +20,9 @@ export const getUserFromToken = (token) => {
 
   let userRole = SYSTEM_ROLES.DEFAULT;
   if (payload.roles) {
-    if (payload.roles.includes("ADMIN") || payload.roles.includes("SUPER_ADMIN") || payload.roles.includes("ROLE_ADMIN")) {
+    if (payload.roles.includes("ADMIN") || payload.roles.includes("USER_ADMIN") || payload.roles.includes("ROLE_ADMIN")) {
       userRole = SYSTEM_ROLES.ADMIN;
-    } else if (payload.roles.includes("SUPERVISOR") || payload.roles.includes("ROLE_SUPERVISOR")) {
+    } else if (payload.roles.includes("SUPERVISOR") || payload.roles.includes("USER_SUPERVISOR") || payload.roles.includes("ROLE_SUPERVISOR")) {
       userRole = SYSTEM_ROLES.SUPERVISOR;
     }
   }

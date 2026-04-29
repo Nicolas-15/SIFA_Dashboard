@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       return true;
     } catch (err) {
       console.error("Login fetch error:", err);
-      return false; // Retornar false si hubo un error en login
+      throw err; // Propagar el error para que la vista lo maneje
     }
   };
 

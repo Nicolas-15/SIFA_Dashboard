@@ -15,13 +15,9 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
     setIsLoading(true);
 
     try {
-      const success = await onLogin(email, password);
-      // Si success es false, el context devolvió un error (localError)
-      if (!success) {
-        setLocalError('Correo o contraseña incorrectos. Verifica tus credenciales.');
-      }
+      await onLogin(email, password);
     } catch (err) {
-      setLocalError('Error de conexión con el sistema central.');
+      setLocalError(err.message || 'Error de conexión con el sistema central.');
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +63,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
 
             <div className="space-y-4">
               <Input
-                label="Usuario o Correo Institucional"
+                label="Correo Institucional"
                 icon={Mail}
                 type="text"
                 value={email}

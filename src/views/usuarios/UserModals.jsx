@@ -108,15 +108,32 @@ export function UserModals({
             />
           </div>
 
-          <Input
-            label="Correo Institucional"
-            icon={Mail}
-            type="email"
-            required
-            value={formData.email}
-            onChange={e => setFormData({ ...formData, email: e.target.value })}
-            placeholder="correo@elquisco.cl"
-          />
+          <div className="grid grid-cols-2 gap-5">
+            <Input
+              label="Correo Institucional"
+              icon={Mail}
+              type="email"
+              required
+              value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              placeholder="correo@elquisco.cl"
+            />
+            <div>
+              <label className="block text-xs font-semibold mb-2 ml-1 text-slate-600">Rol en el Sistema</label>
+              <div className="relative">
+                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <select
+                  value={formData.role}
+                  onChange={e => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                >
+                  {Object.values(SYSTEM_ROLES).map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-5">
             <Input
