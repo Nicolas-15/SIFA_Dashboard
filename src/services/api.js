@@ -1,4 +1,7 @@
-export const apiFetch = async (url, options = {}) => {
+import { API_BASE_URL } from '@/core/config';
+
+export const apiFetch = async (endpoint, options = {}) => {
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   const token = localStorage.getItem('token');
 
   const headers = {

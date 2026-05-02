@@ -1,5 +1,5 @@
 import { apiFetch } from './api';
-import { SYSTEM_ROLES } from '../utils/constants';
+import { SYSTEM_ROLES } from '@/constants/roles';
 
 export const decodeJWT = (token) => {
   try {

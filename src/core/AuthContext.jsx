@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as authLogin, decodeJWT, getUserFromToken } from '../services/auth.service';
+import { login as authLogin, decodeJWT, getUserFromToken } from '@/services/auth.service';
 
 const AuthContext = createContext();
 
@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Token válido localmente: restaurar usuario desde el token
-    // El API Gateway se encargará de rechazar peticiones si el token no es válido en el servidor
     const user = getUserFromToken(token);
     if (user) {
       setCurrentUser(user);
@@ -52,19 +51,17 @@ export const AuthProvider = ({ children }) => {
     try {
       const { token, user } = await authLogin(email, password);
       localStorage.setItem('token', token);
-      // Seguridad: ya NO guardamos el objeto user en localStorage para evitar spoofing
       setCurrentUser(user);
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.error("Login fetch error:", err);
-      throw err; // Propagar el error para que la vista lo maneje
+      console.error('Login fetch error:', err);
+      throw err;
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    // localStorage.removeItem('user'); // Ya no existe
     setCurrentUser(null);
     setIsAuthenticated(false);
   };
@@ -74,12 +71,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{
-      currentUser,
-      isAuthenticated,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider value={{ currentUser, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
