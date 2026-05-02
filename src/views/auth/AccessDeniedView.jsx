@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/core/AuthContext';
 
 export function AccessDeniedView() {
   const { currentUser } = useAuth();
