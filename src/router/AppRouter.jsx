@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { useAuth, AuthProvider } from '../contexts/AuthContext';
-import { DashboardLayout } from '../components/layout/DashboardLayout';
-import { SYSTEM_ROLES } from '../utils/constants';
+import { useAuth, AuthProvider } from '@/core/AuthContext';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { SYSTEM_ROLES } from '@/constants/roles';
 
 // Vistas
-import { LoginView } from '../views/auth/LoginView';
-import { RecoveryView } from '../views/auth/RecoveryView';
-import { DashboardView } from '../views/dashboard/DashboardView';
-import { InfraccionesView } from '../views/infracciones/InfraccionesView';
-import { UserManagementView } from '../views/usuarios/UserManagementView';
-import { AccessDeniedView } from '../views/auth/AccessDeniedView';
+import { LoginView } from '@/views/auth/LoginView';
+import { RecoveryView } from '@/views/auth/RecoveryView';
+import { DashboardView } from '@/views/dashboard/DashboardView';
+import { InfraccionesView } from '@/views/infracciones/InfraccionesView';
+import { UserManagementView } from '@/views/usuarios/UserManagementView';
+import { AccessDeniedView } from '@/views/auth/AccessDeniedView';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
