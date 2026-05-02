@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Menu, Shield } from 'lucide-react';
 import { Sidebar } from './Sidebar';
-import { Toast } from '../ui/Toast';
-import { useAuth } from '../../contexts/AuthContext';
-import { useInfractions } from '../../hooks/useInfractions';
+import { Toast } from '@/components/ui/Toast';
+import { useAuth } from '@/core/AuthContext';
+import { useInfractions } from '@/core/useInfractions';
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
