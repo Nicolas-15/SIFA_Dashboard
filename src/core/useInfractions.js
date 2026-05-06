@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInfractions, updateInfractionStatus, updateInfractionData } from '../services/infractions.service';
-import { useAuth } from '../contexts/AuthContext';
+import { getInfractions, updateInfractionStatus, updateInfractionData } from '@/services/infractions.service';
+import { useAuth } from './AuthContext';
 
 export const useInfractions = () => {
   const [infractions, setInfractions] = useState([]);
@@ -10,7 +10,7 @@ export const useInfractions = () => {
 
   const fetchInfractions = useCallback(async () => {
     if (!isAuthenticated) return;
-    
+
     setLoading(true);
     setError(false);
     try {
@@ -35,11 +35,10 @@ export const useInfractions = () => {
     );
     try {
       await updateInfractionStatus(id, newStatus);
-      return true; // Exito
+      return true;
     } catch (err) {
       console.error('Error al persistir estado en la API:', err);
-      // Revertir estado si el usuario quisiera manejar el error aquí (opcional)
-      return false; // Error
+      return false;
     }
   };
 
@@ -56,12 +55,5 @@ export const useInfractions = () => {
     }
   };
 
-  return {
-    infractions,
-    loading,
-    error,
-    fetchInfractions,
-    updateStatus,
-    saveInfractionEdit
-  };
+  return { infractions, loading, error, fetchInfractions, updateStatus, saveInfractionEdit };
 };

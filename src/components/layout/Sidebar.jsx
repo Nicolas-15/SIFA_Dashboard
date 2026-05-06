@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { SYSTEM_ROLES } from '../../utils/constants';
+import { SYSTEM_ROLES } from '@/constants/roles';
 
 function NavItem({ icon, label, path, badge }) {
   const location = useLocation();

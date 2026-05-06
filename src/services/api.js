@@ -1,4 +1,7 @@
-export const apiFetch = async (url, options = {}) => {
+import { API_BASE_URL } from '@/core/config';
+
+export const apiFetch = async (endpoint, options = {}) => {
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   const token = localStorage.getItem('token');
 
   const headers = {
@@ -10,7 +13,7 @@ export const apiFetch = async (url, options = {}) => {
   const response = await fetch(url, { ...options, headers });
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.clear();
       window.dispatchEvent(new Event('auth:unauthorized'));
