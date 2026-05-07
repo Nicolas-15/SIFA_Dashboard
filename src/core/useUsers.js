@@ -31,6 +31,13 @@ export const useUsers = () => {
       setUsers(mappedUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
+      setUsers([]);
+      // guardar error en estado
+      setError(
+        err.message.includes('403')
+          ? 'No tienes permisos para ver usuarios'
+          : 'No se pudieron cargar los usuarios'
+      );
       throw new Error('No se pudieron cargar los usuarios');
     } finally {
       setLoading(false);
@@ -58,20 +65,20 @@ export const useUsers = () => {
   const updateUser = async (selectedUser, formData) => {
     const rutSinPuntos = formData.rut.split('-')[0].replace(/\./g, '');
     const payload = { name: formData.name, lastName: formData.lastname, email: formData.email, phone: formData.phone };
-    
+
     if (formData.password) {
       payload.password = formData.password;
     }
-    
+
     await userService.updateUser(rutSinPuntos, payload);
-    
+
     if (formData.role !== selectedUser.role) {
       let backendRole = 'USER_JPL';
       if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
       else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
       await userService.updateUserRole(rutSinPuntos, backendRole);
     }
-    
+
     await fetchUsers(); // Refrescar lista
   };
 

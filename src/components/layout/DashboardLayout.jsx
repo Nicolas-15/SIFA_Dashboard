@@ -10,17 +10,19 @@ export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [headerSearch, setHeaderSearch] = useState('');
-  
+
   const { currentUser, logout } = useAuth();
   const { infractions, loading, error, fetchInfractions, updateStatus, saveInfractionEdit } = useInfractions();
-  
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const showToast = (message, type = 'success') =>
     setToast({ message, type, key: Date.now() });
 
-  const pendingCount = infractions.filter(i => i.status === 'pending').length;
+  const pendingCount = (infractions || []).filter(
+    i => i.status === 'pending'
+  ).length;
 
   const handleLogout = () => {
     logout();
