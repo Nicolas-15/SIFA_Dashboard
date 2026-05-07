@@ -15,7 +15,7 @@ export const useInfractions = () => {
     setError(false);
     try {
       const data = await getInfractions();
-      setInfractions(data);
+      setInfractions(data || []);
     } catch (err) {
       console.error('Error fetching infractions:', err);
       setError(true);
