@@ -7,7 +7,7 @@
 // y el proxy de Vite (vite.config.js) pueda interceptarlas y enviarlas al API Gateway (9000).
 // En producción, VITE_API_URL debe apuntar al dominio real del API Gateway.
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+export const API_BASE_URL = 'http://3.217.199.134';
 
 export const CONFIG = {
   appName: 'SIFA Dashboard',
