@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Menu, Shield } from 'lucide-react';
 import { Sidebar } from './Sidebar';
@@ -17,8 +17,8 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const showToast = (message, type = 'success') =>
-    setToast({ message, type, key: Date.now() });
+  const showToast = useCallback((message, type = 'success') =>
+    setToast({ message, type, key: Date.now() }), []);
 
   const pendingCount = (infractions || []).filter(
     i => i.status === 'pending'

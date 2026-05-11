@@ -25,7 +25,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
             ) : filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan="7">
-                  <EmptyState query={search} />
+                  <EmptyState query={search} resource="usuarios" />
                 </td>
               </tr>
             ) : (
