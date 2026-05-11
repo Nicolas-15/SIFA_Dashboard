@@ -5,9 +5,11 @@ import * as userService from '@/services/user.service';
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await userService.getUsers();
       const usersList = Array.isArray(data) ? data : [];
@@ -94,6 +96,7 @@ export const useUsers = () => {
   return {
     users,
     loading,
+    error,
     fetchUsers,
     createUser,
     updateUser,

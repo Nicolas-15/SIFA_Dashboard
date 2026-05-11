@@ -23,8 +23,18 @@ export function UserManagementView() {
   });
 
   useEffect(() => { 
-    fetchUsers().catch(() => showToast('No se pudieron cargar los usuarios', 'error')); 
-  }, [fetchUsers, showToast]);
+    if (currentUser) {
+      fetchUsers().catch((err) => {
+        // Detener el bucle si es 401 (No autorizado) o 403 (Prohibido)
+        const isAuthError = err.message.includes('401') || err.message.includes('403') || 
+                          err.message.includes('Unauthorized') || err.message.includes('Forbidden');
+        
+        if (!isAuthError) {
+          showToast('No se pudieron cargar los usuarios', 'error');
+        }
+      });
+    }
+  }, [fetchUsers, currentUser, showToast]);
 
   const handleRutChange = (e) => {
     let value = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
