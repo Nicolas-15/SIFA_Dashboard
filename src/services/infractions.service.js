@@ -1,19 +1,32 @@
 import { apiFetch } from './api';
 
+const mapInfraction = (data) => {
+  if (!data) return null;
+  // Ahora el backend entrega los datos exactamente como los necesita el frontend
+  return data;
+};
+
 export const getInfractions = async () => {
-  return apiFetch('/core/api/v1/infracciones/all');
+  const data = await apiFetch('/core/api/v1/infracciones/all');
+  if (!Array.isArray(data)) return [];
+  return data.map(mapInfraction);
 };
 
 export const getInfractionById = async (id) => {
-  return apiFetch(`/core/api/v1/infracciones/id/${id}`);
+  const data = await apiFetch(`/core/api/v1/infracciones/id/${id}`);
+  return mapInfraction(data);
 };
 
 export const getInfractionsByFiscalizador = async (idFiscalizador) => {
-  return apiFetch(`/core/api/v1/infracciones/fiscalizador/${idFiscalizador}`);
+  const data = await apiFetch(`/core/api/v1/infracciones/fiscalizador/${idFiscalizador}`);
+  if (!Array.isArray(data)) return [];
+  return data.map(mapInfraction);
 };
 
 export const getInfractionsByVehiculoPatente = async (vehiculoPatente) => {
-  return apiFetch(`/core/api/v1/infracciones/vehiculo/${vehiculoPatente}`);
+  const data = await apiFetch(`/core/api/v1/infracciones/vehiculo/${vehiculoPatente}`);
+  if (!Array.isArray(data)) return [];
+  return data.map(mapInfraction);
 };
 
 export const updateInfractionStatus = async (id, newStatus) => {
