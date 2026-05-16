@@ -15,8 +15,9 @@ export const useUsers = () => {
       const usersList = Array.isArray(data) ? data : [];
       const mappedUsers = usersList.map(user => {
         let mappedRole = SYSTEM_ROLES.DEFAULT;
-        if (user.role === 'USER_ADMIN') mappedRole = SYSTEM_ROLES.ADMIN;
-        else if (user.role === 'USER_SUPERVISOR') mappedRole = SYSTEM_ROLES.SUPERVISOR;
+        if (user.role === 'USER_ADMIN' || user.role === 'ADMIN') mappedRole = SYSTEM_ROLES.ADMIN;
+        else if (user.role === 'USER_SUPERVISOR' || user.role === 'SUPERVISOR') mappedRole = SYSTEM_ROLES.SUPERVISOR;
+        else if (user.role === 'USER_APP') mappedRole = SYSTEM_ROLES.USER_APP;
 
         return {
           id: user.rut,
@@ -53,6 +54,7 @@ export const useUsers = () => {
     let backendRole = 'USER_JPL';
     if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
     else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
+    else if (formData.role === SYSTEM_ROLES.USER_APP) backendRole = 'USER_APP';
 
     const payload = {
       rut: rutBody, dv, name: formData.name, lastName: formData.lastname,
@@ -78,6 +80,7 @@ export const useUsers = () => {
       let backendRole = 'USER_JPL';
       if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
       else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
+      else if (formData.role === SYSTEM_ROLES.USER_APP) backendRole = 'USER_APP';
       await userService.updateUserRole(rutSinPuntos, backendRole);
     }
 

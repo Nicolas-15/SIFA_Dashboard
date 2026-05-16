@@ -12,8 +12,15 @@ import { UserManagementView } from '@/views/usuarios/UserManagementView';
 import { AccessDeniedView } from '@/views/auth/AccessDeniedView';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
+  
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  
+  // Seguridad extra: si tiene el rol restringido, no puede entrar
+  if (currentUser?.role === SYSTEM_ROLES.USER_APP) {
+    return <Navigate to="/login" replace />;
+  }
+  
   return children;
 };
 

@@ -9,16 +9,43 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [errors, setErrors] = useState({ email: '', password: '' });
+
+  const validate = () => {
+    const newErrors = { email: '', password: '' };
+    let isValid = true;
+
+    if (!email.trim()) {
+      newErrors.email = 'El correo es obligatorio';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Formato de correo inválido';
+      isValid = false;
+    }
+
+    if (!password) {
+      newErrors.password = 'La contraseña es obligatoria';
+      isValid = false;
+    } else if (password.length < 4) {
+      newErrors.password = 'Mínimo 4 caracteres';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
-    setIsLoading(true);
+    
+    if (!validate()) return;
 
+    setIsLoading(true);
     try {
-      await onLogin(email, password);
+      await onLogin(email.trim(), password);
     } catch (err) {
-      setLocalError(err.message || 'Error de conexión con el sistema central.');
+      setLocalError(err.message || 'Error de conexión con el servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -46,10 +73,13 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             icon={Mail}
             type="text"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors({ ...errors, email: '' });
+            }}
             placeholder="usuario@correo.com"
-            required
             variant="dark"
+            error={errors.email}
           />
 
           <Input
@@ -57,11 +87,14 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
             icon={Lock}
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errors.password) setErrors({ ...errors, password: '' });
+            }}
             placeholder="••••••••"
-            required
             variant="dark"
             className="tracking-wider"
+            error={errors.password}
           />
         </div>
 

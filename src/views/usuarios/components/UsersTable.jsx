@@ -4,6 +4,15 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 export function UsersTable({ loading, filteredUsers, search, currentUser, toggleStatus, handleEditClick }) {
+  const getRoleBadgeStyles = (role) => {
+    const styles = {
+      [SYSTEM_ROLES.ADMIN]:      'bg-purple-100 text-purple-700',
+      [SYSTEM_ROLES.SUPERVISOR]: 'bg-blue-100 text-blue-700',
+      [SYSTEM_ROLES.USER_APP]:   'bg-emerald-100 text-emerald-700',
+    };
+    return styles[role] || 'bg-amber-100 text-amber-700';
+  };
+
   return (
     <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
       <div className="overflow-x-auto flex-1">
@@ -48,9 +57,9 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
                     <p className="text-xs text-slate-400">{user.phone}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${user.role === SYSTEM_ROLES.ADMIN ? 'bg-purple-100 text-purple-700' :
-                      user.role === SYSTEM_ROLES.SUPERVISOR ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
-                      }`}>{user.role}</span>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${getRoleBadgeStyles(user.role)}`}>
+                      {user.role}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-400 font-mono">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Pendiente'}</td>
                   <td className="px-6 py-4">

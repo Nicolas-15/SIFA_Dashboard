@@ -18,12 +18,17 @@ export const getUserFromToken = (token) => {
   const payload = decodeJWT(token);
   if (!payload) return null;
 
-  let userRole = SYSTEM_ROLES.DEFAULT;
+  let userRole = SYSTEM_ROLES.USER_APP; // Por defecto restringido
+  
   if (payload.roles) {
-    if (payload.roles.includes("ADMIN") || payload.roles.includes("USER_ADMIN") || payload.roles.includes("ROLE_ADMIN")) {
+    const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
+    
+    if (roles.some(r => ["ADMIN", "USER_ADMIN", "ROLE_ADMIN"].includes(r))) {
       userRole = SYSTEM_ROLES.ADMIN;
-    } else if (payload.roles.includes("SUPERVISOR") || payload.roles.includes("USER_SUPERVISOR") || payload.roles.includes("ROLE_SUPERVISOR")) {
+    } else if (roles.some(r => ["SUPERVISOR", "USER_SUPERVISOR", "ROLE_SUPERVISOR"].includes(r))) {
       userRole = SYSTEM_ROLES.SUPERVISOR;
+    } else if (roles.some(r => ["DEFAULT", "USER_DEFAULT", "ROLE_DEFAULT"].includes(r))) {
+      userRole = SYSTEM_ROLES.DEFAULT;
     }
   }
 
@@ -45,7 +50,7 @@ export const login = async (email, password) => {
   const mappedUser = getUserFromToken(data.accessToken) || {
     name: email,
     email: email,
-    role: SYSTEM_ROLES.DEFAULT
+    role: SYSTEM_ROLES.USER_APP // Fallback seguro: restringido
   };
 
   return { token: data.accessToken, user: mappedUser };

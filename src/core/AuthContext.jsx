@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { login as authLogin, decodeJWT, getUserFromToken } from '@/services/auth.service';
+import { SYSTEM_ROLES } from '@/constants/roles';
 
 const AuthContext = createContext();
 
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
     // Token válido localmente: restaurar usuario desde el token
     const user = getUserFromToken(token);
-    if (user) {
+    if (user && user.role !== SYSTEM_ROLES.USER_APP) {
       setCurrentUser(user);
       setIsAuthenticated(true);
     } else {
@@ -50,6 +51,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { token, user } = await authLogin(email, password);
+      
+      if (user.role === SYSTEM_ROLES.USER_APP) {
+        throw new Error('Tu cuenta no tiene permisos para acceder a esta plataforma administrativa.');
+      }
+
       localStorage.setItem('token', token);
       setCurrentUser(user);
       setIsAuthenticated(true);
