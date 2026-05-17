@@ -10,10 +10,12 @@ import { useState, useEffect } from 'react';
  */
 function useAuthImages(urls) {
   const [blobUrls, setBlobUrls] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!urls || urls.length === 0) { setBlobUrls([]); return; }
+    if (!urls || urls.length === 0) { setBlobUrls([]); setIsLoading(false); return; }
 
+    setIsLoading(true);
     const token = localStorage.getItem('token');
     let objectUrls = [];
 
@@ -37,14 +39,17 @@ function useAuthImages(urls) {
           })
           .catch(() => null);
       })
-    ).then(results => setBlobUrls(results.filter(Boolean)));
+    ).then(results => {
+      setBlobUrls(results.filter(Boolean));
+      setIsLoading(false);
+    });
 
     return () => {
       objectUrls.forEach(u => URL.revokeObjectURL(u));
     };
   }, [JSON.stringify(urls)]);
 
-  return blobUrls;
+  return { blobUrls, isLoading };
 }
 
 /**
@@ -58,20 +63,48 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
     ? evidenceUrls
     : (infraction.photoUrl ? [infraction.photoUrl] : []);
 
-  const images = useAuthImages(allUrls);
+  const { blobUrls: images, isLoading } = useAuthImages(allUrls);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isChangingImage, setIsChangingImage] = useState(false);
   const hasMultiple = images.length > 1;
 
-  const goNext = (e) => { e.stopPropagation(); setCurrentIndex(i => (i + 1) % images.length); };
-  const goPrev = (e) => { e.stopPropagation(); setCurrentIndex(i => (i - 1 + images.length) % images.length); };
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const nextIdx = (currentIndex + 1) % images.length;
+    const img = new Image();
+    img.src = images[nextIdx];
+  }, [images, currentIndex]);
+
+  const goNext = (e) => {
+    e.stopPropagation();
+    setIsChangingImage(true);
+    setCurrentIndex(i => (i + 1) % images.length);
+    setTimeout(() => setIsChangingImage(false), 300);
+  };
+  const goPrev = (e) => {
+    e.stopPropagation();
+    setIsChangingImage(true);
+    setCurrentIndex(i => (i - 1 + images.length) % images.length);
+    setTimeout(() => setIsChangingImage(false), 300);
+  };
 
   return (
-    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56">
+    <div 
+      className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {(isLoading || isChangingImage) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
+          <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+      )}
       {images.length > 0 ? (
         <>
           <img
             src={images[currentIndex]}
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className={`w-full h-full object-cover transition-opacity duration-200 ${isChangingImage ? 'opacity-50' : 'opacity-100'}`}
             alt={`Evidencia ${currentIndex + 1} de ${images.length}`}
           />
 
@@ -114,7 +147,7 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
       )}
 
       {/* Overlay superior: timestamp + dirección */}
-      <div className="absolute top-2 left-2 right-12 bg-white/90 backdrop-blur-sm px-2 py-1.5 rounded flex items-center justify-between text-xs font-bold text-slate-700">
+      <div className={`absolute top-2 left-2 right-12 bg-white/90 backdrop-blur-sm px-2 py-1.5 rounded flex items-center justify-between text-xs font-bold text-slate-700 transition-opacity duration-200 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
         <span className="flex items-center gap-1">
           <Clock size={12} /> {new Date(infraction.timestamp).toLocaleString('es-CL')}
         </span>
@@ -124,7 +157,7 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
       </div>
 
       {/* Overlay inferior: patente editable */}
-      <div className="absolute bottom-3 right-3 bg-black/80 pl-3 pr-2 py-1 flex items-center rounded-lg shadow-xl backdrop-blur-md border border-white/20">
+      <div className={`absolute bottom-3 right-3 bg-black/80 pl-3 pr-2 py-1 flex items-center rounded-lg shadow-xl backdrop-blur-md border border-white/20 transition-opacity duration-200 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
         <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest mr-2">Patente</span>
         <div className="w-[100px]">
           <EditableField
