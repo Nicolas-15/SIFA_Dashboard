@@ -1,61 +1,87 @@
-import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 
-import { SYSTEM_ROLES } from '@/constants/roles';
-import { useUsers }     from '@/core/useUsers';
-import { UsersHeader }  from './components/UsersHeader';
-import { UsersTable }   from './components/UsersTable';
-import { UserModals }   from './components/UserModals';
+import { SYSTEM_ROLES } from "@/constants/roles";
+import { useUsers } from "@/core/useUsers";
+import { UsersHeader } from "./components/UsersHeader";
+import { UsersTable } from "./components/UsersTable";
+import { UserModals } from "./components/UserModals";
 
 export function UserManagementView() {
   const { showToast, currentUser } = useOutletContext();
-  const { users, loading, fetchUsers, createUser, updateUser, toggleUserStatus } = useUsers();
-  
-  const [search, setSearch] = useState('');
+  const {
+    users,
+    loading,
+    fetchUsers,
+    createUser,
+    updateUser,
+    toggleUserStatus,
+  } = useUsers();
+
+  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '', lastname: '', rut: '', email: '', phone: '', password: '', confirmPassword: '',
-    role: SYSTEM_ROLES.DEFAULT, status: 'active'
+    name: "",
+    lastname: "",
+    rut: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: SYSTEM_ROLES.DEFAULT,
+    status: "active",
   });
 
-  useEffect(() => { 
+  useEffect(() => {
     if (currentUser) {
       fetchUsers().catch((err) => {
         // Detener el bucle si es 401 (No autorizado) o 403 (Prohibido)
-        const isAuthError = err.message.includes('401') || err.message.includes('403') || 
-                          err.message.includes('Unauthorized') || err.message.includes('Forbidden');
-        
+        const isAuthError =
+          err.message.includes("401") ||
+          err.message.includes("403") ||
+          err.message.includes("Unauthorized") ||
+          err.message.includes("Forbidden");
+
         if (!isAuthError) {
-          showToast('No se pudieron cargar los usuarios', 'error');
+          showToast("No se pudieron cargar los usuarios", "error");
         }
       });
     }
   }, [fetchUsers, currentUser, showToast]);
 
   const handleRutChange = (e) => {
-    let value = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-    if (value.length <= 1) { setFormData({ ...formData, rut: value }); return; }
-    let body = value.slice(0, -1).replace(/K/g, '');
+    let value = e.target.value.replace(/[^0-9kK]/g, "").toUpperCase();
+    if (value.length <= 1) {
+      setFormData({ ...formData, rut: value });
+      return;
+    }
+    let body = value.slice(0, -1).replace(/K/g, "");
     let dv = value.slice(-1);
-    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    body = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     setFormData({ ...formData, rut: `${body}-${dv}` });
   };
 
   const handlePhoneChange = (e) => {
-    let val = e.target.value;
-    if (!val.startsWith('+569')) val = '+569' + val.replace(/[^\d]/g, '');
-    if (val.length > 12) val = val.slice(0, 12);
+    let val = e.target.value.replace(/[^\d]/g, "");
+    if (val.length > 8) val = val.slice(0, 8);
     setFormData({ ...formData, phone: val });
   };
 
   const handleNewUserClick = () => {
     setFormData({
-      name: '', lastname: '', rut: '', email: '', phone: '',
-      password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active'
+      name: "",
+      lastname: "",
+      rut: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      role: SYSTEM_ROLES.DEFAULT,
+      status: "active",
     });
     setIsModalOpen(true);
   };
@@ -63,8 +89,15 @@ export function UserManagementView() {
   const handleEditClick = (user) => {
     setSelectedUser(user);
     setFormData({
-      name: user.name, lastname: user.lastname, rut: user.rut, email: user.email, phone: user.phone,
-      password: '', confirmPassword: '', role: user.role, status: user.status
+      name: user.name,
+      lastname: user.lastname,
+      rut: user.rut,
+      email: user.email,
+      phone: user.phone,
+      password: "",
+      confirmPassword: "",
+      role: user.role,
+      status: user.status,
     });
     setIsEditModalOpen(true);
   };
@@ -74,22 +107,34 @@ export function UserManagementView() {
     setSubmitting(true);
 
     if (!/^\d{1,2}\.\d{3}\.\d{3}-[0-9K]$/.test(formData.rut)) {
-      showToast('El formato del RUT no es válido', 'error');
-      setSubmitting(false); return;
+      showToast("El formato del RUT no es válido", "error");
+      setSubmitting(false);
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      showToast('Las contraseñas no coinciden', 'error');
-      setSubmitting(false); return;
+      showToast("Las contraseñas no coinciden", "error");
+      setSubmitting(false);
+      return;
     }
 
     try {
       await createUser(formData);
-      showToast('Usuario creado exitosamente', 'success');
+      showToast("Usuario creado exitosamente", "success");
       setIsModalOpen(false);
-      setFormData({ name: '', lastname: '', rut: '', email: '', phone: '', password: '', confirmPassword: '', role: SYSTEM_ROLES.DEFAULT, status: 'active' });
+      setFormData({
+        name: "",
+        lastname: "",
+        rut: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        role: SYSTEM_ROLES.DEFAULT,
+        status: "active",
+      });
     } catch (err) {
-      showToast(err.message || 'Error al crear usuario', 'error');
+      showToast(err.message || "Error al crear usuario", "error");
     } finally {
       setSubmitting(false);
     }
@@ -98,18 +143,19 @@ export function UserManagementView() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     if (formData.password && formData.password !== formData.confirmPassword) {
-      showToast('Las contraseñas no coinciden', 'error');
-      setSubmitting(false); return;
+      showToast("Las contraseñas no coinciden", "error");
+      setSubmitting(false);
+      return;
     }
-        
+
     try {
       await updateUser(selectedUser, formData);
-      showToast('Usuario actualizado exitosamente', 'success');
+      showToast("Usuario actualizado exitosamente", "success");
       setIsEditModalOpen(false);
     } catch (err) {
-      showToast(err.message || 'Error al actualizar usuario', 'error');
+      showToast(err.message || "Error al actualizar usuario", "error");
     } finally {
       setSubmitting(false);
     }
@@ -118,14 +164,19 @@ export function UserManagementView() {
   const toggleStatus = async (id, currentStatus) => {
     try {
       await toggleUserStatus(id, currentStatus);
-      showToast(`Usuario ${currentStatus === 'active' ? 'revocado' : 'activado'} exitosamente`, 'success');
-    } catch (err) { 
-      showToast(err.message || 'Error al cambiar estado', 'error'); 
+      showToast(
+        `Usuario ${currentStatus === "active" ? "revocado" : "activado"} exitosamente`,
+        "success",
+      );
+    } catch (err) {
+      showToast(err.message || "Error al cambiar estado", "error");
     }
   };
 
-  const filteredUsers = users.filter(u =>
-    (u.name + ' ' + u.lastname + ' ' + u.rut + ' ' + u.email).toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = users.filter((u) =>
+    (u.name + " " + u.lastname + " " + u.rut + " " + u.email)
+      .toLowerCase()
+      .includes(search.toLowerCase()),
   );
 
   return (
@@ -146,12 +197,18 @@ export function UserManagementView() {
       />
 
       <UserModals
-        isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}
-        isEditModalOpen={isEditModalOpen} setIsEditModalOpen={setIsEditModalOpen}
-        formData={formData} setFormData={setFormData}
-        handleRutChange={handleRutChange} handlePhoneChange={handlePhoneChange}
-        handleSubmit={handleSubmit} handleEditSubmit={handleEditSubmit}
-        submitting={submitting} selectedUser={selectedUser}
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        formData={formData}
+        setFormData={setFormData}
+        handleRutChange={handleRutChange}
+        handlePhoneChange={handlePhoneChange}
+        handleSubmit={handleSubmit}
+        handleEditSubmit={handleEditSubmit}
+        submitting={submitting}
+        selectedUser={selectedUser}
       />
     </div>
   );

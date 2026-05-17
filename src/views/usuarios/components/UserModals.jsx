@@ -106,12 +106,14 @@ export function UserModals({
               className="font-mono"
             />
             <Input
-              label="Teléfono (+569)"
+              label="Teléfono Móvil"
               icon={Phone}
+              prefix="+569" // <-- MAGIA: Aquí inyectas el código
               required
+              maxLength={8}
               value={formData.phone}
               onChange={handlePhoneChange}
-              placeholder="+56912345678"
+              placeholder="12345678"
               className="font-mono"
             />
           </div>
