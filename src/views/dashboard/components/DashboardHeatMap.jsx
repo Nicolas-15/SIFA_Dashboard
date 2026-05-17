@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.heat";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
+import { X, Maximize2 } from "lucide-react";
 
 // Un componente interno para inyectar el plugin de calor
 function HeatmapLayer({ data }) {
@@ -28,8 +29,7 @@ function HeatmapLayer({ data }) {
 }
 
 export function DashboardHeatmap({ infractions }) {
-  // Viña del Mar/Concón [-33.0456, -71.6214]
-  // El Quisco [-33.3913, -71.6961]
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const center = [-33.0456, -71.6214];
 
   // 1. Aquí está la corrección clave: buscar dentro de inf.location
@@ -65,7 +65,45 @@ export function DashboardHeatmap({ infractions }) {
           />
           <HeatmapLayer data={heatmapPoints} />
         </MapContainer>
+        <button 
+          onClick={() => setIsFullscreen(true)}
+          className="absolute bottom-8 right-2 bg-white/90 hover:bg-white text-slate-700 p-1.5 rounded-lg shadow-md border border-slate-200 transition-colors z-[1000]"
+        >
+          <Maximize2 size={16} />
+        </button>
       </div>
+
+      {/* Modal pantalla completa */}
+      {isFullscreen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setIsFullscreen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
+            onClick={() => setIsFullscreen(false)}
+          >
+            <X size={32} />
+          </button>
+          
+          <div 
+            className="w-full h-full max-w-5xl max-h-[90vh] rounded-lg overflow-hidden border border-slate-600"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MapContainer
+              center={center}
+              zoom={14}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+              />
+              <HeatmapLayer data={heatmapPoints} />
+            </MapContainer>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
