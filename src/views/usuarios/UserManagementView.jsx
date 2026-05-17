@@ -93,7 +93,7 @@ export function UserManagementView() {
       lastname: user.lastname,
       rut: user.rut,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone.slice(4),
       password: "",
       confirmPassword: "",
       role: user.role,

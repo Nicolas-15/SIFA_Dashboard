@@ -81,7 +81,7 @@ export const useUsers = () => {
       name: formData.name,
       lastName: formData.lastname,
       email: formData.email,
-      phone: formData.phone,
+      phone: formData.phone ? `+569${formData.phone}` : "",
     };
 
     if (formData.password) {
