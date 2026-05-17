@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { SYSTEM_ROLES } from '@/constants/roles';
-import * as userService from '@/services/user.service';
+import { useState, useCallback } from "react";
+import { SYSTEM_ROLES } from "@/constants/roles";
+import * as userService from "@/services/user.service";
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -13,11 +13,13 @@ export const useUsers = () => {
     try {
       const data = await userService.getUsers();
       const usersList = Array.isArray(data) ? data : [];
-      const mappedUsers = usersList.map(user => {
+      const mappedUsers = usersList.map((user) => {
         let mappedRole = SYSTEM_ROLES.DEFAULT;
-        if (user.role === 'USER_ADMIN' || user.role === 'ADMIN') mappedRole = SYSTEM_ROLES.ADMIN;
-        else if (user.role === 'USER_SUPERVISOR' || user.role === 'SUPERVISOR') mappedRole = SYSTEM_ROLES.SUPERVISOR;
-        else if (user.role === 'USER_APP') mappedRole = SYSTEM_ROLES.USER_APP;
+        if (user.role === "USER_ADMIN" || user.role === "ADMIN")
+          mappedRole = SYSTEM_ROLES.ADMIN;
+        else if (user.role === "USER_SUPERVISOR" || user.role === "SUPERVISOR")
+          mappedRole = SYSTEM_ROLES.SUPERVISOR;
+        else if (user.role === "USER_APP") mappedRole = SYSTEM_ROLES.USER_APP;
 
         return {
           id: user.rut,
@@ -25,41 +27,48 @@ export const useUsers = () => {
           lastname: user.lastName,
           rut: `${user.rut}-${user.dv}`,
           email: user.email,
-          phone: user.phone || '+569',
+          phone: user.phone || "+569",
           role: mappedRole,
-          status: (user.active || user.isActive) ? 'active' : 'revoked',
-          createdAt: user.createdAt
+          status: user.active || user.isActive ? "active" : "revoked",
+          createdAt: user.createdAt,
         };
       });
       setUsers(mappedUsers);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      console.error("Error fetching users:", err);
       setUsers([]);
       // guardar error en estado
       setError(
-        err.message.includes('403')
-          ? 'No tienes permisos para ver usuarios'
-          : 'No se pudieron cargar los usuarios'
+        err.message.includes("403")
+          ? "No tienes permisos para ver usuarios"
+          : "No se pudieron cargar los usuarios",
       );
-      throw new Error('No se pudieron cargar los usuarios');
+      throw new Error("No se pudieron cargar los usuarios");
     } finally {
       setLoading(false);
     }
   }, []);
 
   const createUser = async (formData) => {
-    const rutSinPuntos = formData.rut.replace(/\./g, '');
-    const [rutBody, dv] = rutSinPuntos.split('-');
+    const rutSinPuntos = formData.rut.replace(/\./g, "");
+    const [rutBody, dv] = rutSinPuntos.split("-");
 
-    let backendRole = 'USER_JPL';
-    if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
-    else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
-    else if (formData.role === SYSTEM_ROLES.USER_APP) backendRole = 'USER_APP';
+    let backendRole = "USER_JPL";
+    if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = "USER_ADMIN";
+    else if (formData.role === SYSTEM_ROLES.SUPERVISOR)
+      backendRole = "USER_SUPERVISOR";
+    else if (formData.role === SYSTEM_ROLES.USER_APP) backendRole = "USER_APP";
 
     const payload = {
-      rut: rutBody, dv, name: formData.name, lastName: formData.lastname,
-      birthDate: '1990-01-01', email: formData.email, phone: formData.phone,
-      password: formData.password, role: backendRole
+      rut: rutBody,
+      dv,
+      name: formData.name,
+      lastName: formData.lastname,
+      birthDate: "1990-01-01",
+      email: formData.email,
+      phone: formData.phone ? `+569${formData.phone}` : "",
+      password: formData.password,
+      role: backendRole,
     };
 
     await userService.createUser(payload);
@@ -67,8 +76,13 @@ export const useUsers = () => {
   };
 
   const updateUser = async (selectedUser, formData) => {
-    const rutSinPuntos = formData.rut.split('-')[0].replace(/\./g, '');
-    const payload = { name: formData.name, lastName: formData.lastname, email: formData.email, phone: formData.phone };
+    const rutSinPuntos = formData.rut.split("-")[0].replace(/\./g, "");
+    const payload = {
+      name: formData.name,
+      lastName: formData.lastname,
+      email: formData.email,
+      phone: formData.phone ? `+569${formData.phone}` : "",
+    };
 
     if (formData.password) {
       payload.password = formData.password;
@@ -77,10 +91,12 @@ export const useUsers = () => {
     await userService.updateUser(rutSinPuntos, payload);
 
     if (formData.role !== selectedUser.role) {
-      let backendRole = 'USER_JPL';
-      if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = 'USER_ADMIN';
-      else if (formData.role === SYSTEM_ROLES.SUPERVISOR) backendRole = 'USER_SUPERVISOR';
-      else if (formData.role === SYSTEM_ROLES.USER_APP) backendRole = 'USER_APP';
+      let backendRole = "USER_JPL";
+      if (formData.role === SYSTEM_ROLES.ADMIN) backendRole = "USER_ADMIN";
+      else if (formData.role === SYSTEM_ROLES.SUPERVISOR)
+        backendRole = "USER_SUPERVISOR";
+      else if (formData.role === SYSTEM_ROLES.USER_APP)
+        backendRole = "USER_APP";
       await userService.updateUserRole(rutSinPuntos, backendRole);
     }
 
@@ -88,7 +104,7 @@ export const useUsers = () => {
   };
 
   const toggleUserStatus = async (id, currentStatus) => {
-    if (currentStatus === 'active') {
+    if (currentStatus === "active") {
       await userService.revokeUser(id);
     } else {
       await userService.activateUser(id);
@@ -103,6 +119,6 @@ export const useUsers = () => {
     fetchUsers,
     createUser,
     updateUser,
-    toggleUserStatus
+    toggleUserStatus,
   };
 };

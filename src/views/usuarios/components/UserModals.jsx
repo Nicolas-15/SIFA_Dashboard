@@ -106,12 +106,14 @@ export function UserModals({
               className="font-mono"
             />
             <Input
-              label="Teléfono (+569)"
+              label="Teléfono Móvil"
               icon={Phone}
+              prefix="+569"
               required
+              maxLength={8}
               value={formData.phone}
               onChange={handlePhoneChange}
-              placeholder="+56912345678"
+              placeholder="12345678"
               className="font-mono"
             />
           </div>
@@ -202,10 +204,14 @@ export function UserModals({
 
           <div className="grid grid-cols-2 gap-5">
             <Input
-              label="Teléfono"
+              label="Teléfono Móvil"
               icon={Phone}
+              prefix="+569"
+              required
+              maxLength={8}
               value={formData.phone}
               onChange={handlePhoneChange}
+              placeholder="12345678"
               className="font-mono"
             />
             <Select
