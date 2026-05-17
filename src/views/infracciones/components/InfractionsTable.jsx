@@ -37,8 +37,12 @@ export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelec
             </td>
             <td className="px-5 py-4">
               <div className="max-w-[300px]">
-                <p className="text-xs font-bold text-primary">Cod {inf.infractionCode}</p>
-                <p className="text-sm font-medium text-slate-700 truncate" title={inf.infractionDescription}>{inf.infractionDescription}</p>
+                <p className="text-sm font-bold text-slate-800">
+                  {inf.infractionCode} - {inf.infractionDescription}
+                </p>
+                <p className="text-xs text-slate-400 font-medium truncate" title={inf.disposicionInfringida}>
+                  {inf.disposicionInfringida}
+                </p>
               </div>
             </td>
             <td className="px-5 py-4 text-sm text-slate-600 font-semibold">

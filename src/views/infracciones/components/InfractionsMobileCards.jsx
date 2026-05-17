@@ -20,7 +20,12 @@ export function InfractionsMobileCards({ filtered, searchQuery, activeFilter, se
             </span>
             <StatusBadge status={inf.status} />
           </div>
-          <p className="text-sm font-semibold text-slate-700 mb-1">{inf.infractionDescription}</p>
+          <p className="text-sm font-bold text-slate-800 mb-1">
+            {inf.infractionCode} - {inf.infractionDescription}
+          </p>
+          {inf.disposicionInfringida && (
+            <p className="text-xs text-slate-400 mb-1">{inf.disposicionInfringida}</p>
+          )}
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-slate-400">Citación: {inf.tramitacion?.fechaCitacion}</p>
             <span className="text-xs font-bold text-primary">Ver detalle →</span>

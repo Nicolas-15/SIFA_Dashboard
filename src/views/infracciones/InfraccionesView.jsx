@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
-import { InfractionsFilters }     from './components/InfractionsFilters';
-import { InfractionsTable }       from './components/InfractionsTable';
+import { InfractionsFilters } from './components/InfractionsFilters';
+import { InfractionsTable } from './components/InfractionsTable';
 import { InfractionsMobileCards } from './components/InfractionsMobileCards';
-import { InfractionModal }        from './InfractionModal';
+import { InfractionModal } from './InfractionModal';
 
 const FILTERS = [
   { key: 'all', label: 'Todas' },

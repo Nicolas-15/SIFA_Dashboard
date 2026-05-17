@@ -13,14 +13,14 @@ import { AccessDeniedView } from '@/views/auth/AccessDeniedView';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, currentUser } = useAuth();
-  
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  
+
   // Seguridad extra: si tiene el rol restringido, no puede entrar
   if (currentUser?.role === SYSTEM_ROLES.USER_APP) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 };
 
@@ -41,6 +41,16 @@ const PublicRoute = ({ children }) => {
       {children}
     </div>
   );
+};
+
+const InfraccionesRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  const allowedRoles = [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.SUPERVISOR, SYSTEM_ROLES.DEFAULT];
+  
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) {
+    return <AccessDeniedView />;
+  }
+  return children;
 };
 
 export const AppRouter = () => {
@@ -70,7 +80,7 @@ export const AppRouter = () => {
           <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardView />} />
-            <Route path="infracciones" element={<InfraccionesView />} />
+            <Route path="infracciones" element={<InfraccionesRoute><InfraccionesView /></InfraccionesRoute>} />
             <Route path="usuarios" element={<AdminRoute><UserManagementView /></AdminRoute>} />
           </Route>
 

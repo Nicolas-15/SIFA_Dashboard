@@ -148,19 +148,23 @@ export function InfractionDetailCard({ editing, data, setField }) {
   return (
     <div className={`rounded-xl border p-4 space-y-3 transition-colors ${editing ? 'border-blue-200 bg-white shadow-sm ring-1 ring-blue-50' : 'border-slate-200 bg-slate-50'}`}>
       <h4 className="text-[11px] font-bold uppercase text-slate-500">Motivo e Infracción Cometida</h4>
-      <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase">Cód. Infracción</p>
-        <div className="w-24">
-          <EditableField editing={editing} value={data.infractionCode} onChange={v => setField('infractionCode', v)} mono />
+      
+      <div className="flex gap-4 items-start">
+        <div className="shrink-0">
+          <p className="text-[10px] font-bold text-slate-400 uppercase">Cód. Infracción</p>
+          <div className="w-24">
+            <EditableField editing={editing} value={data.infractionCode} onChange={v => setField('infractionCode', v)} mono />
+          </div>
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] font-bold text-slate-400 uppercase">Disposición Infringida</p>
+          <EditableField editing={editing} type="textarea" value={data.disposicionInfringida} onChange={v => setField('disposicionInfringida', v)} />
         </div>
       </div>
+
       <div>
         <p className="text-[10px] font-bold text-slate-400 uppercase">Descripción formal del hecho</p>
-        <EditableField editing={editing} value={data.infractionDescription} onChange={v => setField('infractionDescription', v)} />
-      </div>
-      <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase">Disposición Infringida (ej. Ley de Tránsito)</p>
-        <EditableField editing={editing} value={data.disposicionInfringida} onChange={v => setField('disposicionInfringida', v)} />
+        <EditableField editing={editing} type="textarea" value={data.observaciones} onChange={v => setField('observaciones', v)} />
       </div>
     </div>
   );

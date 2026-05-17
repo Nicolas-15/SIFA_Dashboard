@@ -27,7 +27,7 @@ export const getUserFromToken = (token) => {
       userRole = SYSTEM_ROLES.ADMIN;
     } else if (roles.some(r => ["SUPERVISOR", "USER_SUPERVISOR", "ROLE_SUPERVISOR"].includes(r))) {
       userRole = SYSTEM_ROLES.SUPERVISOR;
-    } else if (roles.some(r => ["DEFAULT", "USER_DEFAULT", "ROLE_DEFAULT"].includes(r))) {
+    } else if (roles.some(r => ["DEFAULT", "USER_DEFAULT", "ROLE_DEFAULT", "USER_JPL", "ROLE_JPL", "JPL"].includes(r))) {
       userRole = SYSTEM_ROLES.DEFAULT;
     }
   }

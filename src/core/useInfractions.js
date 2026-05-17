@@ -15,7 +15,20 @@ export const useInfractions = () => {
     setError(false);
     try {
       const data = await getInfractions();
-      setInfractions(data || []);
+      
+      const normalizeStatus = (s) => ({
+        'en proceso': 'pending', 'en_proceso': 'pending', 'pendiente': 'pending', 'pending': 'pending',
+        'aprobada': 'accepted', 'aceptada': 'accepted', 'aprobado': 'accepted', 'aceptado': 'accepted', 'accepted': 'accepted',
+        'rechazada': 'rejected', 'rechazado': 'rejected', 'rejected': 'rejected',
+        'exportada': 'exported', 'exportado': 'exported', 'exported': 'exported'
+      })[s?.toLowerCase()] || 'pending';
+
+      const normalized = (data || []).map(inf => ({
+        ...inf,
+        status: normalizeStatus(inf.status)
+      }));
+
+      setInfractions(normalized);
     } catch (err) {
       console.error('Error fetching infractions:', err);
       setError(true);

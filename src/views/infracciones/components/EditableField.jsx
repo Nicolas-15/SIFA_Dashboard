@@ -18,6 +18,17 @@ export function EditableField({
   const safeVal = value || '';
 
   if (!editing) {
+    if (type === 'textarea') {
+      return (
+        <div
+          className={`w-full text-sm px-3 py-1.5 border-transparent bg-transparent
+            cursor-default font-semibold whitespace-pre-wrap break-words leading-relaxed
+            ${textColor} ${mono ? 'font-mono' : ''} tracking-wide ${align}`}
+        >
+          {safeVal || '-'}
+        </div>
+      );
+    }
     return (
       <input
         type="text"
@@ -38,6 +49,18 @@ export function EditableField({
         onChange={e => onChange(e.target.value)}
         placeholder="- Seleccione -"
         className={`!pl-4 font-semibold h-[38px] ${mono ? 'font-mono' : ''} tracking-wide`}
+      />
+    );
+  }
+
+  if (type === 'textarea') {
+    return (
+      <textarea
+        value={safeVal}
+        onChange={e => onChange(e.target.value)}
+        rows={3}
+        className={`w-full text-sm rounded-lg border border-slate-200 px-3 py-2 font-semibold outline-none
+          focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 tracking-wide resize-y ${align}`}
       />
     );
   }
