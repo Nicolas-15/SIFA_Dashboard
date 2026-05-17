@@ -1,4 +1,4 @@
-import { Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { EditableField } from './EditableField';
 import { formatPlate } from '../utils/infractionFormatters';
 import { useState, useEffect } from 'react';
@@ -67,6 +67,7 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isChangingImage, setIsChangingImage] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const hasMultiple = images.length > 1;
 
   useEffect(() => {
@@ -104,8 +105,9 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
         <>
           <img
             src={images[currentIndex]}
-            className={`w-full h-full object-cover transition-opacity duration-200 ${isChangingImage ? 'opacity-50' : 'opacity-100'}`}
+            className={`w-full h-full object-cover transition-opacity duration-200 cursor-pointer ${isChangingImage ? 'opacity-50' : 'opacity-100'}`}
             alt={`Evidencia ${currentIndex + 1} de ${images.length}`}
+            onClick={() => setIsFullscreen(true)}
           />
 
           {/* Flechas de navegación */}
@@ -170,6 +172,69 @@ export function InfractionPhotoSection({ editing, data, infraction, location, se
           />
         </div>
       </div>
+
+      {/* Modal pantalla completa */}
+      {isFullscreen && images.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={() => setIsFullscreen(false)}
+        >
+          {/* Botón cerrar */}
+          <button 
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
+            onClick={() => setIsFullscreen(false)}
+          >
+            <X size={32} />
+          </button>
+
+          {/* Flecha izquierda */}
+          {hasMultiple && (
+            <button 
+              onClick={goPrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-colors"
+            >
+              <ChevronLeft size={28} />
+            </button>
+          )}
+
+          {/* Imagen */}
+          <img
+            src={images[currentIndex]}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            alt={`Evidencia ${currentIndex + 1} de ${images.length}`}
+          />
+
+          {/* Flecha derecha */}
+          {hasMultiple && (
+            <button 
+              onClick={goNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-colors"
+            >
+              <ChevronRight size={28} />
+            </button>
+          )}
+
+          {/* Contador */}
+          {hasMultiple && (
+            <div className="absolute top-4 left-4 bg-black/60 text-white text-sm font-bold px-3 py-1 rounded-full">
+              {currentIndex + 1} / {images.length}
+            </div>
+          )}
+
+          {/* Dots indicadores */}
+          {hasMultiple && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
