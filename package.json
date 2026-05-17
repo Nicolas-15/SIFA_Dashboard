@@ -16,9 +16,12 @@
     "esbuild": "^0.28.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "leaflet": "^1.9.4",
+    "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.368.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.14.1",
     "recharts": "^2.12.5",
     "tailwind-merge": "^2.2.2"

@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
@@ -15,24 +15,24 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/auth': {
-        target: 'http://localhost:9000',
-        changeOrigin: true
-      },
-      '/auth-api': {
-        target: 'http://localhost:9000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/auth-api/, '/auth')
-      },
-      '/core': {
-        target: 'http://localhost:9000',
+      "/auth": {
+        target: "http://localhost:9000",
         changeOrigin: true,
       },
-      '/api': {
-        target: 'http://localhost:9000',
+      "/auth-api": {
+        target: "http://localhost:9000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api/mock')
-      }
-    }
-  }
-})
+        rewrite: (path) => path.replace(/^\/auth-api/, "/auth"),
+      },
+      "/core": {
+        target: "http://localhost:9000",
+        changeOrigin: true,
+      },
+      "/api": {
+        target: "http://localhost:9000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, "/api/mock"),
+      },
+    },
+  },
+});
