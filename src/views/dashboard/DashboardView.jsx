@@ -20,8 +20,8 @@ export function DashboardView() {
 
       <DashboardStatsCards infractions={infractions} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        <DashboardHeatmap infractions={infractions} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <DashboardHeatmap infractions={infractions} className="lg:col-span-2" />
         <DashboardRecentActivity infractions={infractions} />
       </div>
     </div>
