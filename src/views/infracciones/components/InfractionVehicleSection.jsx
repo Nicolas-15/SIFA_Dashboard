@@ -1,5 +1,6 @@
-import { Car, MapPin } from 'lucide-react';
+import { Car, MapPin, X, Maximize2 } from 'lucide-react';
 import { EditableField } from './EditableField';
+import { useState } from 'react';
 
 const VEHICLE_TYPES = ['Automóvil', 'Camioneta', 'Furgón', 'Motocicleta', 'Camión', 'Bus'];
 const VEHICLE_COLORS = ['Blanco', 'Negro', 'Gris', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Plateado', 'Café', 'Naranja'];
@@ -8,6 +9,7 @@ const VEHICLE_COLORS = ['Blanco', 'Negro', 'Gris', 'Rojo', 'Azul', 'Verde', 'Ama
  * Box de vehículo interviniente + coordenadas GPS + mini mapa OSM.
  */
 export function InfractionVehicleSection({ editing, data, setNested }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const lat = data.location?.lat || -33.393;
   const lng = data.location?.lng || -71.696;
 
@@ -52,10 +54,48 @@ export function InfractionVehicleSection({ editing, data, setNested }) {
             <EditableField editing={editing} value={data.location?.lng} onChange={v => setNested('location', 'lng', v)} mono />
           </div>
         </div>
-        <div className="w-full h-40 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
-          <iframe width="100%" height="100%" src={mapSrc} title="Mapa de ubicación" />
+        <div className="relative w-full h-40 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+          <iframe 
+            width="100%" 
+            height="100%" 
+            src={mapSrc} 
+            title="Mapa de ubicación" 
+          />
+          <button 
+            onClick={() => setIsFullscreen(true)}
+            className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-slate-700 p-1.5 rounded-lg shadow-md border border-slate-200 transition-colors"
+          >
+            <Maximize2 size={16} />
+          </button>
         </div>
       </div>
+
+      {/* Modal pantalla completa del mapa */}
+      {isFullscreen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setIsFullscreen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
+            onClick={() => setIsFullscreen(false)}
+          >
+            <X size={32} />
+          </button>
+          
+          <div 
+            className="w-full h-full max-w-5xl max-h-[90vh] rounded-lg overflow-hidden border border-slate-600"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src={mapSrc} 
+              title="Mapa de ubicación"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
