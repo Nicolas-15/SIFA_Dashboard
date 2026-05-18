@@ -48,10 +48,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             <ShieldCheck size={20} className="relative z-10" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-widest text-white leading-tight">
-              SIFA <span className="text-secondary text-xs align-top font-black">PRO</span>
+            <h1 className="text-lg font-black tracking-wider text-white leading-none flex items-center gap-1.5">
+              SIFA
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-secondary/20 text-secondary border border-secondary/30 tracking-widest">
+                DASHBOARD
+              </span>
             </h1>
-            <p className="text-[10px] text-slate-400 mt-0.5">I. Municipalidad de El Quisco</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1">I. Municipalidad de El Quisco</p>
           </div>
         </div>
         <button onClick={onClose} className="md:hidden p-1 text-slate-400 hover:text-white">

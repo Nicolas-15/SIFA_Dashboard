@@ -52,7 +52,7 @@ export function RecoveryView({ onNavigateToLogin }) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="ejemplo@elquisco.cl"
+            placeholder="usuario@correo.com"
             required
             variant="dark"
             className="focus:border-secondary focus:ring-secondary/20"
@@ -76,7 +76,7 @@ export function RecoveryView({ onNavigateToLogin }) {
             variant="ghost"
             onClick={onNavigateToLogin}
             type="button"
-            className="!text-slate-400 hover:!text-white !shadow-none flex items-center gap-1.5 mx-auto"
+            className="!text-slate-400 hover:!text-white !shadow-none flex items-center gap-1.5 mx-auto !bg-transparent hover:!bg-transparent !w-auto"
           >
             <ArrowLeft size={14} />
             Volver atrás

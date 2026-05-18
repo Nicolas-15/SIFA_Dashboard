@@ -114,7 +114,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
           variant="ghost"
           onClick={onNavigateToRecovery}
           type="button"
-          className="!text-slate-400 hover:!text-white !shadow-none !text-xs"
+          className="!text-slate-400 hover:!text-white !shadow-none !text-xs !bg-transparent hover:!bg-transparent !w-auto mx-auto"
         >
           ¿Olvidaste tu contraseña?
         </Button>
