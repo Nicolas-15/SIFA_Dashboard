@@ -1,33 +1,52 @@
-import { Clock, MapPin } from 'lucide-react';
-import { EditableField } from './EditableField';
-import { parseToDatetimeLocal, parseFromDatetimeLocal } from '../utils/infractionFormatters';
+import { Clock, MapPin } from "lucide-react";
 
 /**
  * Fila superior del modal: Boleta, Parte, Fecha de Citación y Agente.
+ * Componente en modo solo lectura.
  */
-export function InfractionNumeraciones({ editing, data, setField, setNested }) {
+export function InfractionNumeraciones({ data }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-100 p-3 rounded-xl border border-slate-200">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-100 p-3 rounded-xl border border-slate-200">
       <div>
-        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">N° Boleta (Física)</p>
-        <EditableField editing={editing} value={data.numeroBoleta} onChange={v => setField('numeroBoleta', v)} mono />
-      </div>
-      <div>
-        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">N° Parte (Seg.Pública)</p>
-        <EditableField editing={editing} value={data.numeroParte} onChange={v => setField('numeroParte', v)} mono />
-      </div>
-      <div>
-        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Emisión</p>
-        <EditableField
-          editing={editing}
-          type="datetime-local"
-          value={editing ? parseToDatetimeLocal(data.tramitacion?.fechaCitacion) : data.tramitacion?.fechaCitacion}
-          onChange={v => setNested('tramitacion', 'fechaCitacion', parseFromDatetimeLocal(v))}
+        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">
+          N° ID
+        </p>
+        <input
+          type="text"
+          value={data?.id || "-"}
+          readOnly
+          className="w-full text-sm rounded-lg border pe-3 py-2 border-transparent bg-transparent
+            cursor-default pointer-events-none truncate font-semibold outline-none h-[38px]
+            text-slate-800 font-mono tracking-wide text-left"
         />
       </div>
       <div>
-        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Agente / Fiscalizador</p>
-        <EditableField editing={editing} value={data.agentId} onChange={v => setField('agentId', v)} />
+        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">
+          Fecha de Emisión
+        </p>
+        <input
+          type="text"
+          value={
+            data?.fecha ? new Date(data.fecha).toLocaleString("es-CL") : "-"
+          }
+          readOnly
+          className="w-full text-sm rounded-lg border pe-3 py-2 border-transparent bg-transparent
+            cursor-default pointer-events-none truncate font-semibold outline-none h-[38px]
+            text-slate-800 tracking-wide text-left"
+        />
+      </div>
+      <div>
+        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">
+          Agente / Fiscalizador
+        </p>
+        <input
+          type="text"
+          value={data?.idFiscalizador || "-"}
+          readOnly
+          className="w-full text-sm rounded-lg border pe-3 py-2 border-transparent bg-transparent
+            cursor-default pointer-events-none truncate font-semibold outline-none h-[38px]
+            text-slate-800 tracking-wide text-left"
+        />
       </div>
     </div>
   );

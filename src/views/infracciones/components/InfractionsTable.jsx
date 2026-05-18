@@ -1,8 +1,14 @@
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Button } from '@/components/ui/Button';
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { parseISODateTime } from "@/views/infracciones/utils/infractionFormatters";
 
-export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelectedId }) {
+export function InfractionsTable({
+  filtered,
+  searchQuery,
+  activeFilter,
+  setSelectedId,
+}) {
   if (filtered.length === 0) {
     return <EmptyState query={searchQuery} filter={activeFilter} />;
   }
@@ -11,7 +17,7 @@ export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelec
     <table className="w-full text-left border-collapse min-w-[640px]">
       <thead>
         <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider sticky top-0">
-          <th className="px-5 py-4">Parte/Boleta</th>
+          <th className="px-5 py-4">ID</th>
           <th className="px-5 py-4">Patente</th>
           <th className="px-5 py-4">Infracción</th>
           <th className="px-5 py-4">F. Emisión</th>
@@ -20,15 +26,14 @@ export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelec
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100">
-        {filtered.map(inf => (
+        {filtered.map((inf) => (
           <tr
             key={inf.id}
             className="hover:bg-slate-50 transition-colors cursor-pointer"
             onClick={() => setSelectedId(inf.id)}
           >
             <td className="px-5 py-4 text-sm text-slate-600 font-bold">
-              P: {inf.numeroParte}<br />
-              <span className="text-xs text-slate-400 font-normal">B: {inf.numeroBoleta}</span>
+              {inf.id}
             </td>
             <td className="px-5 py-4">
               <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-white font-mono text-sm font-bold tracking-widest uppercase">
@@ -38,17 +43,22 @@ export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelec
             <td className="px-5 py-4">
               <div className="max-w-[300px]">
                 <p className="text-sm font-bold text-slate-800">
-                  {inf.infractionCode} - {inf.infractionDescription}
+                  {inf.tipoInfraccion.id} - {inf.tipoInfraccion.nombre}
                 </p>
-                <p className="text-xs text-slate-400 font-medium truncate" title={inf.disposicionInfringida}>
-                  {inf.disposicionInfringida}
+                <p
+                  className="text-xs text-slate-400 font-medium truncate"
+                  title={inf.tipoInfraccion.disposicionInfringida}
+                >
+                  {inf.tipoInfraccion.disposicionInfringida}
                 </p>
               </div>
             </td>
             <td className="px-5 py-4 text-sm text-slate-600 font-semibold">
-              {inf.tramitacion?.fechaCitacion}
+              {parseISODateTime(inf.fecha)}
             </td>
-            <td className="px-5 py-4"><StatusBadge status={inf.status} /></td>
+            <td className="px-5 py-4">
+              <StatusBadge status={inf.status} />
+            </td>
             <td className="px-5 py-4 text-right">
               <Button size="sm" variant="primary">
                 Ver Detalle
