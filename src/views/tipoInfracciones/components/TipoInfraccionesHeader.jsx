@@ -2,7 +2,7 @@ import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export function TipoInfraccionesHeader({ search, setSearch, onNew }) {
+export function TipoInfraccionesHeader({ search, setSearch, onNew, isAdmin }) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
@@ -17,9 +17,11 @@ export function TipoInfraccionesHeader({ search, setSearch, onNew }) {
           icon={Search}
           className="w-64 !py-2"
         />
-        <Button onClick={onNew} className="!w-auto px-4 !py-2.5">
-          <Plus size={18} /> Nuevo Tipo
-        </Button>
+        {isAdmin && (
+          <Button onClick={onNew} className="!w-auto px-4 !py-2.5">
+            <Plus size={18} /> Nuevo Tipo
+          </Button>
+        )}
       </div>
     </div>
   );

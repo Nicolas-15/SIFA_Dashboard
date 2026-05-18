@@ -54,7 +54,7 @@ export function InfractionModal({
   const handleAccept = () => {
     updateStatus(infraction.id, "accepted");
     showToast(
-      `Infracción ${infraction.numeroBoleta || infraction.id} aceptada`,
+      `Infracción ID: ${infraction.id} aceptada`,
     );
     setConfirmAccept(false);
   };
@@ -83,7 +83,7 @@ export function InfractionModal({
         pdfWidth,
         (canvas.height * pdfWidth) / canvas.width,
       );
-      pdf.save(`empadronado-${infraction.numeroBoleta || infraction.id}.pdf`);
+      pdf.save(`empadronado-${infraction.id}.pdf`);
       updateStatus(infraction.id, "exported");
       showToast("Citación PDF exportada exitosamente");
     } catch {

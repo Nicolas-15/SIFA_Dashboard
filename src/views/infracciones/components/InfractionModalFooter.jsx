@@ -78,14 +78,19 @@ export function InfractionModalFooter({
 
       {/* Exportada */}
       {infraction.status === 'exported' && (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
           {canAccept && (
-            <Button size="sm" variant="outline" onClick={onReopen} title="Deshacer y Reabrir">
-              <RotateCcw size={14} />
+            <Button size="sm" variant="outline" onClick={onReopen}>
+              <RotateCcw size={14} /> Reabrir a Pendiente
             </Button>
           )}
-          <span className="px-4 py-1.5 bg-slate-100 text-emerald-600 font-bold text-xs rounded-lg flex items-center gap-2 border border-slate-200">
-            <CheckCircle size={15} /> PDF Generado Exitosamente
+          {canExport && (
+            <Button size="sm" variant="primary" isLoading={isExporting} loadingText="Generando PDF..." onClick={onExportPDF} disabled={isExporting} className="px-5">
+              <Download size={14} /> Descargar PDF Nuevamente
+            </Button>
+          )}
+          <span className="px-4 py-1.5 bg-emerald-50 text-emerald-600 font-bold text-xs rounded-lg flex items-center gap-2 border border-emerald-200">
+            <CheckCircle size={15} /> Exportada
           </span>
         </div>
       )}

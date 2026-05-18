@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { useTipoInfracciones } from "@/core/useTipoInfracciones";
+import { SYSTEM_ROLES } from "@/constants/roles";
 import { TipoInfraccionesHeader } from "./components/TipoInfraccionesHeader";
 import { TipoInfraccionesTable } from "./components/TipoInfraccionesTable";
 import { TipoInfraccionesModals } from "./components/TipoInfraccionesModals";
 
 export function TipoInfraccionesView() {
   const { showToast, currentUser } = useOutletContext();
+  const isAdmin = currentUser?.role === SYSTEM_ROLES.ADMIN;
   const {
     tipoInfracciones,
     loading,
@@ -138,6 +140,7 @@ export function TipoInfraccionesView() {
         search={search}
         setSearch={setSearch}
         onNew={handleNewClick}
+        isAdmin={isAdmin}
       />
 
       <TipoInfraccionesTable
@@ -146,6 +149,7 @@ export function TipoInfraccionesView() {
         search={search}
         handleEditClick={handleEditClick}
         handleDeleteClick={handleDeleteClick}
+        isAdmin={isAdmin}
       />
 
       <TipoInfraccionesModals
