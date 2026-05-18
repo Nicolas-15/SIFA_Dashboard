@@ -143,6 +143,7 @@ export const AppRouter = () => {
                 </TipoInfraccionesRoute>
               }
             />
+            <Route path="access-denied" element={<AccessDeniedView />} />
           </Route>
 
           {/* Catch All */}

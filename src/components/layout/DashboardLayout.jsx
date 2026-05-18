@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Search, Menu, Shield } from "lucide-react";
 import { Sidebar } from "./Sidebar";
@@ -23,6 +23,14 @@ export function DashboardLayout() {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleForbidden = () => {
+      navigate("/access-denied");
+    };
+    window.addEventListener("auth:forbidden", handleForbidden);
+    return () => window.removeEventListener("auth:forbidden", handleForbidden);
+  }, [navigate]);
 
   const showToast = useCallback(
     (message, type = "success") => setToast({ message, type, key: Date.now() }),
