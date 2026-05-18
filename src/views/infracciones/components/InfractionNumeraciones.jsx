@@ -17,7 +17,7 @@ export function InfractionNumeraciones({ editing, data, setField, setNested }) {
         <EditableField editing={editing} value={data.numeroParte} onChange={v => setField('numeroParte', v)} mono />
       </div>
       <div>
-        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Citación</p>
+        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de Emisión</p>
         <EditableField
           editing={editing}
           type="datetime-local"

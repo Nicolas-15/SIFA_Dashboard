@@ -14,7 +14,7 @@ export function InfractionsTable({ filtered, searchQuery, activeFilter, setSelec
           <th className="px-5 py-4">Parte/Boleta</th>
           <th className="px-5 py-4">Patente</th>
           <th className="px-5 py-4">Infracción</th>
-          <th className="px-5 py-4">F. Citación</th>
+          <th className="px-5 py-4">F. Emisión</th>
           <th className="px-5 py-4">Estado</th>
           <th className="px-5 py-4"></th>
         </tr>
