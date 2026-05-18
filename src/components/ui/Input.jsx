@@ -5,6 +5,7 @@ export function Input({
   variant = "light", // 'light' | 'dark'
   className = "",
   error,
+  disabled,
   ...props
 }) {
   const isDark = variant === "dark";
@@ -23,6 +24,10 @@ export function Input({
     "bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:bg-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20";
   const lightClasses =
     "bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20";
+
+  const disabledClasses = disabled
+    ? "bg-slate-100 text-slate-500 cursor-not-allowed"
+    : "";
 
   const errorClasses = error
     ? "border-red-500 ring-2 ring-red-500/20 focus:border-red-500 focus:ring-red-500/20"
@@ -59,7 +64,8 @@ export function Input({
 
         {/* El Input real */}
         <input
-          className={`${baseClasses} ${isDark ? darkClasses : lightClasses} ${errorClasses} ${className}`}
+          className={`${baseClasses} ${isDark ? darkClasses : lightClasses} ${errorClasses} ${disabledClasses} ${className}`}
+          disabled={disabled}
           {...props}
         />
       </div>
