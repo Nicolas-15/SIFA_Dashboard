@@ -75,11 +75,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             path="infracciones"
             badge={pendingCount}
           />
-          <NavItem
-            icon={<FileWarning size={18} />}
-            label="Tipos de Infracciones"
-            path="tipo-infracciones"
-          />
+          {(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+            <NavItem
+              icon={<FileWarning size={18} />}
+              label="Tipos de Infracciones"
+              path="tipo-infracciones"
+            />
+          )}
           {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
             icon={<Users size={18} />}

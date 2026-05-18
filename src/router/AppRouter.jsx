@@ -77,7 +77,6 @@ const TipoInfraccionesRoute = ({ children }) => {
   const allowedRoles = [
     SYSTEM_ROLES.ADMIN,
     SYSTEM_ROLES.SUPERVISOR,
-    SYSTEM_ROLES.DEFAULT,
   ];
 
   if (!currentUser || !allowedRoles.includes(currentUser.role)) {
