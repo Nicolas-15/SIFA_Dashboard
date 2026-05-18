@@ -128,7 +128,7 @@ export function UserModals({
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              placeholder="correo@elquisco.cl"
+              placeholder="usuario@correo.com"
             />
             <Select
               label="Rol en el Sistema"

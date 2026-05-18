@@ -15,6 +15,7 @@ import { RecoveryView } from "@/views/auth/RecoveryView";
 import { DashboardView } from "@/views/dashboard/DashboardView";
 import { InfraccionesView } from "@/views/infracciones/InfraccionesView";
 import { UserManagementView } from "@/views/usuarios/UserManagementView";
+import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
 // Para rutas protegidas
@@ -63,6 +64,19 @@ const InfraccionesRoute = ({ children }) => {
     SYSTEM_ROLES.ADMIN,
     SYSTEM_ROLES.SUPERVISOR,
     SYSTEM_ROLES.DEFAULT,
+  ];
+
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) {
+    return <AccessDeniedView />;
+  }
+  return children;
+};
+
+const TipoInfraccionesRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  const allowedRoles = [
+    SYSTEM_ROLES.ADMIN,
+    SYSTEM_ROLES.SUPERVISOR,
   ];
 
   if (!currentUser || !allowedRoles.includes(currentUser.role)) {
@@ -121,6 +135,15 @@ export const AppRouter = () => {
                 </AdminRoute>
               }
             />
+            <Route
+              path="tipo-infracciones"
+              element={
+                <TipoInfraccionesRoute>
+                  <TipoInfraccionesView />
+                </TipoInfraccionesRoute>
+              }
+            />
+            <Route path="access-denied" element={<AccessDeniedView />} />
           </Route>
 
           {/* Catch All */}

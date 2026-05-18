@@ -1,11 +1,11 @@
 export function AuthLayout({ children, icon: Icon, iconColorClass, title, subtitle }) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden">
 
       {/* Background decorations */}
-      <div className="absolute top-0 w-full h-[500px] pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-50" />
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] opacity-60" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px] opacity-50" />
       </div>
 
       <div className="w-full max-w-sm px-4 relative z-10">

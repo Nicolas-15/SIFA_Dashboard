@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck, FileWarning } from 'lucide-react';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 function NavItem({ icon, label, path, badge }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const active = location.pathname.includes(path);
+  const active = location.pathname === `/${path}` || location.pathname.startsWith(`/${path}/`);
 
   return (
     <button
@@ -48,10 +48,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             <ShieldCheck size={20} className="relative z-10" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-widest text-white leading-tight">
-              SIFA <span className="text-secondary text-xs align-top font-black">PRO</span>
+            <h1 className="text-lg font-black tracking-wider text-white leading-none flex items-center gap-1.5">
+              SIFA
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-secondary/20 text-secondary border border-secondary/30 tracking-widest">
+                DASHBOARD
+              </span>
             </h1>
-            <p className="text-[10px] text-slate-400 mt-0.5">I. Municipalidad de El Quisco</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1">I. Municipalidad de El Quisco</p>
           </div>
         </div>
         <button onClick={onClose} className="md:hidden p-1 text-slate-400 hover:text-white">
@@ -66,13 +69,20 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
           label="Dashboard"
           path="dashboard"
         />
-        <NavItem
-          icon={<Receipt size={18} />}
-          label="Infracciones"
-          path="infracciones"
-          badge={pendingCount}
-        />
-        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+<NavItem
+            icon={<Receipt size={18} />}
+            label="Infracciones"
+            path="infracciones"
+            badge={pendingCount}
+          />
+          {(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+            <NavItem
+              icon={<FileWarning size={18} />}
+              label="Tipos de Infracciones"
+              path="tipo-infracciones"
+            />
+          )}
+          {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
             icon={<Users size={18} />}
             label="Gestión de Usuarios"
