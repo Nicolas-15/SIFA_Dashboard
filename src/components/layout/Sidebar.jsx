@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck, FileWarning } from 'lucide-react';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 function NavItem({ icon, label, path, badge }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const active = location.pathname.includes(path);
+  const active = location.pathname === `/${path}` || location.pathname.startsWith(`/${path}/`);
 
   return (
     <button
@@ -69,13 +69,18 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
           label="Dashboard"
           path="dashboard"
         />
-        <NavItem
-          icon={<Receipt size={18} />}
-          label="Infracciones"
-          path="infracciones"
-          badge={pendingCount}
-        />
-        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+<NavItem
+            icon={<Receipt size={18} />}
+            label="Infracciones"
+            path="infracciones"
+            badge={pendingCount}
+          />
+          <NavItem
+            icon={<FileWarning size={18} />}
+            label="Tipos de Infracciones"
+            path="tipo-infracciones"
+          />
+          {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
             icon={<Users size={18} />}
             label="Gestión de Usuarios"
