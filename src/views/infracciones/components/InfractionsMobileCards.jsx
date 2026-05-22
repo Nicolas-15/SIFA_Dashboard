@@ -1,5 +1,6 @@
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { parseISODateTime } from '@/views/infracciones/utils/infractionFormatters';
 
 export function InfractionsMobileCards({ filtered, searchQuery, activeFilter, setSelectedId }) {
   if (filtered.length === 0) {
@@ -20,14 +21,26 @@ export function InfractionsMobileCards({ filtered, searchQuery, activeFilter, se
             </span>
             <StatusBadge status={inf.status} />
           </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
+            <span className="font-mono font-bold text-slate-500">#{inf.id}</span>
+            <span className="text-slate-300">|</span>
+            <span>{parseISODateTime(inf.fecha)}</span>
+          </div>
+
           <p className="text-sm font-bold text-slate-800 mb-1">
-            {inf.infractionCode} - {inf.infractionDescription}
+            {inf.tipoInfraccion?.id} - {inf.tipoInfraccion?.nombre}
           </p>
-          {inf.disposicionInfringida && (
-            <p className="text-xs text-slate-400 mb-1">{inf.disposicionInfringida}</p>
+          {inf.tipoInfraccion?.disposicionInfringida && (
+            <p className="text-xs text-slate-400 mb-1 line-clamp-2">
+              {inf.tipoInfraccion.disposicionInfringida}
+            </p>
           )}
+
           <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-slate-400">Citación: {inf.tramitacion?.fechaCitacion}</p>
+            <p className="text-xs text-slate-400">
+              {inf.idFiscalizador ? `Fiscalizador: ${inf.idFiscalizador}` : ''}
+            </p>
             <span className="text-xs font-bold text-primary">Ver detalle →</span>
           </div>
         </button>

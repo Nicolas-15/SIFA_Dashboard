@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { Pagination } from '@/components/ui/Pagination';
 
 import { InfractionsFilters } from './components/InfractionsFilters';
 import { InfractionsTable } from './components/InfractionsTable';
@@ -15,17 +16,22 @@ const FILTERS = [
 ];
 
 export function InfraccionesView() {
-  const { infractions, updateStatus, saveInfractionEdit: updateInfraction, showToast, headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser } = useOutletContext();
+  const {
+    infractions, updateStatus, saveInfractionEdit: updateInfraction, showToast,
+    headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser,
+    loading, page, totalPages, totalElements, first, last,
+    goToPage, nextPage, prevPage,
+    dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
+  } = useOutletContext();
+
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState(headerSearch);
   const [activeFilter, setActiveFilter] = useState('all');
 
-  /* Sincronizar con el buscador del header cuando cambia */
   useEffect(() => {
     setSearchQuery(headerSearch);
   }, [headerSearch]);
 
-  /* La infracción seleccionada siempre refleja el estado más reciente */
   const selectedInfraction = infractions.find(i => i.id === selectedId) ?? null;
 
   const filters = FILTERS.map(f => ({
@@ -50,7 +56,12 @@ export function InfraccionesView() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col gap-4">
       <div>
         <h2 className="text-xl md:text-2xl font-bold text-slate-800">Registro de Infracciones</h2>
-        <p className="text-sm text-slate-500 mt-0.5">{infractions.length} infracciones registradas</p>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {totalElements > 0
+            ? `${totalElements} infracciones registradas${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
+            : 'Cargando infracciones...'
+          }
+        </p>
       </div>
 
       <InfractionsFilters
@@ -61,28 +72,67 @@ export function InfraccionesView() {
         setActiveFilter={setActiveFilter}
         onClearHeaderSearch={onClearHeaderSearch}
         onRefresh={onRefresh}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        userFilter={userFilter}
+        onUserFilterChange={setUserFilter}
+        onClearFilters={clearFilters}
+        infractions={infractions}
       />
 
-      {/* ── Tabla — solo md+ ── */}
-      <div className="hidden md:block bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1">
-        <div className="overflow-auto h-full">
-          <InfractionsTable
+      {/* Overlay de carga para cambios de página/filtro */}
+      <div className="relative">
+        {loading && infractions.length > 0 && (
+          <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+          </div>
+        )}
+
+        {/* Tabla — solo md+ */}
+        <div className="hidden md:block bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1">
+          <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+            <InfractionsTable
+              filtered={filtered}
+              searchQuery={searchQuery}
+              activeFilter={activeFilter}
+              setSelectedId={setSelectedId}
+            />
+          </div>
+
+          {/* Paginación en escritorio */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            first={first}
+            last={last}
+            onPageChange={goToPage}
+            loading={loading}
+          />
+        </div>
+
+        {/* Tarjetas — solo móvil */}
+        <div className="md:hidden flex-1 overflow-auto space-y-3 pb-4">
+          <InfractionsMobileCards
             filtered={filtered}
             searchQuery={searchQuery}
             activeFilter={activeFilter}
             setSelectedId={setSelectedId}
           />
-        </div>
-      </div>
 
-      {/* ── Tarjetas — solo móvil ── */}
-      <div className="md:hidden flex-1 overflow-auto space-y-3 pb-4">
-        <InfractionsMobileCards
-          filtered={filtered}
-          searchQuery={searchQuery}
-          activeFilter={activeFilter}
-          setSelectedId={setSelectedId}
-        />
+          {/* Paginación en móvil */}
+          <div className="pt-2">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              first={first}
+              last={last}
+              onPageChange={goToPage}
+              loading={loading}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Modal */}

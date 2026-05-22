@@ -21,6 +21,7 @@ export function InfractionsTable({
           <th className="px-5 py-4">Patente</th>
           <th className="px-5 py-4">Infracción</th>
           <th className="px-5 py-4">F. Emisión</th>
+          <th className="px-5 py-4">Fiscalizador</th>
           <th className="px-5 py-4">Estado</th>
           <th className="px-5 py-4"></th>
         </tr>
@@ -53,8 +54,11 @@ export function InfractionsTable({
                 </p>
               </div>
             </td>
-            <td className="px-5 py-4 text-sm text-slate-600 font-semibold">
+            <td className="px-5 py-4 text-sm text-slate-600 font-semibold whitespace-nowrap">
               {parseISODateTime(inf.fecha)}
+            </td>
+            <td className="px-5 py-4 text-sm text-slate-600 font-medium max-w-[140px] truncate" title={inf.idFiscalizador}>
+              {inf.idFiscalizador || '-'}
             </td>
             <td className="px-5 py-4">
               <StatusBadge status={inf.status} />

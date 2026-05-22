@@ -19,6 +19,9 @@ export function DashboardLayout() {
     fetchInfractions,
     updateStatus,
     saveInfractionEdit,
+    page, totalPages, totalElements, first, last,
+    goToPage, nextPage, prevPage,
+    dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
   } = useInfractions();
 
   const navigate = useNavigate();
@@ -55,7 +58,7 @@ export function DashboardLayout() {
   const todayCapitalized =
     todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1);
 
-  if (loading) {
+  if (loading && infractions.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
@@ -68,7 +71,7 @@ export function DashboardLayout() {
     );
   }
 
-  if (error) {
+  if (error && infractions.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-center max-w-sm px-6">
@@ -141,6 +144,8 @@ export function DashboardLayout() {
           <Outlet
             context={{
               infractions,
+              loading,
+              error,
               updateStatus,
               saveInfractionEdit,
               showToast,
@@ -148,6 +153,9 @@ export function DashboardLayout() {
               onClearHeaderSearch: () => setHeaderSearch(""),
               fetchInfractions,
               currentUser,
+              page, totalPages, totalElements, first, last,
+              goToPage, nextPage, prevPage,
+              dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
             }}
           />
         </div>
