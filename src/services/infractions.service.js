@@ -47,10 +47,10 @@ export const getInfractionsByVehiculoPatente = async (vehiculoPatente) => {
   return data.map(mapInfraction);
 };
 
-export const updateInfractionStatus = async (id, newStatus) => {
+export const updateInfractionStatus = async (id, newStatus, motivoRechazo) => {
   return apiFetch(`/core/api/v1/infracciones/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status: newStatus })
+    body: JSON.stringify({ status: newStatus, motivoRechazo })
   });
 };
 

@@ -85,15 +85,17 @@ export const useInfractions = () => {
     setPage(0);
   }, []);
 
-  const updateStatus = async (id, newStatus) => {
+  const updateStatus = async (id, newStatus, motivoRechazo) => {
+    // Actualización optimista
     setInfractions(prev =>
-      prev.map(inf => inf.id === id ? { ...inf, status: newStatus } : inf)
+      prev.map(inf => inf.id === id ? { ...inf, status: newStatus, motivoRechazo: newStatus === 'rejected' ? motivoRechazo : null } : inf)
     );
     try {
-      await updateInfractionStatus(id, newStatus);
+      await updateInfractionStatus(id, newStatus, motivoRechazo);
       return true;
     } catch (err) {
       console.error('Error al persistir estado en la API:', err);
+      fetchInfractions();
       return false;
     }
   };

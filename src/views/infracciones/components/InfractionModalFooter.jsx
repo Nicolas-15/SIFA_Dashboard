@@ -11,10 +11,13 @@ export function InfractionModalFooter({
   canAccept,
   canExport,
   confirmAccept,
+  confirmReject,
   isSavingEdit,
   isExporting,
   onSaveEdit,
   onReject,
+  onStartConfirmReject,
+  onCancelConfirmReject,
   onStartConfirmAccept,
   onCancelConfirmAccept,
   onAccept,
@@ -40,14 +43,29 @@ export function InfractionModalFooter({
   return (
     <>
       {/* Pendiente — acciones de revisión */}
-      {infraction.status === 'pending' && !confirmAccept && canAccept && (
+      {infraction.status === 'pending' && !confirmAccept && !confirmReject && canAccept && (
         <div className="flex gap-2">
-          <Button size="sm" variant="danger" onClick={onReject}>
+          <Button size="sm" variant="danger" onClick={onStartConfirmReject}>
             <X size={15} /> Rechazar
           </Button>
           <Button size="sm" variant="success" onClick={onStartConfirmAccept} className="!bg-emerald-500 !text-white hover:!bg-emerald-600">
             <CheckCircle size={15} /> Revisar / Aceptar
           </Button>
+        </div>
+      )}
+
+      {/* Confirmación de rechazo */}
+      {infraction.status === 'pending' && confirmReject && canAccept && (
+        <div className="flex gap-2 animate-in slide-in-from-right-4 duration-300 w-full justify-between items-center">
+          <span className="text-xs font-semibold text-red-600 bg-red-100/50 px-3 py-2 rounded-xl border border-red-200">
+            ¿Confirmar rechazo de la infracción?
+          </span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost" onClick={onCancelConfirmReject}>Cancelar</Button>
+            <Button size="sm" variant="danger" onClick={onReject}>
+              Confirmar Rechazo
+            </Button>
+          </div>
         </div>
       )}
 
