@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock, Mail, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { AuthLayout } from './components/AuthLayout';
+import { Toast } from '@/components/ui/Toast';
 
 export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [email, setEmail] = useState('');
@@ -10,6 +11,27 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    const authError = localStorage.getItem('auth_error');
+    if (authError) {
+      let message = 'Sesión no autorizada o expirada.';
+      if (authError === 'revoked') {
+        message = 'Se ha iniciado sesión en otro dispositivo o la sesión fue revocada.';
+      } else if (authError === 'unauthorized') {
+        message = 'Redirigiendo debido a la invalidez del token.';
+      } else if (authError === 'expired') {
+        message = 'Su sesión ha expirado por inactividad. Por favor, vuelva a ingresar.';
+      }
+      setToast({
+        message,
+        type: 'error',
+        key: Date.now()
+      });
+      localStorage.removeItem('auth_error');
+    }
+  }, []);
 
   const validate = () => {
     const newErrors = { email: '', password: '' };
@@ -52,12 +74,13 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   };
 
   return (
-    <AuthLayout
-      icon={ShieldCheck}
-      iconColorClass="text-primary"
-      title="SIFA"
-      subtitle="I. Municipalidad de El Quisco"
-    >
+    <>
+      <AuthLayout
+        icon={ShieldCheck}
+        iconColorClass="text-primary"
+        title="SIFA"
+        subtitle="I. Municipalidad de El Quisco"
+      >
       <form onSubmit={handleSubmit} className="space-y-5">
         {(localError || extError) && (
           <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-xl">
@@ -120,5 +143,15 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
         </Button>
       </div>
     </AuthLayout>
+
+    {toast && (
+      <Toast
+        key={toast.key}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(null)}
+      />
+    )}
+    </>
   );
 }

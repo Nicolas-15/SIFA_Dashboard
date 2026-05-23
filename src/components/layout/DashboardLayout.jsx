@@ -85,7 +85,7 @@ export function DashboardLayout() {
             El servidor de la API no está disponible.
           </p>
           <button
-            onClick={fetchInfractions}
+            onClick={() => fetchInfractions()}
             className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors"
           >
             Reintentar conexión

@@ -19,10 +19,10 @@ export const getUserFromToken = (token) => {
   if (!payload) return null;
 
   let userRole = SYSTEM_ROLES.USER_APP; // Por defecto restringido
-  
+
   if (payload.roles) {
     const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
-    
+
     if (roles.some(r => ["ADMIN", "USER_ADMIN", "ROLE_ADMIN"].includes(r))) {
       userRole = SYSTEM_ROLES.ADMIN;
     } else if (roles.some(r => ["SUPERVISOR", "USER_SUPERVISOR", "ROLE_SUPERVISOR"].includes(r))) {
