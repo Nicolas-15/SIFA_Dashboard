@@ -15,6 +15,7 @@ import { RecoveryView } from "@/views/auth/RecoveryView";
 import { DashboardView } from "@/views/dashboard/DashboardView";
 import { InfraccionesView } from "@/views/infracciones/InfraccionesView";
 import { UserManagementView } from "@/views/usuarios/UserManagementView";
+import { FiscalizadoresView } from "@/views/fiscalizadores/FiscalizadoresView";
 import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
@@ -72,12 +73,19 @@ const InfraccionesRoute = ({ children }) => {
   return children;
 };
 
+const UsuariosFiscalizadoresRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  const allowedRoles = [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.SUPERVISOR];
+
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) {
+    return <AccessDeniedView />;
+  }
+  return children;
+};
+
 const TipoInfraccionesRoute = ({ children }) => {
   const { currentUser } = useAuth();
-  const allowedRoles = [
-    SYSTEM_ROLES.ADMIN,
-    SYSTEM_ROLES.SUPERVISOR,
-  ];
+  const allowedRoles = [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.SUPERVISOR];
 
   if (!currentUser || !allowedRoles.includes(currentUser.role)) {
     return <AccessDeniedView />;
@@ -133,6 +141,14 @@ export const AppRouter = () => {
                 <AdminRoute>
                   <UserManagementView />
                 </AdminRoute>
+              }
+            />
+            <Route
+              path="usuarios-fiscalizadores"
+              element={
+                <UsuariosFiscalizadoresRoute>
+                  <FiscalizadoresView />
+                </UsuariosFiscalizadoresRoute>
               }
             />
             <Route
