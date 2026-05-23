@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck, FileWarning } from 'lucide-react';
+import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck, FileWarning, Key } from 'lucide-react';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 function NavItem({ icon, label, path, badge }) {
@@ -87,6 +87,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             icon={<Users size={18} />}
             label="Gestión de Usuarios"
             path="usuarios"
+          />
+        )}
+          {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem
+            icon={<Key size={18} />}
+            label="Tokens"
+            path="tokens"
           />
         )}
       </nav>

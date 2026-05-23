@@ -16,6 +16,7 @@ import { DashboardView } from "@/views/dashboard/DashboardView";
 import { InfraccionesView } from "@/views/infracciones/InfraccionesView";
 import { UserManagementView } from "@/views/usuarios/UserManagementView";
 import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesView";
+import { TokenManagementView } from "@/views/tokens/TokenManagementView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
 // Para rutas protegidas
@@ -141,6 +142,14 @@ export const AppRouter = () => {
                 <TipoInfraccionesRoute>
                   <TipoInfraccionesView />
                 </TipoInfraccionesRoute>
+              }
+            />
+            <Route
+              path="tokens"
+              element={
+                <AdminRoute>
+                  <TokenManagementView />
+                </AdminRoute>
               }
             />
             <Route path="access-denied" element={<AccessDeniedView />} />

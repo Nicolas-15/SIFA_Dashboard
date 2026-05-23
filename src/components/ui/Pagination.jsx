@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './Button';
 
-export function Pagination({ page, totalPages, totalElements, first, last, onPageChange, loading }) {
+export function Pagination({ page, totalPages, totalElements, first, last, onPageChange, loading, noBorder }) {
   if (totalPages <= 1 && totalElements === 0) return null;
 
   const getPageNumbers = () => {
@@ -21,7 +21,7 @@ export function Pagination({ page, totalPages, totalElements, first, last, onPag
   };
 
   return (
-    <div className="flex items-center justify-between px-2 py-3 border-t border-slate-200">
+    <div className={`flex items-center justify-between px-2 py-3 ${noBorder ? '' : 'border-t border-slate-200'}`}>
       <p className="text-xs text-slate-500 font-medium">
         {totalElements === 0
           ? 'Sin resultados'

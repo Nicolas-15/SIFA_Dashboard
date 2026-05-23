@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 
-export function Modal({ isOpen, onClose, title, description, children, footer }) {
+export function Modal({ isOpen, onClose, title, description, children, footer, headerExtra }) {
   // Cerrar con la tecla Escape
   useEffect(() => {
     const handleEsc = (e) => {
@@ -23,6 +23,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer })
             <h3 className="text-2xl font-black text-slate-800 tracking-tight">{title}</h3>
             {description && <p className="text-sm text-slate-500 mt-1">{description}</p>}
           </div>
+          {headerExtra && <div className="flex items-center">{headerExtra}</div>}
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all hover:rotate-90"

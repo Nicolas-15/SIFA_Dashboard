@@ -15,10 +15,10 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
 
   return (
     <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
-      <div className="overflow-x-auto flex-1">
+      <div className="overflow-auto flex-1">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
+            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
               <th className="px-6 py-4">Usuario</th>
               <th className="px-6 py-4">RUT</th>
               <th className="px-6 py-4">Contacto</th>

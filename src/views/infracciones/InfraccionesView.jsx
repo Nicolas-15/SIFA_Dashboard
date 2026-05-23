@@ -54,15 +54,7 @@ export function InfraccionesView() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col gap-4">
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold text-slate-800">Registro de Infracciones</h2>
-        <p className="text-sm text-slate-500 mt-0.5">
-          {totalElements > 0
-            ? `${totalElements} infracciones registradas${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
-            : 'Cargando infracciones...'
-          }
-        </p>
-      </div>
+      <h2 className="text-xl md:text-2xl font-bold text-slate-800">Registro de Infracciones</h2>
 
       <InfractionsFilters
         searchQuery={searchQuery}
@@ -100,15 +92,24 @@ export function InfraccionesView() {
           </div>
 
           {/* Paginación en escritorio */}
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            first={first}
-            last={last}
-            onPageChange={goToPage}
-            loading={loading}
-          />
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-200">
+            <p className="text-sm text-slate-500">
+              {totalElements > 0
+                ? `${totalElements} infracciones registradas${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
+                : ''
+              }
+            </p>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              first={first}
+              last={last}
+              onPageChange={goToPage}
+              loading={loading}
+              noBorder
+            />
+          </div>
         </div>
 
         {/* Tarjetas — solo móvil */}
@@ -121,7 +122,13 @@ export function InfraccionesView() {
           />
 
           {/* Paginación en móvil */}
-          <div className="pt-2">
+          <div className="pt-2 text-center">
+            <p className="text-xs text-slate-500 font-medium pb-1">
+              {totalElements > 0
+                ? `${totalElements} infracciones registradas${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
+                : ''
+              }
+            </p>
             <Pagination
               page={page}
               totalPages={totalPages}

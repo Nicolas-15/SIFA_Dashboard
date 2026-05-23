@@ -5,10 +5,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, search, handleEditClick, handleDeleteClick, isAdmin }) {
   return (
     <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
-      <div className="overflow-x-auto flex-1">
+      <div className="overflow-auto flex-1">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
+            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
               <th className="px-6 py-4">ID</th>
               <th className="px-6 py-4">Nombre</th>
               <th className="px-6 py-4">Descripción</th>
