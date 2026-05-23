@@ -16,20 +16,20 @@ export default defineConfig({
   server: {
     proxy: {
       "/auth": {
-        target: "http://44.196.188.33",
+        target: "http://localhost:9000",
         changeOrigin: true,
       },
       "/auth-api": {
-        target: "http://44.196.188.33",
+        target: "http://localhost:9000",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/auth-api/, "/auth"),
       },
       "/core": {
-        target: "http://44.196.188.33",
+        target: "http://localhost:9000",
         changeOrigin: true,
       },
       "/api": {
-        target: "http://44.196.188.33",
+        target: "http://localhost:9000",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, "/api/mock"),
       },
