@@ -49,6 +49,44 @@ export const useUsers = () => {
     }
   }, []);
 
+  // traer los usuarios fiscalizadores
+  const fetchUsersFiscalizadores = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await userService.getUsersFiscalizadores();
+      const usersList = Array.isArray(data) ? data : [];
+      const mappedUsers = usersList.map((user) => {
+        let mappedRole = SYSTEM_ROLES.USER_APP;
+
+        return {
+          id: user.rut,
+          name: user.name,
+          lastname: user.lastName,
+          rut: `${user.rut}-${user.dv}`,
+          email: user.email,
+          phone: user.phone || "+569",
+          role: mappedRole,
+          status: user.active || user.isActive ? "active" : "revoked",
+          createdAt: user.createdAt,
+        };
+      });
+      setUsers(mappedUsers);
+    } catch (err) {
+      console.error("Error fetching users fiscalizadores:", err);
+      setUsers([]);
+      // guardar error en estado
+      setError(
+        err.message.includes("403")
+          ? "No tienes permisos para ver usuarios fiscalizadores"
+          : "No se pudieron cargar los usuarios fiscalizadores",
+      );
+      throw new Error("No se pudieron cargar los usuarios fiscalizadores");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const createUser = async (formData) => {
     const rutSinPuntos = formData.rut.replace(/\./g, "");
     const [rutBody, dv] = rutSinPuntos.split("-");
@@ -117,6 +155,7 @@ export const useUsers = () => {
     loading,
     error,
     fetchUsers,
+    fetchUsersFiscalizadores,
     createUser,
     updateUser,
     toggleUserStatus,
