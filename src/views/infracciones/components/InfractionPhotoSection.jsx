@@ -81,7 +81,12 @@ export function InfractionPhotoSection({
   const [isHovered, setIsHovered] = useState(false);
   const [isChangingImage, setIsChangingImage] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const hasMultiple = images.length > 1;
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [currentIndex]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -109,7 +114,7 @@ export function InfractionPhotoSection({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {(isLoading || isChangingImage) && (
+      {(isLoading || (!imageLoaded && images.length > 0) || isChangingImage) && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
           <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
         </div>
@@ -118,6 +123,7 @@ export function InfractionPhotoSection({
         <>
           <img
             src={images[currentIndex]}
+            onLoad={() => setImageLoaded(true)}
             className={`w-full h-full object-cover transition-opacity duration-200 cursor-pointer ${isChangingImage ? "opacity-50" : "opacity-100"}`}
             alt={`Evidencia ${currentIndex + 1} de ${images.length}`}
             onClick={() => setIsFullscreen(true)}

@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
     const payload = decodeJWT(token);
     // Si el token no se puede decodificar o está expirado, limpiar sesión
     if (!payload || (payload.exp && payload.exp * 1000 < Date.now())) {
+      localStorage.setItem('auth_error', 'expired');
       logout();
       setIsInitializing(false);
       return;

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   FileWarning,
   ShieldMinus,
+  Key,
 } from "lucide-react";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
@@ -117,6 +118,9 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             label="Fiscalizadores"
             path="usuarios-fiscalizadores"
           />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem icon={<Key size={18} />} label="Tokens" path="tokens" />
         )}
       </nav>
 
