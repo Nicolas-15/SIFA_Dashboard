@@ -1,4 +1,4 @@
-import { Shield, ShieldOff, Clock, Mail, User, Key, Fingerprint, Hash } from 'lucide-react';
+import { Shield, ShieldOff, Clock, X, Mail, User, Key, Fingerprint, Hash } from 'lucide-react';
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 
@@ -34,12 +34,14 @@ export function TokenModals({
   const renderDetailFooter = (
     <div className="flex items-center justify-end gap-3">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={() => setIsDetailModalOpen(false)}
-        className="px-5"
+        className="!border-primary/40"
+        style={{ width: 100, height: 32 }}
       >
-        Cerrar
+        <X size={16} />
+        <span className="ml-1.5">Cerrar</span>
       </Button>
       {isActive && (
         <>
@@ -48,20 +50,20 @@ export function TokenModals({
             loadingText="Expirando..."
             variant="outline"
             onClick={() => handleExpireConfirm(selectedItem)}
-            className="!w-auto px-6"
+            style={{ width: 100, height: 32 }}
           >
             <Clock size={16} />
-            <span className="ml-2">Expirar</span>
+            <span className="ml-1.5">Expirar</span>
           </Button>
           <Button
             isLoading={submitting === 'revoke'}
             loadingText="Revocando..."
             variant="danger"
             onClick={() => handleRevokeConfirm(selectedItem)}
-            className="!w-auto px-6"
+            style={{ width: 100, height: 32 }}
           >
             <ShieldOff size={16} />
-            <span className="ml-2">Revocar</span>
+            <span className="ml-1.5">Revocar</span>
           </Button>
         </>
       )}
