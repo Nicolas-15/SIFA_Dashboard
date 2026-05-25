@@ -4,10 +4,16 @@ import { DashboardHeatmap } from "./components/DashboardHeatMap";
 import { DashboardRecentActivity } from "./components/DashboardRecentActivity";
 import { DashboardFiscalizadoresMap } from "./components/DashboardFiscalizadoresMap";
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
+import { SYSTEM_ROLES } from "@/constants/roles";
 
 export function DashboardView() {
-  const { infractions } = useOutletContext();
+  const { infractions, currentUser } = useOutletContext();
   const { fiscalizadores, loading } = useFiscalizadoresActivos();
+
+  // Solo mostrar el mapa de fiscalizadores en la calle para roles operativos
+  const isSupervisorOrAdmin = 
+    currentUser?.role === SYSTEM_ROLES.ADMIN || 
+    currentUser?.role === SYSTEM_ROLES.SUPERVISOR;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -28,9 +34,11 @@ export function DashboardView() {
         <DashboardRecentActivity infractions={infractions} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:gap-6">
-        <DashboardFiscalizadoresMap fiscalizadores={fiscalizadores} />
-      </div>
+      {isSupervisorOrAdmin && (
+        <div className="grid grid-cols-1 gap-4 md:gap-6">
+          <DashboardFiscalizadoresMap fiscalizadores={fiscalizadores} />
+        </div>
+      )}
     </div>
   );
 }

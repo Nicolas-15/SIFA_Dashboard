@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "./AuthContext";
+import { SYSTEM_ROLES } from "@/constants/roles";
 import * as fiscalizadorActivityService from "@/services/fiscalizadorActivity.service";
 
 const normalizeFiscalizador = (item) => ({
@@ -21,13 +22,23 @@ export const useFiscalizadoresActivos = () => {
   const [last, setLast] = useState(true);
   const [size] = useState(10);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
 
   const latestParams = useRef({ page: 0 });
   latestParams.current = { page };
 
   const doFetch = useCallback(async (overrides) => {
     if (!isAuthenticated) return;
+
+    // Solo Administradores y Supervisores tienen permiso para ver fiscalizadores activos
+    const isSupervisorOrAdmin =
+      currentUser?.role === SYSTEM_ROLES.ADMIN ||
+      currentUser?.role === SYSTEM_ROLES.SUPERVISOR;
+
+    if (!isSupervisorOrAdmin) {
+      return;
+    }
+
     setLoading(true);
     setError(false);
 
@@ -51,7 +62,7 @@ export const useFiscalizadoresActivos = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, size]);
+  }, [isAuthenticated, currentUser, size]);
 
   useEffect(() => {
     doFetch();

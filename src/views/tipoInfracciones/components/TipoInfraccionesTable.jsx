@@ -27,7 +27,11 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
               </tr>
             ) : (
               filteredTipoInfracciones.map(item => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => handleEditClick(item)}>
+                <tr 
+                  key={item.id} 
+                  className={`hover:bg-slate-50/50 transition-colors group ${isAdmin ? 'cursor-pointer' : ''}`}
+                  onClick={isAdmin ? () => handleEditClick(item) : undefined}
+                >
                   <td className="px-6 py-4">
                     <p className="text-sm font-mono font-bold text-slate-600">#{item.id}</p>
                   </td>
