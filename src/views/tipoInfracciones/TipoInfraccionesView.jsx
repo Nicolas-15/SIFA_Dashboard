@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { useTipoInfracciones } from "@/core/useTipoInfracciones";
@@ -6,6 +6,7 @@ import { SYSTEM_ROLES } from "@/constants/roles";
 import { TipoInfraccionesHeader } from "./components/TipoInfraccionesHeader";
 import { TipoInfraccionesTable } from "./components/TipoInfraccionesTable";
 import { TipoInfraccionesModals } from "./components/TipoInfraccionesModals";
+import { TableCard } from "@/components/ui/TableCard";
 
 export function TipoInfraccionesView() {
   const { showToast, currentUser } = useOutletContext();
@@ -13,10 +14,16 @@ export function TipoInfraccionesView() {
   const {
     tipoInfracciones,
     loading,
-    fetchTipoInfracciones,
+    error,
     createTipoInfraccion,
     updateTipoInfraccion,
     deleteTipoInfraccion,
+    page,
+    totalPages,
+    totalElements,
+    first,
+    last,
+    goToPage,
   } = useTipoInfracciones();
 
   const [search, setSearch] = useState("");
@@ -30,22 +37,6 @@ export function TipoInfraccionesView() {
     nombre: "",
     descripcion: "",
   });
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchTipoInfracciones().catch((err) => {
-        const isAuthError =
-          err.message.includes("401") ||
-          err.message.includes("403") ||
-          err.message.includes("Unauthorized") ||
-          err.message.includes("Forbidden");
-
-        if (!isAuthError) {
-          showToast("No se pudieron cargar los tipos de infracciones", "error");
-        }
-      });
-    }
-  }, [fetchTipoInfracciones, currentUser, showToast]);
 
   const handleNewClick = () => {
     setFormData({
@@ -143,14 +134,30 @@ export function TipoInfraccionesView() {
         isAdmin={isAdmin}
       />
 
-      <TipoInfraccionesTable
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+          No se pudieron cargar los tipos de infracciones.
+        </div>
+      )}
+
+      <TableCard
+        totalElements={totalElements}
+        totalPages={totalPages}
+        page={page}
+        first={first}
+        last={last}
         loading={loading}
-        filteredTipoInfracciones={filteredItems}
-        search={search}
-        handleEditClick={handleEditClick}
-        handleDeleteClick={handleDeleteClick}
-        isAdmin={isAdmin}
-      />
+        onPageChange={goToPage}
+      >
+        <TipoInfraccionesTable
+          loading={loading}
+          filteredTipoInfracciones={filteredItems}
+          search={search}
+          handleEditClick={handleEditClick}
+          handleDeleteClick={handleDeleteClick}
+          isAdmin={isAdmin}
+        />
+      </TableCard>
 
       <TipoInfraccionesModals
         isModalOpen={isModalOpen}

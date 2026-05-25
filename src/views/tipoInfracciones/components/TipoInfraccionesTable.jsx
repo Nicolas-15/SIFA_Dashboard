@@ -4,8 +4,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 
 export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, search, handleEditClick, handleDeleteClick, isAdmin }) {
   return (
-    <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
-      <div className="overflow-auto flex-1">
+    <div className="overflow-auto flex-1">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
@@ -28,7 +27,7 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
               </tr>
             ) : (
               filteredTipoInfracciones.map(item => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => handleEditClick(item)}>
                   <td className="px-6 py-4">
                     <p className="text-sm font-mono font-bold text-slate-600">#{item.id}</p>
                   </td>
@@ -54,7 +53,7 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
                         <Button
                           size="sm"
                           variant="danger"
-                          onClick={() => handleDeleteClick(item)}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteClick(item); }}
                           title="Eliminar tipo de infracción"
                         >
                           <Trash2 size={16} />
@@ -62,7 +61,7 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => handleEditClick(item)}
+                          onClick={(e) => { e.stopPropagation(); handleEditClick(item); }}
                           title="Editar tipo de infracción"
                         >
                           <Edit2 size={16} />
@@ -76,6 +75,5 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
           </tbody>
         </table>
       </div>
-    </div>
   );
 }
