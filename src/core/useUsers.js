@@ -1,87 +1,92 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "./AuthContext";
 import { SYSTEM_ROLES } from "@/constants/roles";
 import * as userService from "@/services/user.service";
 
+const normalizeUser = (user) => {
+  let mappedRole = SYSTEM_ROLES.DEFAULT;
+  if (user.role === "USER_ADMIN" || user.role === "ADMIN")
+    mappedRole = SYSTEM_ROLES.ADMIN;
+  else if (user.role === "USER_SUPERVISOR" || user.role === "SUPERVISOR")
+    mappedRole = SYSTEM_ROLES.SUPERVISOR;
+  else if (user.role === "USER_APP") mappedRole = SYSTEM_ROLES.USER_APP;
+
+  return {
+    id: user.rut,
+    name: user.name,
+    lastname: user.lastName,
+    rut: `${user.rut}-${user.dv}`,
+    email: user.email,
+    phone: user.phone || "+569",
+    role: mappedRole,
+    status: user.active || user.isActive ? "active" : "revoked",
+    createdAt: user.createdAt,
+  };
+};
+
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
-  const fetchUsers = useCallback(async () => {
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [first, setFirst] = useState(true);
+  const [last, setLast] = useState(true);
+  const [size] = useState(10);
+
+  const { isAuthenticated } = useAuth();
+
+  const latestParams = useRef({ page: 0 });
+  latestParams.current = { page };
+
+  const doFetch = useCallback(async (overrides) => {
+    if (!isAuthenticated) return;
     setLoading(true);
-    setError(null);
-    try {
-      const data = await userService.getUsers();
-      const usersList = Array.isArray(data) ? data : [];
-      const mappedUsers = usersList.map((user) => {
-        let mappedRole = SYSTEM_ROLES.DEFAULT;
-        if (user.role === "USER_ADMIN" || user.role === "ADMIN")
-          mappedRole = SYSTEM_ROLES.ADMIN;
-        else if (user.role === "USER_SUPERVISOR" || user.role === "SUPERVISOR")
-          mappedRole = SYSTEM_ROLES.SUPERVISOR;
-        else if (user.role === "USER_APP") mappedRole = SYSTEM_ROLES.USER_APP;
+    setError(false);
 
-        return {
-          id: user.rut,
-          name: user.name,
-          lastname: user.lastName,
-          rut: `${user.rut}-${user.dv}`,
-          email: user.email,
-          phone: user.phone || "+569",
-          role: mappedRole,
-          status: user.active || user.isActive ? "active" : "revoked",
-          createdAt: user.createdAt,
-        };
-      });
-      setUsers(mappedUsers);
+    try {
+      const p = overrides || latestParams.current;
+      const data = await userService.getUsers({ page: p.page, size });
+
+      const list = Array.isArray(data.content) ? data.content : [];
+      setUsers(list.map(normalizeUser));
+      setTotalPages(data.totalPages ?? 0);
+      setTotalElements(data.totalElements ?? 0);
+      setFirst(data.first ?? true);
+      setLast(data.last ?? true);
+
+      if (data.number !== undefined && data.number !== p.page) {
+        setPage(data.number);
+      }
     } catch (err) {
       console.error("Error fetching users:", err);
-      setUsers([]);
-      // guardar error en estado
-      setError(
-        err.message.includes("403")
-          ? "No tienes permisos para ver usuarios"
-          : "No se pudieron cargar los usuarios",
-      );
-      throw new Error("No se pudieron cargar los usuarios");
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, size]);
 
-  // traer los usuarios fiscalizadores
+  useEffect(() => {
+    doFetch();
+  }, [page, doFetch]);
+
+  const goToPage = useCallback((p) => setPage(p), []);
+
   const fetchUsersFiscalizadores = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(false);
     try {
       const data = await userService.getUsersFiscalizadores();
       const usersList = Array.isArray(data) ? data : [];
-      const mappedUsers = usersList.map((user) => {
-        let mappedRole = SYSTEM_ROLES.USER_APP;
-
-        return {
-          id: user.rut,
-          name: user.name,
-          lastname: user.lastName,
-          rut: `${user.rut}-${user.dv}`,
-          email: user.email,
-          phone: user.phone || "+569",
-          role: mappedRole,
-          status: user.active || user.isActive ? "active" : "revoked",
-          createdAt: user.createdAt,
-        };
-      });
-      setUsers(mappedUsers);
+      setUsers(usersList.map(normalizeUser));
+      setTotalPages(0);
+      setTotalElements(0);
     } catch (err) {
       console.error("Error fetching users fiscalizadores:", err);
       setUsers([]);
-      // guardar error en estado
-      setError(
-        err.message.includes("403")
-          ? "No tienes permisos para ver usuarios fiscalizadores"
-          : "No se pudieron cargar los usuarios fiscalizadores",
-      );
-      throw new Error("No se pudieron cargar los usuarios fiscalizadores");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -110,7 +115,7 @@ export const useUsers = () => {
     };
 
     await userService.createUser(payload);
-    await fetchUsers(); // Refrescar lista
+    await doFetch({ page: 0 });
   };
 
   const updateUser = async (selectedUser, formData) => {
@@ -138,7 +143,7 @@ export const useUsers = () => {
       await userService.updateUserRole(rutSinPuntos, backendRole);
     }
 
-    await fetchUsers(); // Refrescar lista
+    await doFetch({ page });
   };
 
   const toggleUserStatus = async (id, currentStatus) => {
@@ -147,17 +152,23 @@ export const useUsers = () => {
     } else {
       await userService.activateUser(id);
     }
-    await fetchUsers(); // Refrescar lista
+    await doFetch({ page });
   };
 
   return {
     users,
     loading,
     error,
-    fetchUsers,
+    fetchUsers: doFetch,
     fetchUsersFiscalizadores,
     createUser,
     updateUser,
     toggleUserStatus,
+    page,
+    totalPages,
+    totalElements,
+    first,
+    last,
+    goToPage,
   };
 };

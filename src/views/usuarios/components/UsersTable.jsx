@@ -14,8 +14,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
   };
 
   return (
-    <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
-      <div className="overflow-auto flex-1">
+    <div className="overflow-auto flex-1">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
@@ -39,7 +38,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
               </tr>
             ) : (
               filteredUsers.map(user => (
-                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => handleEditClick(user)}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
@@ -74,7 +73,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
                       <Button
                         size="sm"
                         variant={user.status === 'active' ? 'warning' : 'success'}
-                        onClick={() => toggleStatus(user.id, user.status)}
+                        onClick={(e) => { e.stopPropagation(); toggleStatus(user.id, user.status); }}
                         disabled={user.email === currentUser?.email}
                         className={user.email === currentUser?.email ? 'opacity-40 cursor-not-allowed' : ''}
                       >
@@ -83,7 +82,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleEditClick(user)}
+                        onClick={(e) => { e.stopPropagation(); handleEditClick(user); }}
                         title="Editar usuario"
                       >
                         <Edit2 size={16} />
@@ -96,6 +95,5 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
           </tbody>
         </table>
       </div>
-    </div>
   );
 }

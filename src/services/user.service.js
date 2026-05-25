@@ -4,8 +4,12 @@ export const getUsersFiscalizadores = async () => {
   return apiFetch("auth/api/v1/users/fiscalizadores");
 };
 
-export const getUsers = async () => {
-  return apiFetch("/auth/api/v1/users");
+export const getUsers = async (params = {}) => {
+  const { page = 0, size = 10 } = params;
+  const queryParams = new URLSearchParams();
+  queryParams.set("page", page);
+  queryParams.set("size", size);
+  return apiFetch(`/auth/api/v1/users?${queryParams}`);
 };
 
 export const createUser = async (userData) => {
