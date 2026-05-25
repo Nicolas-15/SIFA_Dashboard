@@ -51,7 +51,7 @@ export function TokenModals({
             className="!w-auto px-6"
           >
             <Clock size={16} />
-            <span className="ml-2">Expirar Token</span>
+            <span className="ml-2">Expirar</span>
           </Button>
           <Button
             isLoading={submitting === 'revoke'}
@@ -61,7 +61,7 @@ export function TokenModals({
             className="!w-auto px-6"
           >
             <ShieldOff size={16} />
-            <span className="ml-2">Revocar Token</span>
+            <span className="ml-2">Revocar</span>
           </Button>
         </>
       )}
@@ -95,7 +95,8 @@ export function TokenModals({
           label="Estado"
           value={
             selectedItem?.status === 'active' ? 'Activo' :
-            selectedItem?.status === 'revoked' ? 'Revocado' : 'Expirado'
+            selectedItem?.status === 'revoked' ? 'Revocado' :
+            'Expirado'
           }
         />
       </div>

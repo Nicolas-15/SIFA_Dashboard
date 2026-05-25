@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "./AuthContext";
 import * as tokenService from "@/services/token.service";
 
 const normalizeToken = (item) => ({
@@ -16,8 +17,8 @@ const normalizeToken = (item) => ({
 
 export const useTokens = () => {
   const [tokens, setTokens] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -26,12 +27,16 @@ export const useTokens = () => {
   const [last, setLast] = useState(true);
   const [size] = useState(10);
 
+  const { isAuthenticated } = useAuth();
+
   const latestParams = useRef({ page: 0 });
   latestParams.current = { page };
 
-  const fetchTokens = useCallback(async (overrides) => {
+  const doFetch = useCallback(async (overrides) => {
+    if (!isAuthenticated) return;
     setLoading(true);
-    setError(null);
+    setError(false);
+
     try {
       const p = overrides || latestParams.current;
       const data = await tokenService.getTokens({ page: p.page, size });
@@ -42,26 +47,23 @@ export const useTokens = () => {
       setTotalElements(data.totalElements ?? 0);
       setFirst(data.first ?? true);
       setLast(data.last ?? true);
-      if (data.number !== undefined) {
+
+      if (data.number !== undefined && data.number !== p.page) {
         setPage(data.number);
       }
     } catch (err) {
       console.error("Error fetching tokens:", err);
-      setTokens([]);
-      setError(
-        err.message.includes("403")
-          ? "No tienes permisos para ver los tokens"
-          : "No se pudieron cargar los tokens"
-      );
-      throw new Error("No se pudieron cargar los tokens");
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }, [size]);
+  }, [isAuthenticated, size]);
 
-  const goToPage = useCallback((p) => {
-    setPage(p);
-  }, []);
+  useEffect(() => {
+    doFetch();
+  }, [page, doFetch]);
+
+  const goToPage = useCallback((p) => setPage(p), []);
 
   const doRevokeToken = async (id) => {
     await tokenService.revokeToken(id);
@@ -85,7 +87,7 @@ export const useTokens = () => {
     tokens,
     loading,
     error,
-    fetchTokens,
+    fetchTokens: doFetch,
     revokeToken: doRevokeToken,
     expireToken: doExpireToken,
     page,

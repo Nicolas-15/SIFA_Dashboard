@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from './Button';
 
 export function Pagination({ page, totalPages, totalElements, first, last, onPageChange, loading, noBorder }) {
@@ -6,7 +6,7 @@ export function Pagination({ page, totalPages, totalElements, first, last, onPag
 
   const getPageNumbers = () => {
     const pages = [];
-    const maxVisible = 5;
+    const maxVisible = 3;
     let start = Math.max(0, page - Math.floor(maxVisible / 2));
     let end = Math.min(totalPages, start + maxVisible);
 
@@ -30,6 +30,17 @@ export function Pagination({ page, totalPages, totalElements, first, last, onPag
       </p>
 
       <div className="flex items-center gap-1.5">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={first || loading}
+          onClick={() => onPageChange(0)}
+          className="!px-2.5"
+          title="Ir al inicio"
+        >
+          <ChevronsLeft size={15} />
+        </Button>
+
         <Button
           size="sm"
           variant="outline"
@@ -63,6 +74,17 @@ export function Pagination({ page, totalPages, totalElements, first, last, onPag
         >
           <span className="hidden sm:inline mr-1">Siguiente</span>
           <ChevronRight size={15} />
+        </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={last || loading}
+          onClick={() => onPageChange(totalPages - 1)}
+          className="!px-2.5"
+          title="Ir al final"
+        >
+          <ChevronsRight size={15} />
         </Button>
       </div>
     </div>
