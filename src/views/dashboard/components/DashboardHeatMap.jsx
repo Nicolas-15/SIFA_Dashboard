@@ -163,15 +163,13 @@ export function DashboardHeatmap({ infractions, className = '' }) {
       />
 
       {/* Plantilla invisible del PDF (Renderizado Off-Screen) */}
-      {isExporting && (
-        <HeatmapPDFTemplate
-          reportRef={reportRef}
-          mapImage={mapImage}
-          infractions={infractions}
-          currentUser={currentUser}
-          dateRange={dateRange}
-        />
-      )}
+      <HeatmapPDFTemplate
+        reportRef={reportRef}
+        mapImage={mapImage}
+        infractions={infractions}
+        currentUser={currentUser}
+        dateRange={dateRange}
+      />
     </Card>
   );
 }
