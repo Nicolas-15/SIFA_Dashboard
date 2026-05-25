@@ -1,49 +1,74 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import * as fiscalizadorActivityService from "@/services/fiscalizadorActivity.service";
 
+const normalizeFiscalizador = (item) => ({
+  email: item.emailUsuario,
+  latitud: item.latitud,
+  longitud: item.longitud,
+  ultimaConexion: item.ultimaConexion,
+});
+
 export const useFiscalizadoresActivos = () => {
   const [fiscalizadores, setFiscalizadores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [first, setFirst] = useState(true);
+  const [last, setLast] = useState(true);
+  const [size] = useState(10);
+
   const { isAuthenticated } = useAuth();
 
-  const fetchFiscalizadoresActivos = useCallback(async () => {
-    if (!isAuthenticated) return;
+  const latestParams = useRef({ page: 0 });
+  latestParams.current = { page };
 
+  const doFetch = useCallback(async (overrides) => {
+    if (!isAuthenticated) return;
     setLoading(true);
-    setError(null);
+    setError(false);
+
     try {
-      const data = await fiscalizadorActivityService.getFiscalizadoresActivos();
-      const list = Array.isArray(data) ? data : [];
-      const mappedFiscalizadores = list.map((item) => ({
-        email: item.emailUsuario,
-        latitud: item.latitud,
-        longitud: item.longitud,
-        ultimaConexion: item.ultimaConexion,
-      }));
-      setFiscalizadores(mappedFiscalizadores);
+      const p = overrides || latestParams.current;
+      const data = await fiscalizadorActivityService.getFiscalizadoresActivos({ page: p.page, size });
+
+      const list = Array.isArray(data.content) ? data.content : [];
+      setFiscalizadores(list.map(normalizeFiscalizador));
+      setTotalPages(data.totalPages ?? 0);
+      setTotalElements(data.totalElements ?? 0);
+      setFirst(data.first ?? true);
+      setLast(data.last ?? true);
+
+      if (data.number !== undefined && data.number !== p.page) {
+        setPage(data.number);
+      }
     } catch (err) {
       console.error("Error fetching fiscalizadores activos:", err);
-      setFiscalizadores([]);
-      setError(
-        err.message.includes("403")
-          ? "No tienes permisos para ver fiscalizadores activos"
-          : "No se pudieron cargar los fiscalizadores activos",
-      );
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, size]);
 
   useEffect(() => {
-    fetchFiscalizadoresActivos();
-  }, [fetchFiscalizadoresActivos]);
+    doFetch();
+  }, [page, doFetch]);
+
+  const goToPage = useCallback((p) => setPage(p), []);
 
   return {
     fiscalizadores,
     loading,
     error,
-    fetchFiscalizadoresActivos,
+    fetchFiscalizadoresActivos: doFetch,
+    page,
+    totalPages,
+    totalElements,
+    first,
+    last,
+    goToPage,
   };
 };

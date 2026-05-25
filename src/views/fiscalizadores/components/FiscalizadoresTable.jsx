@@ -1,104 +1,80 @@
-import { User, CheckCircle2, XCircle } from "lucide-react";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { SYSTEM_ROLES } from "@/constants/roles";
+import { MapPin, Clock, Wifi } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-export function FiscalizadoresTable({ loading, filteredUsers, search }) {
-  const getRoleBadgeStyles = (role) => {
-    const styles = {
-      [SYSTEM_ROLES.ADMIN]: "bg-purple-100 text-purple-700",
-      [SYSTEM_ROLES.SUPERVISOR]: "bg-blue-100 text-blue-700",
-      [SYSTEM_ROLES.USER_APP]: "bg-emerald-100 text-emerald-700",
-    };
-    return styles[role] || "bg-amber-100 text-amber-700";
-  };
+function formatLastConnection(dateString) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / 60000);
 
+  if (diffMin < 1) return 'Ahora';
+  if (diffMin < 60) return `Hace ${diffMin} min`;
+  return date.toLocaleString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+export function FiscalizadoresTable({ loading, filtered, search }) {
   return (
-    <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
-      <div className="overflow-x-auto flex-1">
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
-              <th className="px-6 py-4">Usuario</th>
-              <th className="px-6 py-4">RUT</th>
-              <th className="px-6 py-4">Contacto</th>
-              <th className="px-6 py-4">Rol</th>
-              <th className="px-6 py-4">Creado el</th>
-              <th className="px-6 py-4">Estado</th>
+    <div className="overflow-auto flex-1">
+      <table className="w-full text-left border-collapse min-w-[700px]">
+        <thead>
+          <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
+            <th className="px-6 py-4">Email</th>
+            <th className="px-6 py-4">Última Conexión</th>
+            <th className="px-6 py-4">Ubicación</th>
+            <th className="px-6 py-4">Estado</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {loading && filtered.length === 0 ? (
+            <tr>
+              <td colSpan="4" className="px-6 py-24 text-center text-slate-400">
+                Cargando fiscalizadores activos...
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="px-6 py-24 text-center text-slate-400"
-                >
-                  Cargando fiscalizadores...
+          ) : filtered.length === 0 ? (
+            <tr>
+              <td colSpan="4">
+                <EmptyState query={search} resource="fiscalizadores activos" />
+              </td>
+            </tr>
+          ) : (
+            filtered.map((f) => (
+              <tr
+                key={f.email}
+                className="hover:bg-slate-50/50 transition-colors group"
+              >
+                <td className="px-6 py-4">
+                  <p className="text-sm font-bold text-slate-800">{f.email}</p>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Clock size={14} className="text-slate-400" />
+                    {formatLastConnection(f.ultimaConexion)}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin size={14} className="text-slate-400" />
+                    {f.latitud?.toFixed(4)}, {f.longitud?.toFixed(4)}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm">
+                    <Wifi size={14} />
+                    En terreno
+                  </div>
                 </td>
               </tr>
-            ) : filteredUsers.length === 0 ? (
-              <tr>
-                <td colSpan="7">
-                  <EmptyState query={search} resource="fiscalizadores" />
-                </td>
-              </tr>
-            ) : (
-              filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                        <User size={18} className="text-slate-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800">
-                          {user.name} {user.lastname}
-                        </p>
-                        <p className="text-[11px] text-slate-500 font-mono">
-                          ID: {user.id.split("-")[0]}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                    {user.rut}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-slate-700">{user.email}</p>
-                    <p className="text-xs text-slate-400">{user.phone}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${getRoleBadgeStyles(user.role)}`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
-                      : "Pendiente"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {user.status === "active" ? (
-                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm">
-                        <CheckCircle2 size={16} /> Activo
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-red-500 font-bold text-sm">
-                        <XCircle size={16} /> Revocado
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
