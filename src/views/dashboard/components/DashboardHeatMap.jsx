@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
@@ -8,8 +8,10 @@ import { HeatmapPDFTemplate } from "./HeatmapPDFTemplate";
 import { HeatmapLayer, MapRefRegister } from "./LeafletHelpers";
 import { FullscreenMapModal } from "./FullscreenMapModal";
 import { exportHeatmapReport } from "../utils/pdfExporter";
+import { getInfractionsReportSummary } from "@/services/infractions.service";
+import { SYSTEM_ROLES } from "@/constants/roles";
 
-export function DashboardHeatmap({ infractions, className = '' }) {
+export function DashboardHeatmap({ className = '' }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [mapImage, setMapImage] = useState(null);
@@ -25,14 +27,45 @@ export function DashboardHeatmap({ infractions, className = '' }) {
   const mainMapRef = useRef(null);
   const fullscreenMapRef = useRef(null);
 
-  const { currentUser = {}, dateRange = {}, showToast } = useOutletContext() || {};
+  const { currentUser = {}, dateRange = {}, userFilter = '', showToast } = useOutletContext() || {};
+
+  const [summaryData, setSummaryData] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const fetchSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const data = await getInfractionsReportSummary({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+          user: userFilter,
+        });
+        if (active) {
+          setSummaryData(data);
+        }
+      } catch (err) {
+        console.error("Error al cargar resumen del reporte:", err);
+      } finally {
+        if (active) {
+          setLoadingSummary(false);
+        }
+      }
+    };
+
+    fetchSummary();
+
+    return () => {
+      active = false;
+    };
+  }, [dateRange.startDate, dateRange.endDate, userFilter]);
 
   // Formatear los puntos del mapa de calor a partir de las coordenadas de las infracciones
-  const heatmapPoints = infractions
-    .filter((inf) => inf.location && inf.location.lat && inf.location.lng)
-    .map((inf) => [
-      parseFloat(inf.location.lat),
-      parseFloat(inf.location.lng),
+  const heatmapPoints = (summaryData?.coordenadas || [])
+    .map((coord) => [
+      parseFloat(coord.latitud),
+      parseFloat(coord.longitud),
       1, // Intensidad por defecto
     ]);
 
@@ -99,23 +132,25 @@ export function DashboardHeatmap({ infractions, className = '' }) {
             Mapa de calor basado en infracciones con GPS
           </p>
         </div>
-        <button
-          onClick={handleExportReport}
-          disabled={isExporting || infractions.length === 0}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs rounded-xl transition-all border border-slate-700 shadow-sm shrink-0"
-        >
-          {isExporting ? (
-            <>
-              <div className="w-3 h-3 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
-              <span>Generando...</span>
-            </>
-          ) : (
-            <>
-              <Download size={13} />
-              <span>Exportar Reporte</span>
-            </>
-          )}
-        </button>
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+          <button
+            onClick={handleExportReport}
+            disabled={isExporting || loadingSummary || !summaryData || (summaryData.coordenadas || []).length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs rounded-xl transition-all border border-slate-700 shadow-sm shrink-0"
+          >
+            {isExporting ? (
+              <>
+                <div className="w-3 h-3 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+                <span>Generando...</span>
+              </>
+            ) : (
+              <>
+                <Download size={13} />
+                <span>Exportar Reporte</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Contenedor del mapa de la tarjeta */}
@@ -155,18 +190,18 @@ export function DashboardHeatmap({ infractions, className = '' }) {
         mapCenter={mapCenter}
         mapZoom={mapZoom}
         heatmapPoints={heatmapPoints}
-        infractions={infractions}
         isExporting={isExporting}
         handleExportReport={handleExportReport}
         fullscreenMapContainerRef={fullscreenMapContainerRef}
         fullscreenMapRef={fullscreenMapRef}
+        canExport={currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR}
       />
 
       {/* Plantilla invisible del PDF (Renderizado Off-Screen) */}
       <HeatmapPDFTemplate
         reportRef={reportRef}
         mapImage={mapImage}
-        infractions={infractions}
+        summaryData={summaryData}
         currentUser={currentUser}
         dateRange={dateRange}
       />

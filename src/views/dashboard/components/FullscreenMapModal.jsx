@@ -14,6 +14,7 @@ export function FullscreenMapModal({
   handleExportReport,
   fullscreenMapContainerRef,
   fullscreenMapRef,
+  canExport = true,
 }) {
   if (!isOpen) return null;
 
@@ -33,23 +34,25 @@ export function FullscreenMapModal({
           </span>
           <div className="flex items-center gap-3">
             {/* Botón de exportación dentro del modal */}
-            <button
-              onClick={handleExportReport}
-              disabled={isExporting || infractions.length === 0}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold text-xs rounded-xl transition-all border border-slate-700 shadow-sm shrink-0"
-            >
-              {isExporting ? (
-                <>
-                  <div className="w-3 h-3 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
-                  <span>Generando...</span>
-                </>
-              ) : (
-                <>
-                  <Download size={13} />
-                  <span>Exportar Reporte</span>
-                </>
-              )}
-            </button>
+            {canExport && (
+              <button
+                onClick={handleExportReport}
+                disabled={isExporting || heatmapPoints.length === 0}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold text-xs rounded-xl transition-all border border-slate-700 shadow-sm shrink-0"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+                    <span>Generando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={13} />
+                    <span>Exportar Reporte</span>
+                  </>
+                )}
+              </button>
+            )}
             
             {/* Botón para cerrar pantalla completa */}
             <button 

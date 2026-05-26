@@ -60,3 +60,14 @@ export const updateInfractionData = async (id, updatedFields) => {
     body: JSON.stringify(updatedFields)
   });
 };
+
+export const getInfractionsReportSummary = async (params = {}) => {
+  const { startDate, endDate, user } = params;
+
+  const queryParams = new URLSearchParams();
+  if (startDate) queryParams.set('startDate', startDate);
+  if (endDate) queryParams.set('endDate', endDate);
+  if (user) queryParams.set('user', user);
+
+  return apiFetch(`/core/api/v1/infracciones/resumen-reporte?${queryParams}`);
+};
