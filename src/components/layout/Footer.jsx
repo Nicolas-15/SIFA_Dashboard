@@ -15,7 +15,7 @@ function LinkedinIcon({ size = 14 }) {
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 border-t border-slate-800 px-6 md:px-8 py-6 shrink-0">
+    <footer className="bg-[linear-gradient(to_bottom,white_15%,#0f172a_15%)] px-6 md:px-8 py-6 shrink-0">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <p className="text-slate-400 font-semibold tracking-wider">
           SIFA &copy; 2026
