@@ -14,7 +14,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
   };
 
   return (
-    <div className="overflow-auto flex-1">
+    <div className="flex-1">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-10">
