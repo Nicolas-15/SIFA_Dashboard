@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as authLogin, decodeJWT, getUserFromToken } from '@/services/auth.service';
+import { login as authLogin, decodeJWT, getUserFromToken, refreshSession } from '@/services/auth.service';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 const AuthContext = createContext();
@@ -15,31 +15,51 @@ export const AuthProvider = ({ children }) => {
 
   // Restaurar sesión al inicializar desde el token en localStorage
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsInitializing(false);
-      return;
-    }
+    const restoreSession = async () => {
+      const token = localStorage.getItem('token');
+      const storedRefreshToken = localStorage.getItem('refreshToken');
 
-    const payload = decodeJWT(token);
-    // Si el token no se puede decodificar o está expirado, limpiar sesión
-    if (!payload || (payload.exp && payload.exp * 1000 < Date.now())) {
+      if (!token && !storedRefreshToken) {
+        setIsInitializing(false);
+        return;
+      }
+
+      // Si hay token, verificar si es válido localmente
+      if (token) {
+        const payload = decodeJWT(token);
+        if (payload && (!payload.exp || payload.exp * 1000 > Date.now())) {
+          const user = getUserFromToken(token);
+          if (user && user.role !== SYSTEM_ROLES.USER_APP) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            setIsInitializing(false);
+            return;
+          }
+        }
+      }
+
+      // Token expirado o ausente: intentar refresh silencioso
+      if (storedRefreshToken) {
+        try {
+          const newToken = await refreshSession();
+          const user = getUserFromToken(newToken);
+          if (user && user.role !== SYSTEM_ROLES.USER_APP) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            setIsInitializing(false);
+            return;
+          }
+        } catch (e) {
+          // Refresh falló, continuar con logout
+        }
+      }
+
       localStorage.setItem('auth_error', 'expired');
       logout();
       setIsInitializing(false);
-      return;
-    }
+    };
 
-    // Token válido localmente: restaurar usuario desde el token
-    const user = getUserFromToken(token);
-    if (user && user.role !== SYSTEM_ROLES.USER_APP) {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-    } else {
-      logout();
-    }
-
-    setIsInitializing(false);
+    restoreSession();
   }, []);
 
   // Escuchar evento de 401 que lanza la API global
@@ -69,6 +89,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setCurrentUser(null);
     setIsAuthenticated(false);
   };

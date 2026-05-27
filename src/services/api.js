@@ -10,6 +10,38 @@ const HTTP_ERROR_MESSAGES = {
   503: 'Servicio no disponible temporalmente. Intente nuevamente en unos momentos.'
 };
 
+let isRefreshing = false;
+let refreshPromise = null;
+
+async function executeRefresh() {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) {
+    throw new Error('No refresh token disponible');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Refresh token inválido o expirado');
+  }
+
+  const data = await response.json();
+  localStorage.setItem('token', data.accessToken);
+  if (data.refreshToken) {
+    localStorage.setItem('refreshToken', data.refreshToken);
+  }
+  return data.accessToken;
+}
+
+function clearAuth() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+}
+
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   const token = localStorage.getItem('token');
@@ -28,6 +60,38 @@ export const apiFetch = async (endpoint, options = {}) => {
     throw new Error('No se pudo establecer conexión con el servidor. Por favor, verifique su conexión a internet.');
   }
 
+  if (response.status === 401 && localStorage.getItem('refreshToken')) {
+    try {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = executeRefresh().finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+      }
+
+      const newToken = await refreshPromise;
+
+      const retryHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${newToken}`,
+        ...options.headers,
+      };
+
+      response = await fetch(url, { ...options, headers: retryHeaders });
+
+      if (response.ok) {
+        if (response.status === 204) return null;
+        return response.json();
+      }
+    } catch (refreshError) {
+      clearAuth();
+      localStorage.setItem('auth_error', 'expired');
+      window.dispatchEvent(new Event('auth:unauthorized'));
+      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+  }
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
     let errorMessage = '';
@@ -40,10 +104,8 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
 
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.clear();
+      clearAuth();
 
-      // Si el mensaje del gateway indica inicio de sesión en otro dispositivo o revocación específica
       if (errorMessage && (errorMessage.includes('otro dispositivo') || errorMessage.includes('revocado') || errorMessage.includes('invalidada'))) {
         localStorage.setItem('auth_error', 'revoked');
       } else {
