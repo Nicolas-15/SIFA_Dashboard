@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Search, Menu, Shield } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { Footer } from "./Footer";
 import { Toast } from "@/components/ui/Toast";
 import { useAuth } from "@/core/AuthContext";
 import { useInfractions } from "@/core/useInfractions";
@@ -159,6 +160,8 @@ export function DashboardLayout() {
             }}
           />
         </div>
+
+        <Footer />
       </main>
 
       {/* Toast */}
