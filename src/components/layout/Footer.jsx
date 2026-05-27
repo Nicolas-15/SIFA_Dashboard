@@ -15,7 +15,7 @@ function LinkedinIcon({ size = 14 }) {
 
 export function Footer() {
   return (
-    <footer className="bg-[linear-gradient(to_bottom,white_15%,#0f172a_15%)] px-6 md:px-8 py-6 shrink-0">
+    <footer className="bg-[#0f172a] px-6 md:px-8 py-6 shrink-0">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <p className="text-slate-400 font-semibold tracking-wider">
           SIFA &copy; 2026
@@ -42,10 +42,15 @@ export function Footer() {
             Andrés Ortega Suazo
           </a>
           <span className="text-slate-600">|</span>
-          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-300">
-            <LinkedinIcon size={14} className="text-slate-500" />
-            Nicolás López
-          </span>
+          <a
+            href="https://www.linkedin.com/in/nicolas-alejandro-lopez-plaza-13973a399/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-blue-400 transition-colors"
+          >
+            <LinkedinIcon size={14} />
+            Nicolás López Plaza
+          </a>
         </p>
       </div>
     </footer>
