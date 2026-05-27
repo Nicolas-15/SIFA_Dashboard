@@ -8,7 +8,12 @@ export function HeatmapLayer({ data }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!map || data.length === 0) return;
+    if (!map) return;
+
+    // Redibujar/recalcular tamaño del mapa para evitar cortes
+    map.invalidateSize();
+
+    if (data.length === 0) return;
 
     // L.heatLayer proviene del plugin importado leaflet.heat
     const heatLayer = L.heatLayer(data, {

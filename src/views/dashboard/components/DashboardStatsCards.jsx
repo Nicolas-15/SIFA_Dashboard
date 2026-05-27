@@ -1,13 +1,8 @@
 import { Receipt, FileText, Download, CheckCircle } from "lucide-react";
 import { KpiCard } from "@/components/ui/KpiCard";
 
-export function DashboardStatsCards({ infractions }) {
-  const stats = {
-    total: infractions.length,
-    pending: infractions.filter((i) => i.status === "pending").length,
-    accepted: infractions.filter((i) => i.status === "accepted").length,
-    exported: infractions.filter((i) => i.status === "exported").length,
-  };
+export function DashboardStatsCards({ stats: inputStats }) {
+  const stats = inputStats || { total: 0, pending: 0, accepted: 0, exported: 0 };
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">

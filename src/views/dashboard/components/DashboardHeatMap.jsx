@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
-import { Maximize2, Download } from "lucide-react";
+import { Maximize2, Download, Calendar } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { HeatmapPDFTemplate } from "./HeatmapPDFTemplate";
 import { HeatmapLayer, MapRefRegister } from "./LeafletHelpers";
@@ -11,13 +11,19 @@ import { exportHeatmapReport } from "../utils/pdfExporter";
 import { getInfractionsReportSummary } from "@/services/infractions.service";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
-export function DashboardHeatmap({ className = '' }) {
+export function DashboardHeatmap({
+  summaryData,
+  loadingSummary,
+  startDate,
+  endDate,
+  className = ''
+}) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [mapImage, setMapImage] = useState(null);
   
-  // Coordenadas iniciales del mapa de El Quisco / Valparaíso
-  const [mapCenter, setMapCenter] = useState([-33.0456, -71.6214]);
+  // Coordenadas iniciales del mapa de El Quisco
+  const [mapCenter, setMapCenter] = useState([-33.3904, -71.6910]);
   const [mapZoom, setMapZoom] = useState(14);
   
   const mapContainerRef = useRef(null);
@@ -27,41 +33,10 @@ export function DashboardHeatmap({ className = '' }) {
   const mainMapRef = useRef(null);
   const fullscreenMapRef = useRef(null);
 
-  const { currentUser = {}, dateRange = {}, userFilter = '', showToast } = useOutletContext() || {};
+  // Solo tomamos currentUser y showToast del contexto global.
+  const { currentUser = {}, showToast } = useOutletContext() || {};
 
-  const [summaryData, setSummaryData] = useState(null);
-  const [loadingSummary, setLoadingSummary] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    const fetchSummary = async () => {
-      try {
-        setLoadingSummary(true);
-        const data = await getInfractionsReportSummary({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-          user: userFilter,
-        });
-        if (active) {
-          setSummaryData(data);
-        }
-      } catch (err) {
-        console.error("Error al cargar resumen del reporte:", err);
-      } finally {
-        if (active) {
-          setLoadingSummary(false);
-        }
-      }
-    };
-
-    fetchSummary();
-
-    return () => {
-      active = false;
-    };
-  }, [dateRange.startDate, dateRange.endDate, userFilter]);
-
-  // Formatear los puntos del mapa de calor a partir de las coordenadas de las infracciones
+  // Formatear los puntos del mapa de calor a partir de las coordenadas del día de hoy
   const heatmapPoints = (summaryData?.coordenadas || [])
     .map((coord) => [
       parseFloat(coord.latitud),
@@ -96,13 +71,17 @@ export function DashboardHeatmap({ className = '' }) {
     setIsFullscreen(false);
   };
 
-  // Delegar la generación del reporte PDF al utilitario pdfExporter
+  // Se llama directamente al presionar "Exportar Reporte"
   const handleExportReport = async () => {
     const activeRef = isFullscreen ? fullscreenMapContainerRef : mapContainerRef;
     if (!activeRef.current) return;
-    
+
     try {
       setIsExporting(true);
+
+      // Esperar un momento breve para asegurar que la UI esté lista
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
       await exportHeatmapReport({
         activeElement: activeRef.current,
         reportElement: reportRef.current,
@@ -121,7 +100,7 @@ export function DashboardHeatmap({ className = '' }) {
   };
 
   return (
-    <Card className={`h-[340px] md:h-auto flex flex-col ${className}`}>
+    <Card className={`h-[340px] md:h-[450px] flex flex-col ${className}`}>
       {/* Cabecera del mapa con botón para exportar */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3 md:mb-4">
         <div>
@@ -132,10 +111,11 @@ export function DashboardHeatmap({ className = '' }) {
             Mapa de calor basado en infracciones con GPS
           </p>
         </div>
+
         {(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
           <button
             onClick={handleExportReport}
-            disabled={isExporting || loadingSummary || !summaryData || (summaryData.coordenadas || []).length === 0}
+            disabled={isExporting || loadingSummary || heatmapPoints.length === 0}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs rounded-xl transition-all border border-slate-700 shadow-sm shrink-0"
           >
             {isExporting ? (
@@ -203,7 +183,7 @@ export function DashboardHeatmap({ className = '' }) {
         mapImage={mapImage}
         summaryData={summaryData}
         currentUser={currentUser}
-        dateRange={dateRange}
+        dateRange={{ startDate, endDate }}
       />
     </Card>
   );
