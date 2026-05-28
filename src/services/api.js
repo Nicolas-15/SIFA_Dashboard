@@ -10,6 +10,19 @@ const HTTP_ERROR_MESSAGES = {
   503: 'Servicio no disponible temporalmente. Intente nuevamente en unos momentos.'
 };
 
+function combineAbortSignals(...signals) {
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      return controller.signal;
+    }
+    signal.addEventListener('abort', onAbort, { once: true });
+  }
+  return controller.signal;
+}
+
 let isRefreshing = false;
 let refreshPromise = null;
 
@@ -63,13 +76,21 @@ export const apiFetch = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const signal = options.signal
+    ? combineAbortSignals(options.signal, controller.signal)
+    : controller.signal;
+
   let response;
   try {
-    response = await fetch(url, { ...options, headers });
+    response = await fetch(url, { ...options, headers, signal });
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error('Network error during fetch:', error);
     throw new Error('No se pudo establecer conexión con el servidor. Por favor, verifique su conexión a internet.');
   }
+  clearTimeout(timeoutId);
 
   if (response.status === 401 && localStorage.getItem('refreshToken')) {
     try {
