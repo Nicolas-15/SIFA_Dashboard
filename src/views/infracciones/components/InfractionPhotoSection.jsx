@@ -1,7 +1,7 @@
 import { Clock, MapPin, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { EditableField } from "./EditableField";
 import { formatPlate } from "../utils/infractionFormatters";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 /**
  * Hook que carga múltiples imágenes autenticadas con JWT.
@@ -84,6 +84,11 @@ export function InfractionPhotoSection({
   const [imageLoaded, setImageLoaded] = useState(false);
   const hasMultiple = images.length > 1;
 
+  const SWIPE_THRESHOLD = 50;
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const wheelBlocked = useRef(false);
+
   useEffect(() => {
     setImageLoaded(false);
   }, [currentIndex]);
@@ -95,24 +100,67 @@ export function InfractionPhotoSection({
     img.src = images[nextIdx];
   }, [images, currentIndex]);
 
-  const goNext = (e) => {
-    e.stopPropagation();
+  const goNext = useCallback((e) => {
+    e?.stopPropagation?.();
     setIsChangingImage(true);
     setCurrentIndex((i) => (i + 1) % images.length);
     setTimeout(() => setIsChangingImage(false), 300);
-  };
-  const goPrev = (e) => {
-    e.stopPropagation();
+  }, [images.length]);
+  const goPrev = useCallback((e) => {
+    e?.stopPropagation?.();
     setIsChangingImage(true);
     setCurrentIndex((i) => (i - 1 + images.length) % images.length);
     setTimeout(() => setIsChangingImage(false), 300);
-  };
+  }, [images.length]);
+
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!hasMultiple) return;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartY.current);
+    if (deltaX > deltaY) {
+      e.preventDefault();
+    }
+  }, [hasMultiple]);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (!hasMultiple) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX > 0) {
+        goPrev();
+      } else {
+        goNext();
+      }
+    }
+  }, [hasMultiple, goNext, goPrev]);
+
+  const handleWheel = useCallback((e) => {
+    if (!hasMultiple || wheelBlocked.current) return;
+    wheelBlocked.current = true;
+    e.stopPropagation();
+    if (e.deltaY > 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+    setTimeout(() => { wheelBlocked.current = false; }, 400);
+  }, [hasMultiple, goNext, goPrev]);
 
   return (
     <div
-      className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56"
+      className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56 select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {(isLoading || (!imageLoaded && images.length > 0) || isChangingImage) && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
@@ -211,8 +259,12 @@ export function InfractionPhotoSection({
       {/* Modal pantalla completa */}
       {isFullscreen && images.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center select-none"
           onClick={() => setIsFullscreen(false)}
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Botón cerrar */}
           <button
