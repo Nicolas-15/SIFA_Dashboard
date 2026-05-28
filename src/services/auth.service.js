@@ -48,11 +48,22 @@ export const refreshSession = async () => {
     throw new Error('No hay token de actualización disponible');
   }
 
-  const response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: storedRefreshToken }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     localStorage.removeItem('token');

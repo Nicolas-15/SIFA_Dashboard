@@ -19,11 +19,22 @@ async function executeRefresh() {
     throw new Error('No refresh token disponible');
   }
 
-  const response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     throw new Error('Refresh token inválido o expirado');
