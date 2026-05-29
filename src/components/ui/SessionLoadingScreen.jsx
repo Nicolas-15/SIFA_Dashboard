@@ -13,8 +13,8 @@ const SessionLoadingScreen = () => {
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white gap-6">
       <svg
-        width="80"
-        height="80"
+        width="48"
+        height="48"
         viewBox="0 0 100 100"
         className="drop-shadow-lg"
       >
