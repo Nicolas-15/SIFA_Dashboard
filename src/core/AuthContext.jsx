@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { login as authLogin, decodeJWT, getUserFromToken, refreshSession } from '@/services/auth.service';
 import { SYSTEM_ROLES } from '@/constants/roles';
+import SessionLoadingScreen from '@/components/ui/SessionLoadingScreen';
 
 const AuthContext = createContext();
 
@@ -95,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   if (isInitializing) {
-    return <div className="h-screen w-full flex items-center justify-center bg-slate-900 text-white">Validando sesión...</div>;
+    return <SessionLoadingScreen />;
   }
 
   return (
