@@ -1,4 +1,4 @@
-import { Shield, ShieldOff, Clock, Eye } from 'lucide-react';
+import { Shield, ShieldOff, Clock, Eye, Key, RefreshCw, Lock } from 'lucide-react';
 import { DataTable } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
 
@@ -36,14 +36,14 @@ const columns = [
     label: 'Usuario',
     render: (item) => (
       <>
-        <p className="text-sm font-bold text-slate-800">
+        {item.userEmail && (
+          <p className="text-sm font-bold text-slate-800">{item.userEmail}</p>
+        )}
+        <p className="text-xs text-slate-400">
           {item.userName && item.userLastName
             ? `${item.userName} ${item.userLastName}`
             : item.userName || '-'}
         </p>
-        {item.userEmail && (
-          <p className="text-xs text-slate-400">{item.userEmail}</p>
-        )}
       </>
     ),
   },
@@ -68,11 +68,26 @@ const columns = [
   {
     key: 'type',
     label: 'Tipo',
-    render: (item) => (
-      <span className="text-xs font-semibold text-slate-500 uppercase">
-        {item.tokenType || 'Bearer'}
-      </span>
-    ),
+    render: (item) => {
+      const type = (item.tokenType || '').toLowerCase();
+      let icon, label;
+      if (type === 'access') {
+        icon = <Lock size={13} />;
+        label = 'Access';
+      } else if (type === 'refresh') {
+        icon = <RefreshCw size={13} />;
+        label = 'Refresh';
+      } else {
+        icon = <Key size={13} />;
+        label = 'Bearer';
+      }
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase">
+          {icon}
+          {label}
+        </span>
+      );
+    },
   },
   {
     key: 'status',

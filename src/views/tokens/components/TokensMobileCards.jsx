@@ -1,4 +1,4 @@
-import { Shield, ShieldOff, Clock } from 'lucide-react';
+import { Shield, ShieldOff, Clock, Key, RefreshCw, Lock, Mail, User, CreditCard } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 const statusConfig = {
@@ -42,25 +42,39 @@ export function TokensMobileCards({ filtered, searchQuery, activeFilter, setSele
               <StatusBadge status={item.status} />
             </div>
 
-            <p className="text-sm font-bold text-slate-800">
+            {item.userEmail && (
+              <p className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
+                <Mail size={14} className="text-slate-400 shrink-0" />
+                {item.userEmail}
+              </p>
+            )}
+
+            <p className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+              <User size={14} className="text-slate-400 shrink-0" />
               {item.userName && item.userLastName
                 ? `${item.userName} ${item.userLastName}`
                 : item.userName || '-'}
             </p>
 
-            {item.userEmail && (
-              <p className="text-xs text-slate-400 mt-0.5">{item.userEmail}</p>
-            )}
-
             <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-              <span className="font-mono">{item.userRut || '-'}</span>
+              <span className="flex items-center gap-1.5 font-mono">
+                <CreditCard size={14} className="text-slate-400 shrink-0" />
+                {item.userRut || '-'}
+              </span>
               <span className="text-slate-300">|</span>
-              <span className="uppercase">{item.tokenType || 'Bearer'}</span>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase">
+                {(item.tokenType || '').toLowerCase() === 'access' ? <Lock size={13} /> :
+                 (item.tokenType || '').toLowerCase() === 'refresh' ? <RefreshCw size={13} /> :
+                 <Key size={13} />}
+                {(item.tokenType || '').toLowerCase() === 'access' ? 'Access' :
+                 (item.tokenType || '').toLowerCase() === 'refresh' ? 'Refresh' :
+                 'Bearer'}
+              </span>
               <span className="text-slate-300">|</span>
               <span className="font-mono tracking-widest">{maskToken(item.token)}</span>
             </div>
 
-            <span className="text-xs font-bold text-primary mt-2 block">Ver detalle →</span>
+            <span className="mt-2 inline-block text-xs font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-primary rounded-lg px-3 py-1.5 transition-colors">Ver detalle →</span>
           </button>
         );
       })}

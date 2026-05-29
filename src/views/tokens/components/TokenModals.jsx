@@ -1,4 +1,4 @@
-import { Shield, ShieldOff, Clock, X, Mail, User, Key, Fingerprint, Hash } from 'lucide-react';
+import { Shield, ShieldOff, Clock, X, Mail, User, Key, Fingerprint, Hash, RefreshCw, Lock, Calendar } from 'lucide-react';
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 
@@ -91,7 +91,11 @@ export function TokenModals({
         <DetailRow icon={Fingerprint} label="RUT" value={selectedItem?.userRut} />
         <DetailRow icon={Mail} label="Email" value={selectedItem?.userEmail} />
         <DetailRow icon={Key} label="Token" value={maskToken(selectedItem?.token)} />
-        <DetailRow icon={Shield} label="Tipo" value={selectedItem?.tokenType} />
+        <DetailRow
+          icon={selectedItem?.tokenType === 'REFRESH' ? RefreshCw : selectedItem?.tokenType === 'ACCESS' ? Lock : Key}
+          label="Tipo"
+          value={selectedItem?.tokenType}
+        />
         <DetailRow
           icon={selectedItem?.status === 'active' ? Shield : selectedItem?.status === 'revoked' ? ShieldOff : Clock}
           label="Estado"
@@ -101,6 +105,9 @@ export function TokenModals({
             'Expirado'
           }
         />
+        <DetailRow icon={Calendar} label="Creado" value={selectedItem?.createdAt ? new Date(selectedItem.createdAt).toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Calendar} label="Modificado" value={selectedItem?.modifiedAt ? new Date(selectedItem.modifiedAt).toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Clock} label="Expira" value={selectedItem?.expiresAt ? new Date(selectedItem.expiresAt).toLocaleString('es-CL') : '-'} />
       </div>
     </Modal>
   );

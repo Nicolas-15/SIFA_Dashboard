@@ -12,6 +12,9 @@ const normalizeToken = (item) => ({
   userRut: item.userRut || '',
   revoked: item.revoked ?? false,
   expired: item.expired ?? false,
+  expiresAt: item.expiresAt || null,
+  createdAt: item.createdAt || null,
+  modifiedAt: item.modifiedAt || null,
   status: item.expired ? 'expired' : item.revoked ? 'revoked' : 'active',
 });
 
