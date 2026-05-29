@@ -5,7 +5,10 @@ import { DashboardHeatmap } from "./components/DashboardHeatMap";
 import { DashboardRecentActivity } from "./components/DashboardRecentActivity";
 import { DashboardFiscalizadoresMap } from "./components/DashboardFiscalizadoresMap";
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
-import { getInfractions, getInfractionsReportSummary } from "@/services/infractions.service";
+import {
+  getInfractions,
+  getInfractionsReportSummary,
+} from "@/services/infractions.service";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
 export function DashboardView() {
@@ -13,7 +16,7 @@ export function DashboardView() {
   const { fiscalizadores } = useFiscalizadoresActivos();
 
   // Fecha de hoy por defecto para el Resumen Diario
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA").slice(0, 10);
 
   // Inicializar leyendo de sessionStorage si existen filtros guardados de esta sesión
   const [startDate, setStartDate] = useState(() => {
@@ -40,9 +43,17 @@ export function DashboardView() {
       try {
         setLoading(true);
         // Cargar resumen estadístico (coordenadas, estados, etc.)
-        const summary = await getInfractionsReportSummary({ startDate, endDate });
+        const summary = await getInfractionsReportSummary({
+          startDate,
+          endDate,
+        });
         // Cargar lista de actividad reciente (las primeras 5 infracciones de ese rango)
-        const recent = await getInfractions({ page: 0, size: 5, startDate, endDate });
+        const recent = await getInfractions({
+          page: 0,
+          size: 5,
+          startDate,
+          endDate,
+        });
 
         if (active) {
           setSummaryData(summary);
@@ -56,7 +67,9 @@ export function DashboardView() {
     };
 
     fetchDashboardData();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [startDate, endDate]);
 
   // Solo mostrar el mapa de fiscalizadores en la calle para roles operativos
@@ -65,12 +78,14 @@ export function DashboardView() {
     currentUser?.role === SYSTEM_ROLES.SUPERVISOR;
 
   // Adaptar datos para las Stats Cards
-  const stats = summaryData?.estados ? {
-    total: summaryData.totalCount ?? 0,
-    pending: summaryData.estados.pending ?? 0,
-    accepted: summaryData.estados.accepted ?? 0,
-    exported: summaryData.estados.exported ?? 0,
-  } : { total: 0, pending: 0, accepted: 0, exported: 0 };
+  const stats = summaryData?.estados
+    ? {
+        total: summaryData.totalCount ?? 0,
+        pending: summaryData.estados.pending ?? 0,
+        accepted: summaryData.estados.accepted ?? 0,
+        exported: summaryData.estados.exported ?? 0,
+      }
+    : { total: 0, pending: 0, accepted: 0, exported: 0 };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -81,14 +96,17 @@ export function DashboardView() {
             Resumen Diario
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Vista general del Sistema de Inteligencia para Fiscalización Automática
+            Vista general del Sistema de Inteligencia para Fiscalización
+            Automática
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Selector de Fecha Desde */}
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">Desde</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase">
+              Desde
+            </span>
             <input
               type="date"
               value={startDate}
@@ -100,7 +118,9 @@ export function DashboardView() {
 
           {/* Selector de Fecha Hasta */}
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">Hasta</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase">
+              Hasta
+            </span>
             <input
               type="date"
               value={endDate}
