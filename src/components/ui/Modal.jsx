@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export function Modal({ isOpen, onClose, title, description, children, footer, headerExtra }) {
   // Cerrar con la tecla Escape
@@ -13,7 +14,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer, h
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-[2rem] w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
         
@@ -44,6 +45,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer, h
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
