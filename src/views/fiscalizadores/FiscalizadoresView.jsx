@@ -9,6 +9,7 @@ import { GenerateReportModal } from "./components/GenerateReportModal";
 import { HeatmapReportModal } from "./components/HeatmapReportModal";
 import { ProductividadReportModal } from "./components/ProductividadReportModal";
 import { TableCard } from "@/components/ui/TableCard";
+import { Pagination } from "@/components/ui/Pagination";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
@@ -110,6 +111,26 @@ export function FiscalizadoresView() {
         {/* Mobile cards */}
         <div className="md:hidden flex-1 overflow-auto space-y-3 pb-4">
           <FiscalizadoresMobileCards filtered={filtered} search={search} />
+        </div>
+
+        {/* Mobile pagination */}
+        <div className="md:hidden flex items-center justify-between px-2 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <p className="text-xs text-slate-500 font-medium">
+            {totalElements > 0
+              ? `${totalElements} resultados${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
+              : ''
+            }
+          </p>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            first={first}
+            last={last}
+            onPageChange={goToPage}
+            loading={loading}
+            noBorder
+          />
         </div>
       </div>
 
