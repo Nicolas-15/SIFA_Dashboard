@@ -7,6 +7,7 @@ import { FiscalizadoresTable } from "./components/FiscalizadoresTable";
 import { FiscalizadoresMobileCards } from "./components/FiscalizadoresMobileCards";
 import { GenerateReportModal } from "./components/GenerateReportModal";
 import { HeatmapReportModal } from "./components/HeatmapReportModal";
+import { ProductividadReportModal } from "./components/ProductividadReportModal";
 import { TableCard } from "@/components/ui/TableCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -28,7 +29,9 @@ export function FiscalizadoresView() {
   const [search, setSearch] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isHeatmapModalOpen, setIsHeatmapModalOpen] = useState(false);
-  const [heatmapDateRange, setHeatmapDateRange] = useState({
+  const [isProductividadModalOpen, setIsProductividadModalOpen] =
+    useState(false);
+  const [reportDateRange, setReportDateRange] = useState({
     startDate: "",
     endDate: "",
   });
@@ -115,10 +118,16 @@ export function FiscalizadoresView() {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         fiscalizadores={fiscalizadores}
-        onOpenHeatmapModal={({ startDate, endDate }) => {
-          setHeatmapDateRange({ startDate, endDate });
-          setIsHeatmapModalOpen(true);
+        onGenerateReport={({ startDate, endDate, reportType }) => {
+          setReportDateRange({ startDate, endDate });
           setIsReportModalOpen(false);
+
+          // Abrir el modal correspondiente según el tipo de reporte
+          if (reportType === "ubicaciones") {
+            setIsHeatmapModalOpen(true);
+          } else if (reportType === "actividad") {
+            setIsProductividadModalOpen(true);
+          }
         }}
       />
 
@@ -126,8 +135,16 @@ export function FiscalizadoresView() {
       <HeatmapReportModal
         isOpen={isHeatmapModalOpen}
         onClose={() => setIsHeatmapModalOpen(false)}
-        startDate={heatmapDateRange.startDate}
-        endDate={heatmapDateRange.endDate}
+        startDate={reportDateRange.startDate}
+        endDate={reportDateRange.endDate}
+      />
+
+      {/* Modal para reporte de productividad */}
+      <ProductividadReportModal
+        isOpen={isProductividadModalOpen}
+        onClose={() => setIsProductividadModalOpen(false)}
+        startDate={reportDateRange.startDate}
+        endDate={reportDateRange.endDate}
       />
     </div>
   );

@@ -6,7 +6,7 @@ export function GenerateReportModal({
   isOpen,
   onClose,
   fiscalizadores,
-  onOpenHeatmapModal,
+  onGenerateReport,
 }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -21,9 +21,9 @@ export function GenerateReportModal({
       return;
     }
 
-    // Si es reporte de mapa, abrir el modal del heatmap
-    if (reportType === "ubicaciones" && onOpenHeatmapModal) {
-      onOpenHeatmapModal({ startDate, endDate });
+    // Llamar al callback con el tipo de reporte y las fechas
+    if (onGenerateReport) {
+      onGenerateReport({ startDate, endDate, reportType });
       return;
     }
 
