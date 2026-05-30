@@ -96,3 +96,17 @@ export const login = async (email, password) => {
 
   return { token: data.accessToken, user: mappedUser };
 };
+
+export const requestPasswordRecovery = async (email) => {
+  return await apiFetch('/auth/api/v1/recovery/request', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+};
+
+export const resetPassword = async (email, code, newPassword) => {
+  return await apiFetch('/auth/api/v1/recovery/reset', {
+    method: 'POST',
+    body: JSON.stringify({ email, code, newPassword })
+  });
+};
