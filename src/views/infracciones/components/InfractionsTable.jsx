@@ -36,28 +36,45 @@ const columns = [
     ),
   },
   {
-    key: 'date',
-    label: 'F. Emisión',
+    key: 'emision',
+    label: 'F. Emisión / Fiscalizador',
     tdClass: 'whitespace-nowrap',
     render: (inf) => (
-      <span className="text-sm text-slate-600 font-semibold">
-        {parseISODateTime(inf.fecha)}
-      </span>
-    ),
-  },
-  {
-    key: 'fiscalizador',
-    label: 'Fiscalizador',
-    render: (inf) => (
-      <span className="text-sm text-slate-600 font-medium max-w-[140px] truncate block" title={inf.idFiscalizador}>
-        {inf.idFiscalizador || '-'}
-      </span>
+      <div className="flex flex-col">
+        <span className="text-sm text-slate-600 font-semibold leading-tight">
+          {parseISODateTime(inf.fecha)}
+        </span>
+        <span className="text-xs text-slate-400 font-medium leading-tight mt-0.5">
+          {inf.idFiscalizador || '-'}
+        </span>
+      </div>
     ),
   },
   {
     key: 'status',
     label: 'Estado',
     render: (inf) => <StatusBadge status={inf.status} />,
+  },
+  {
+    key: 'fotos',
+    label: 'Fotos',
+    render: (inf) => {
+      const count = inf.evidenceUrls?.length || (inf.photoUrl ? 1 : 0);
+      return (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+          count > 0
+            ? 'bg-sky-100 text-sky-700'
+            : 'bg-slate-100 text-slate-400'
+        }`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          {count}
+        </span>
+      );
+    },
   },
   {
     key: 'actions',

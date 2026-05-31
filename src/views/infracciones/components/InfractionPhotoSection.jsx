@@ -1,7 +1,7 @@
 import { Clock, MapPin, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { EditableField } from "./EditableField";
 import { formatPlate } from "../utils/infractionFormatters";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /**
  * Hook que carga múltiples imágenes autenticadas con JWT.
@@ -140,10 +140,13 @@ export function InfractionPhotoSection({
     }
   }, [hasMultiple, goNext, goPrev]);
 
+  const containerRef = useRef(null);
+  const fullscreenRef = useRef(null);
+
   const handleWheel = useCallback((e) => {
+    e.preventDefault();
     if (!hasMultiple || wheelBlocked.current) return;
     wheelBlocked.current = true;
-    e.stopPropagation();
     if (e.deltaY > 0) {
       goNext();
     } else {
@@ -152,12 +155,28 @@ export function InfractionPhotoSection({
     setTimeout(() => { wheelBlocked.current = false; }, 400);
   }, [hasMultiple, goNext, goPrev]);
 
+  const wheelHandler = useMemo(() => handleWheel, [handleWheel]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => el.removeEventListener("wheel", wheelHandler);
+  }, [wheelHandler]);
+
+  useEffect(() => {
+    const el = fullscreenRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => el.removeEventListener("wheel", wheelHandler);
+  }, [wheelHandler]);
+
   return (
     <div
+      ref={containerRef}
       className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56 select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -259,9 +278,9 @@ export function InfractionPhotoSection({
       {/* Modal pantalla completa */}
       {isFullscreen && images.length > 0 && (
         <div
+          ref={fullscreenRef}
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center select-none"
           onClick={() => setIsFullscreen(false)}
-          onWheel={handleWheel}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
