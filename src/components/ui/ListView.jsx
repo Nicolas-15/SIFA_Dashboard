@@ -1,7 +1,7 @@
 export function ListView({ title, filters, loading, hasExistingData, table, mobile, children }) {
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col gap-4">
-      <h2 className="text-xl md:text-2xl font-bold text-slate-800">{title}</h2>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col gap-3">
+      <h2 className="text-xl md:text-2xl font-bold text-slate-800 my-0 pt-0">{title}</h2>
 
       {filters}
 

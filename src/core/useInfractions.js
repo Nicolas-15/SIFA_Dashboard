@@ -20,7 +20,7 @@ export const useInfractions = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [first, setFirst] = useState(true);
   const [last, setLast] = useState(true);
-  const [size, setSize] = useState(20);
+  const [size, setSize] = useState(10);
 
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [userFilter, setUserFilter] = useState('');
