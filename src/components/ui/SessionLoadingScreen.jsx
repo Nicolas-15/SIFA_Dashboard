@@ -65,10 +65,10 @@ const SessionLoadingScreen = () => {
       </svg>
 
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-mono font-light tracking-wider tabular-nums text-slate-100">
+        <span className="text-base font-mono font-light tracking-wider tabular-nums text-slate-100">
           {elapsed.toFixed(1)}
         </span>
-        <span className="text-lg font-mono text-slate-400">s</span>
+        <span className="text-xs font-mono text-slate-400">s</span>
       </div>
 
       <p className="text-sm text-slate-400 font-medium tracking-wide uppercase">
