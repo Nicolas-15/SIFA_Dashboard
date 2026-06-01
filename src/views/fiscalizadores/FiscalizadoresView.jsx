@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, RefreshCw } from "lucide-react";
 
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
 import { FiscalizadoresTable } from "./components/FiscalizadoresTable";
@@ -25,6 +25,7 @@ export function FiscalizadoresView() {
     first,
     last,
     goToPage,
+    fetchFiscalizadoresActivos,
   } = useFiscalizadoresActivos();
 
   const [search, setSearch] = useState("");
@@ -52,25 +53,36 @@ export function FiscalizadoresView() {
             Personal que ha reportado actividad en los últimos 10 minutos.
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Button
-            variant="outline"
-            onClick={() => setIsReportModalOpen(true)}
-            // EL CAMBIO ESTÁ AQUÍ: Agregamos !w-auto para anular el 100% de ancho
-            className="shrink-0 !w-48"
-            title="Generar reporte"
-          >
-            <FileText size={18} />
-            <span className="hidden sm:inline">Reportes</span>
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => fetchFiscalizadoresActivos()}
+              disabled={loading}
+              className="!px-3"
+              title="Actualizar datos"
+            >
+              <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            </Button>
 
-          <div className="flex-1 min-w-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsReportModalOpen(true)}
+              title="Generar reporte"
+              className="px-4"
+            >
+              <FileText size={18} />
+              <span>Reportes</span>
+            </Button>
+          </div>
+
+          <div className="sm:flex-1 sm:min-w-0">
             <Input
               placeholder="Buscar por email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               icon={Search}
-              className="w-full md:w-64 !py-2"
+              className="w-full !py-2"
             />
           </div>
         </div>
