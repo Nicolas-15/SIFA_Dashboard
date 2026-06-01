@@ -1,5 +1,4 @@
-import { apiFetch } from './api';
-import { API_BASE_URL } from '@/core/config';
+import { apiFetch, refreshToken } from './api';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 export const decodeJWT = (token) => {
@@ -43,40 +42,7 @@ export const getUserFromToken = (token) => {
 };
 
 export const refreshSession = async () => {
-  const storedRefreshToken = localStorage.getItem('refreshToken');
-  if (!storedRefreshToken) {
-    throw new Error('No hay token de actualización disponible');
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: storedRefreshToken }),
-      signal: controller.signal,
-    });
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-  clearTimeout(timeoutId);
-
-  if (!response.ok) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    throw new Error('Sesión expirada');
-  }
-
-  const data = await response.json();
-  localStorage.setItem('token', data.accessToken);
-  if (data.refreshToken) {
-    localStorage.setItem('refreshToken', data.refreshToken);
-  }
-  return data.accessToken;
+  return refreshToken();
 };
 
 export const login = async (email, password) => {

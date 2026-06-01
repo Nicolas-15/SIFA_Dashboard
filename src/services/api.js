@@ -26,9 +26,9 @@ function combineAbortSignals(...signals) {
 let isRefreshing = false;
 let refreshPromise = null;
 
-async function executeRefresh() {
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) {
+export async function refreshToken() {
+  const storedRefreshToken = localStorage.getItem('refreshToken');
+  if (!storedRefreshToken) {
     throw new Error('No refresh token disponible');
   }
 
@@ -40,7 +40,7 @@ async function executeRefresh() {
     response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ refreshToken: storedRefreshToken }),
       signal: controller.signal,
     });
   } catch (error) {
@@ -50,7 +50,10 @@ async function executeRefresh() {
   clearTimeout(timeoutId);
 
   if (!response.ok) {
-    throw new Error('Refresh token inválido o expirado');
+    const errorBody = await response.json().catch(() => null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    throw new Error(errorBody?.message || 'Sesión expirada');
   }
 
   const data = await response.json();
@@ -96,31 +99,30 @@ export const apiFetch = async (endpoint, options = {}) => {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
-        refreshPromise = executeRefresh().finally(() => {
+        refreshPromise = refreshToken().finally(() => {
           isRefreshing = false;
           refreshPromise = null;
         });
       }
-
-      const newToken = await refreshPromise;
-
-      const retryHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${newToken}`,
-        ...options.headers,
-      };
-
-      response = await fetch(url, { ...options, headers: retryHeaders });
-
-      if (response.ok) {
-        if (response.status === 204) return null;
-        return response.json();
-      }
-    } catch (refreshError) {
+      await refreshPromise;
+    } catch {
       clearAuth();
       localStorage.setItem('auth_error', 'expired');
       window.dispatchEvent(new Event('auth:unauthorized'));
       throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+
+    const retryHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      ...options.headers,
+    };
+
+    response = await fetch(url, { ...options, headers: retryHeaders });
+
+    if (response.ok) {
+      if (response.status === 204) return null;
+      return response.json();
     }
   }
 
