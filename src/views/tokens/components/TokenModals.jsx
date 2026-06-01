@@ -7,7 +7,39 @@ function maskToken(token) {
   return `${token.slice(0, 5)}*****`;
 }
 
-function DetailRow({ icon: Icon, label, value }) {
+function parseBackendDate(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr + 'Z');
+}
+
+function getExpiraInfo(selectedItem) {
+  const info = { fecha: '-', restante: null };
+  if (!selectedItem?.expiresAt) return info;
+
+  const expira = parseBackendDate(selectedItem.expiresAt);
+  if (!expira) return info;
+
+  const fecha = expira.toLocaleString('es-CL');
+  info.fecha = fecha;
+
+  if (selectedItem.status !== 'active') return info;
+
+  const diffMs = expira.getTime() - Date.now();
+  if (diffMs <= 0) return info;
+
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH = Math.floor(diffMin / 60);
+  const diffD = Math.floor(diffH / 24);
+
+  if (diffMin < 1) info.restante = 'menos de 1 min';
+  else if (diffH < 1) info.restante = `${diffMin} min`;
+  else if (diffD < 1) info.restante = `${diffH}h ${diffMin % 60}min`;
+  else info.restante = `${diffD}d ${diffH % 24}h`;
+
+  return info;
+}
+
+function DetailRow({ icon: Icon, label, value, children }) {
   return (
     <div className="flex items-start gap-3">
       <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -15,7 +47,7 @@ function DetailRow({ icon: Icon, label, value }) {
       </div>
       <div className="min-w-0">
         <p className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">{label}</p>
-        <p className="text-sm font-semibold text-slate-800 break-all">{value || '-'}</p>
+        <p className="text-sm font-semibold text-slate-800 break-all">{children || value || '-'}</p>
       </div>
     </div>
   );
@@ -30,6 +62,7 @@ export function TokenModals({
   selectedItem,
 }) {
   const isActive = selectedItem?.status === 'active';
+  const expiraInfo = getExpiraInfo(selectedItem);
 
   const renderDetailFooter = (
     <div className="flex items-center justify-end gap-3">
@@ -105,9 +138,14 @@ export function TokenModals({
             'Expirado'
           }
         />
-        <DetailRow icon={Calendar} label="Creado" value={selectedItem?.createdAt ? new Date(selectedItem.createdAt).toLocaleString('es-CL') : '-'} />
-        <DetailRow icon={Calendar} label="Modificado" value={selectedItem?.modifiedAt ? new Date(selectedItem.modifiedAt).toLocaleString('es-CL') : '-'} />
-        <DetailRow icon={Clock} label="Expira" value={selectedItem?.expiresAt ? new Date(selectedItem.expiresAt).toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Calendar} label="Creado" value={selectedItem?.createdAt ? parseBackendDate(selectedItem.createdAt)?.toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Calendar} label="Modificado" value={selectedItem?.modifiedAt ? parseBackendDate(selectedItem.modifiedAt)?.toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Clock} label="Expira">
+          {expiraInfo.fecha}
+          {expiraInfo.restante && (
+            <span className="text-emerald-600">{` (${expiraInfo.restante})`}</span>
+          )}
+        </DetailRow>
       </div>
     </Modal>
   );
