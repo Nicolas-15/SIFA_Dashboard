@@ -9,6 +9,7 @@ export function TableCard({
   last,
   loading,
   onPageChange,
+  size = 10,
   resourceLabel = 'elementos',
 }) {
   return (
@@ -32,6 +33,7 @@ export function TableCard({
           last={last}
           onPageChange={onPageChange}
           loading={loading}
+          size={size}
           noBorder
         />
       </div>

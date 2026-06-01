@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from './Button';
 
-export function Pagination({ page, totalPages, totalElements, first, last, onPageChange, loading, noBorder }) {
+export function Pagination({ page, totalPages, totalElements, first, last, onPageChange, loading, noBorder, size = 10 }) {
   if (totalPages <= 1 && totalElements === 0) return null;
 
   const getPageNumbers = () => {
@@ -25,7 +25,7 @@ export function Pagination({ page, totalPages, totalElements, first, last, onPag
       <p className="text-xs text-slate-500 font-medium">
         {totalElements === 0
           ? 'Sin resultados'
-          : `${page * 10 + 1}-${Math.min((page + 1) * 10, totalElements)} de ${totalElements} resultados`
+          : `${page * size + 1}-${Math.min((page + 1) * size, totalElements)} de ${totalElements} resultados`
         }
       </p>
 

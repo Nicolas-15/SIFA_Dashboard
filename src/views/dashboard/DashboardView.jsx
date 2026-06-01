@@ -5,6 +5,7 @@ import { DashboardHeatmap } from "./components/DashboardHeatMap";
 import { DashboardRecentActivity } from "./components/DashboardRecentActivity";
 import { DashboardFiscalizadoresMap } from "./components/DashboardFiscalizadoresMap";
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
+import { useDashboardStats } from "@/core/useDashboardStats";
 import {
   getInfractions,
   getInfractionsReportSummary,
@@ -77,15 +78,8 @@ export function DashboardView() {
     currentUser?.role === SYSTEM_ROLES.ADMIN ||
     currentUser?.role === SYSTEM_ROLES.SUPERVISOR;
 
-  // Adaptar datos para las Stats Cards
-  const stats = summaryData?.estados
-    ? {
-        total: summaryData.totalCount ?? 0,
-        pending: summaryData.estados.pending ?? 0,
-        accepted: summaryData.estados.accepted ?? 0,
-        exported: summaryData.estados.exported ?? 0,
-      }
-    : { total: 0, pending: 0, accepted: 0, exported: 0 };
+  // Hook dedicado para las estadísticas del Dashboard (endpoint liviano /estadisticas)
+  const { kpiStats, loading: statsLoading } = useDashboardStats(startDate, endDate);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -134,7 +128,7 @@ export function DashboardView() {
       </div>
 
       {/* Tarjetas de estadísticas generales del día */}
-      <DashboardStatsCards stats={stats} />
+      <DashboardStatsCards stats={kpiStats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <DashboardHeatmap

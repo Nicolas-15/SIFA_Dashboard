@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getInfractions, updateInfractionStatus, updateInfractionData } from '@/services/infractions.service';
+import { getInfractions, updateInfractionStatus, updateInfractionData, getDashboardStats } from '@/services/infractions.service';
 import { useAuth } from './AuthContext';
 
 const normalizeStatus = (s) => ({
@@ -11,6 +11,7 @@ const normalizeStatus = (s) => ({
 
 export const useInfractions = () => {
   const [infractions, setInfractions] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -19,15 +20,17 @@ export const useInfractions = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [first, setFirst] = useState(true);
   const [last, setLast] = useState(true);
-  const [size] = useState(10);
+  const [size, setSize] = useState(20);
 
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [userFilter, setUserFilter] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { isAuthenticated } = useAuth();
 
-  const latestParams = useRef({ page: 0, dateRange: { startDate: '', endDate: '' }, userFilter: '' });
-  latestParams.current = { page, dateRange, userFilter };
+  const latestParams = useRef({ page: 0, dateRange: { startDate: '', endDate: '' }, userFilter: '', activeFilter: 'all', searchQuery: '' });
+  latestParams.current = { page, dateRange, userFilter, activeFilter, searchQuery };
 
   const doFetch = useCallback(async (overrides) => {
     if (!isAuthenticated) return;
@@ -36,19 +39,35 @@ export const useInfractions = () => {
 
     try {
       const p = overrides || latestParams.current;
-      const result = await getInfractions({
-        page: p.page,
-        size,
-        startDate: p.dateRange.startDate || undefined,
-        endDate: p.dateRange.endDate || undefined,
-        user: p.userFilter || undefined,
-      });
+      const statusParam = p.activeFilter === 'all' ? undefined : p.activeFilter;
+      const searchParam = p.searchQuery || undefined;
+
+      const [result, statsResult] = await Promise.all([
+        getInfractions({
+          page: p.page,
+          size,
+          startDate: p.dateRange.startDate || undefined,
+          endDate: p.dateRange.endDate || undefined,
+          user: p.userFilter || undefined,
+          status: statusParam,
+          search: searchParam,
+        }),
+        getDashboardStats({
+          startDate: p.dateRange.startDate || undefined,
+          endDate: p.dateRange.endDate || undefined,
+          user: p.userFilter || undefined,
+          search: searchParam,
+        })
+      ]);
 
       setInfractions(result.content.map(inf => ({ ...inf, status: normalizeStatus(inf.status) })));
       setTotalPages(result.totalPages);
       setTotalElements(result.totalElements);
       setFirst(result.first);
       setLast(result.last);
+
+      setStats(statsResult);
+      console.log("DEBUG: statsResult from backend:", statsResult);
 
       if (result.number !== p.page) {
         setPage(result.number);
@@ -63,7 +82,7 @@ export const useInfractions = () => {
 
   useEffect(() => {
     doFetch();
-  }, [page, dateRange, userFilter, doFetch]);
+  }, [page, dateRange, userFilter, activeFilter, searchQuery, doFetch]);
 
   const goToPage = useCallback((p) => setPage(p), []);
   const nextPage = useCallback(() => setPage((prev) => prev + 1), []);
@@ -79,9 +98,24 @@ export const useInfractions = () => {
     setPage(0);
   }, []);
 
+  const updateActiveFilter = useCallback((filter) => {
+    setActiveFilter(filter);
+    setPage(0);
+  }, []);
+
+  const updateSearchQuery = useCallback((query) => {
+    setSearchQuery(query);
+    setPage(0);
+  }, []);
+
   const clearFilters = useCallback(() => {
     setDateRange({ startDate: '', endDate: '' });
     setUserFilter('');
+    setPage(0);
+  }, []);
+
+  const updateSize = useCallback((newSize) => {
+    setSize(newSize);
     setPage(0);
   }, []);
 
@@ -92,10 +126,11 @@ export const useInfractions = () => {
     );
     try {
       await updateInfractionStatus(id, newStatus, motivoRechazo);
+      doFetch(); // Actualizar después para refrescar contadores
       return true;
     } catch (err) {
       console.error('Error al persistir estado en la API:', err);
-      fetchInfractions();
+      doFetch();
       return false;
     }
   };
@@ -114,11 +149,13 @@ export const useInfractions = () => {
   };
 
   return {
-    infractions, loading, error, fetchInfractions: doFetch, updateStatus, saveInfractionEdit,
+    infractions, stats, loading, error, fetchInfractions: doFetch, updateStatus, saveInfractionEdit,
     page, totalPages, totalElements, size, first, last,
     goToPage, nextPage, prevPage,
     dateRange, setDateRange: updateDateRange,
     userFilter, setUserFilter: updateUserFilter,
-    clearFilters,
+    activeFilter, setActiveFilter: updateActiveFilter,
+    searchQuery, setSearchQuery: updateSearchQuery,
+    clearFilters, setSize: updateSize,
   };
 };

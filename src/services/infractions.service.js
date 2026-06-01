@@ -7,7 +7,7 @@ const mapInfraction = (data) => {
 };
 
 export const getInfractions = async (params = {}) => {
-  const { page = 0, size = 10, startDate, endDate, user } = params;
+  const { page = 0, size = 10, startDate, endDate, user, status, search } = params;
 
   const queryParams = new URLSearchParams();
   queryParams.set("page", page);
@@ -15,6 +15,8 @@ export const getInfractions = async (params = {}) => {
   if (startDate) queryParams.set("startDate", startDate);
   if (endDate) queryParams.set("endDate", endDate);
   if (user) queryParams.set("user", user);
+  if (status) queryParams.set("status", status);
+  if (search) queryParams.set("search", search);
 
   const data = await apiFetch(`/core/api/v1/infracciones/all?${queryParams}`);
 
@@ -86,4 +88,20 @@ export const getProductividadFiscalizadorReporte = async (params = {}) => {
   return apiFetch(
     `/core/api/v1/infracciones/reporte/productividad?${queryParams}`,
   );
+};
+
+/**
+ * Obtiene las estadísticas livianas del Dashboard.
+ * Retorna: totalInfracciones, cantidadPorEstado (GROUP BY), fechaInicio, fechaFin.
+ * Si no se envían fechas, el backend filtra por el día actual.
+ */
+export const getDashboardStats = async (params = {}) => {
+  const { startDate, endDate, user } = params;
+
+  const queryParams = new URLSearchParams();
+  if (startDate) queryParams.set("startDate", startDate);
+  if (endDate) queryParams.set("endDate", endDate);
+  if (user) queryParams.set("user", user);
+
+  return apiFetch(`/core/api/v1/infracciones/estadisticas?${queryParams}`);
 };

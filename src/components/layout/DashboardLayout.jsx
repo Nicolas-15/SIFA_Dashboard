@@ -15,14 +15,17 @@ export function DashboardLayout() {
   const { currentUser, logout } = useAuth();
   const {
     infractions,
+    stats,
     loading,
     error,
     fetchInfractions,
     updateStatus,
     saveInfractionEdit,
-    page, totalPages, totalElements, first, last,
+    page, totalPages, totalElements, size, first, last,
     goToPage, nextPage, prevPage,
-    dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
+    dateRange, setDateRange, userFilter, setUserFilter, 
+    activeFilter, setActiveFilter, searchQuery, setSearchQuery,
+    clearFilters, setSize,
   } = useInfractions();
 
   const navigate = useNavigate();
@@ -145,6 +148,7 @@ export function DashboardLayout() {
           <Outlet
             context={{
               infractions,
+              stats,
               loading,
               error,
               updateStatus,
@@ -154,9 +158,11 @@ export function DashboardLayout() {
               onClearHeaderSearch: () => setHeaderSearch(""),
               fetchInfractions,
               currentUser,
-              page, totalPages, totalElements, first, last,
+              page, totalPages, totalElements, size, first, last,
               goToPage, nextPage, prevPage,
-              dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
+              dateRange, setDateRange, userFilter, setUserFilter, 
+              activeFilter, setActiveFilter, searchQuery, setSearchQuery,
+              clearFilters, setSize,
             }}
           />
         </div>

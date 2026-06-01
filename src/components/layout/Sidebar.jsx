@@ -28,10 +28,9 @@ function NavItem({ icon, label, path, badge }) {
       className={`
         w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
         transition-all duration-150 text-sm font-semibold
-        ${
-          active
-            ? "bg-primary text-white shadow-sm"
-            : "text-slate-400 hover:bg-white/10 hover:text-white"
+        ${active
+          ? "bg-primary text-white shadow-sm"
+          : "text-slate-400 hover:bg-white/10 hover:text-white"
         }
       `}
     >
@@ -98,12 +97,12 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
         />
         {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
           currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
-          <NavItem
-            icon={<FileWarning size={18} />}
-            label="Tipos de Infracciones"
-            path="tipo-infracciones"
-          />
-        )}
+            <NavItem
+              icon={<FileWarning size={18} />}
+              label="Tipos de Infracciones"
+              path="tipo-infracciones"
+            />
+          )}
         {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
             icon={<Users size={18} />}
@@ -113,12 +112,12 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
         )}
         {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
           currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
-          <NavItem
-            icon={<ShieldMinus size={18} />}
-            label="Fiscalizadores"
-            path="usuarios-fiscalizadores"
-          />
-        )}
+            <NavItem
+              icon={<ShieldMinus size={18} />}
+              label="Fiscalizadores"
+              path="usuarios-fiscalizadores"
+            />
+          )}
         {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem icon={<Key size={18} />} label="Tokens" path="tokens" />
         )}

@@ -19,40 +19,36 @@ const FILTERS = [
 
 export function InfraccionesView() {
   const {
-    infractions, updateStatus, saveInfractionEdit: updateInfraction, showToast,
+    infractions, stats, updateStatus, saveInfractionEdit: updateInfraction, showToast,
     headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser,
-    loading, page, totalPages, totalElements, first, last,
+    loading, page, totalPages, totalElements, size, first, last,
     goToPage, nextPage, prevPage,
     dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
+    activeFilter, setActiveFilter, searchQuery, setSearchQuery,
   } = useOutletContext();
 
   const [selectedId, setSelectedId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(headerSearch);
-  const [activeFilter, setActiveFilter] = useState('all');
 
   useEffect(() => {
-    setSearchQuery(headerSearch);
-  }, [headerSearch]);
+    if (headerSearch !== undefined && headerSearch !== searchQuery) {
+      setSearchQuery(headerSearch);
+    }
+  }, [headerSearch, searchQuery, setSearchQuery]);
 
   const selectedInfraction = infractions.find(i => i.id === selectedId) ?? null;
 
-  const filters = FILTERS.map(f => ({
-    ...f,
-    count: f.key === 'all'
-      ? infractions.length
-      : infractions.filter(i => i.status === f.key).length,
-  }));
-
-  const filtered = infractions.filter(inf => {
-    const q = searchQuery.toLowerCase();
-    const matchSearch = !q
-      || (inf.vehicle?.plate || '').toLowerCase().includes(q)
-      || (inf.infractionDescription || '').toLowerCase().includes(q)
-      || (inf.numeroBoleta || '').toLowerCase().includes(q)
-      || (inf.numeroParte || '').toLowerCase().includes(q);
-    const matchFilter = activeFilter === 'all' || inf.status === activeFilter;
-    return matchSearch && matchFilter;
+  const filters = FILTERS.map(f => {
+    let count = 0;
+    if (f.key === 'all') {
+      count = stats?.totalInfracciones ?? 0;
+    } else {
+      count = stats?.cantidadPorEstado?.[f.key] ?? 0;
+    }
+    return { ...f, count };
   });
+
+  // Los registros ya vienen filtrados del backend
+  const filtered = infractions;
 
   const mobilePagination = (
     <div className="pt-2 text-center">
@@ -70,6 +66,7 @@ export function InfraccionesView() {
         last={last}
         onPageChange={goToPage}
         loading={loading}
+        size={size}
       />
     </div>
   );
@@ -105,6 +102,7 @@ export function InfraccionesView() {
           last={last}
           loading={loading}
           onPageChange={goToPage}
+          size={size}
           resourceLabel="infracciones registradas"
         >
           <InfractionsTable
