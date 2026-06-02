@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FileText, Calendar, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { getTodayLocalDateString } from "@/utils/date";
 
 export function GenerateReportModal({
   isOpen,
@@ -9,8 +10,9 @@ export function GenerateReportModal({
   fiscalizadores,
   onGenerateReport,
 }) {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const today = getTodayLocalDateString();
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [reportType, setReportType] = useState("actividad");
   const [generating, setGenerating] = useState(false);
 
@@ -45,8 +47,8 @@ export function GenerateReportModal({
     onClose();
 
     // Resetear formulario
-    setStartDate("");
-    setEndDate("");
+    setStartDate(today);
+    setEndDate(today);
     setReportType("actividad");
   };
 

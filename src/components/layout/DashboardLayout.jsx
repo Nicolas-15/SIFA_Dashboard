@@ -44,9 +44,7 @@ export function DashboardLayout() {
     [],
   );
 
-  const pendingCount = (infractions || []).filter(
-    (i) => i.status === "pending",
-  ).length;
+  const pendingCount = stats?.cantidadPorEstado?.pending ?? 0;
 
   const handleLogout = () => {
     logout();

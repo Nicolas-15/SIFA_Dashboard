@@ -21,20 +21,51 @@ export function DashboardHeatmap({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [mapImage, setMapImage] = useState(null);
-  
+
   // Coordenadas iniciales del mapa de El Quisco
   const [mapCenter, setMapCenter] = useState([-33.3904, -71.6910]);
   const [mapZoom, setMapZoom] = useState(14);
-  
+  const [scrollWheelZoomEnabled, setScrollWheelZoomEnabled] = useState(false);
+
   const mapContainerRef = useRef(null);
   const fullscreenMapContainerRef = useRef(null);
   const reportRef = useRef(null);
-  
+
   const mainMapRef = useRef(null);
   const fullscreenMapRef = useRef(null);
 
   // Solo tomamos currentUser y showToast del contexto global.
   const { currentUser = {}, showToast } = useOutletContext() || {};
+
+  // Centrar el mapa automáticamente en base al promedio de coordenadas
+  useEffect(() => {
+    if (summaryData?.coordenadas && summaryData.coordenadas.length > 0) {
+      const validCoords = summaryData.coordenadas.filter(
+        (c) => c.latitud && c.longitud && !isNaN(parseFloat(c.latitud)) && !isNaN(parseFloat(c.longitud))
+      );
+      if (validCoords.length > 0) {
+        const sumLat = validCoords.reduce((sum, c) => sum + parseFloat(c.latitud), 0);
+        const sumLng = validCoords.reduce((sum, c) => sum + parseFloat(c.longitud), 0);
+        const avgLat = sumLat / validCoords.length;
+        const avgLng = sumLng / validCoords.length;
+        setMapCenter([avgLat, avgLng]);
+        if (mainMapRef.current) {
+          mainMapRef.current.setView([avgLat, avgLng], mapZoom);
+        }
+      }
+    }
+  }, [summaryData, mapZoom]);
+
+  // Manejar habilitación dinámica de zoom con rueda
+  useEffect(() => {
+    if (mainMapRef.current) {
+      if (scrollWheelZoomEnabled) {
+        mainMapRef.current.scrollWheelZoom.enable();
+      } else {
+        mainMapRef.current.scrollWheelZoom.disable();
+      }
+    }
+  }, [scrollWheelZoomEnabled]);
 
   // Formatear los puntos del mapa de calor a partir de las coordenadas del día de hoy
   const heatmapPoints = (summaryData?.coordenadas || [])
@@ -62,10 +93,10 @@ export function DashboardHeatmap({
       const mainMap = mainMapRef.current;
       const c = fsMap.getCenter();
       const z = fsMap.getZoom();
-      
+
       setMapCenter([c.lat, c.lng]);
       setMapZoom(z);
-      
+
       mainMap.setView(c, z);
     }
     setIsFullscreen(false);
@@ -134,15 +165,23 @@ export function DashboardHeatmap({
       </div>
 
       {/* Contenedor del mapa de la tarjeta */}
-      <div 
+      <div
         ref={mapContainerRef}
-        className="flex-1 min-h-[200px] rounded-lg overflow-hidden relative z-0"
+        className="flex-1 min-h-[200px] rounded-lg overflow-hidden relative z-0 cursor-pointer"
+        onClick={() => setScrollWheelZoomEnabled(true)}
+        onMouseLeave={() => setScrollWheelZoomEnabled(false)}
       >
+        {!scrollWheelZoomEnabled && heatmapPoints.length > 0 && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-[1000] shadow-sm tracking-wide transition-all duration-300">
+            Click para activar zoom
+          </div>
+        )}
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
           className="md:!h-full"
           style={{ height: "100%", width: "100%", zIndex: 0 }}
+          scrollWheelZoom={false}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -152,9 +191,9 @@ export function DashboardHeatmap({
           <HeatmapLayer data={heatmapPoints} />
           <MapRefRegister mapRef={mainMapRef} />
         </MapContainer>
-        
+
         {/* Botón flotante para modo pantalla completa */}
-        <button 
+        <button
           data-html2canvas-ignore="true"
           onClick={handleOpenFullscreen}
           className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 hover:bg-white text-slate-700 p-1.5 rounded-lg shadow-md border border-slate-200 transition-colors z-[1000]"

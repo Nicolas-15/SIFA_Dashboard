@@ -49,6 +49,25 @@ export function HeatmapReportModal({ isOpen, onClose, startDate, endDate }) {
     }
   }, [isOpen, startDate, endDate, showToast]);
 
+  // Centrar el mapa automáticamente en base al promedio de coordenadas
+  useEffect(() => {
+    if (summaryData?.coordenadas && summaryData.coordenadas.length > 0) {
+      const validCoords = summaryData.coordenadas.filter(
+        (c) => c.latitud && c.longitud && !isNaN(parseFloat(c.latitud)) && !isNaN(parseFloat(c.longitud))
+      );
+      if (validCoords.length > 0) {
+        const sumLat = validCoords.reduce((sum, c) => sum + parseFloat(c.latitud), 0);
+        const sumLng = validCoords.reduce((sum, c) => sum + parseFloat(c.longitud), 0);
+        const avgLat = sumLat / validCoords.length;
+        const avgLng = sumLng / validCoords.length;
+        setMapCenter([avgLat, avgLng]);
+        if (mapRef.current) {
+          mapRef.current.setView([avgLat, avgLng], mapZoom);
+        }
+      }
+    }
+  }, [summaryData, mapZoom]);
+
   // Formatear los puntos del mapa de calor
   const heatmapPoints = (summaryData?.coordenadas || []).map((coord) => [
     parseFloat(coord.latitud),
