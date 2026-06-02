@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { X, Maximize2, User, Mail, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Modal } from "@/components/ui/Modal";
 
 // Crear ícono SVG desde lucide User
 const createFiscalizadorIcon = () => {
@@ -203,47 +204,43 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
       </div>
 
       {/* Modal pantalla completa */}
-      {isFullscreen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setIsFullscreen(false)}
+      <Modal
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        title="Visualización Expandida - Fiscalizadores en Terreno"
+        maxWidth="max-w-5xl"
+        maxHeight="max-h-[90vh]"
+        closeOnBackdropClick={true}
+        backdropClassName="bg-black/95"
+        className="bg-slate-900 border border-slate-700 w-full h-full rounded-lg overflow-hidden"
+        headerClassName="px-4 py-3 border-b border-slate-800 bg-slate-950 shrink-0"
+        bodyClassName="p-0 flex-1 w-full relative"
+        titleClassName="text-xs font-bold text-slate-200 uppercase tracking-wider"
+        closeButtonClassName="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors w-8 h-8 border-0 bg-transparent flex items-center justify-center shrink-0"
+      >
+        <MapContainer
+          center={center}
+          zoom={14}
+          style={{ height: "100%", width: "100%" }}
         >
-          <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
-            onClick={() => setIsFullscreen(false)}
-          >
-            <X size={32} />
-          </button>
-
-          <div
-            className="w-full h-full max-w-5xl max-h-[90vh] rounded-lg overflow-hidden border border-slate-600"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MapContainer
-              center={center}
-              zoom={14}
-              style={{ height: "100%", width: "100%" }}
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <FitBounds data={fiscalizadoresConUbicacion} />
+          {fiscalizadoresConUbicacion.map((fiscalizador, index) => (
+            <Marker
+              key={`${fiscalizador.email}-${index}`}
+              position={[fiscalizador.latitud, fiscalizador.longitud]}
+              icon={createFiscalizadorIcon()}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              <FitBounds data={fiscalizadoresConUbicacion} />
-              {fiscalizadoresConUbicacion.map((fiscalizador, index) => (
-                <Marker
-                  key={`${fiscalizador.email}-${index}`}
-                  position={[fiscalizador.latitud, fiscalizador.longitud]}
-                  icon={createFiscalizadorIcon()}
-                >
-                  <Popup>
-                    <FiscalizadorPopup fiscalizador={fiscalizador} />
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
-          </div>
-        </div>
-      )}
+              <Popup>
+                <FiscalizadorPopup fiscalizador={fiscalizador} />
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </Modal>
     </Card>
   );
 }
