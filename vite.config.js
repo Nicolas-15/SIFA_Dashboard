@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
+const API_BASE_URL = "http://3.219.255.24";
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -15,22 +17,21 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/auth": {
-        // http://44.196.188.33
-        target: "http://localhost:9000",
-        changeOrigin: true,
-      },
       "/auth-api": {
-        target: "http://localhost:9000",
+        target: API_BASE_URL,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/auth-api/, "/auth"),
       },
+      "/auth": {
+        target: API_BASE_URL,
+        changeOrigin: true,
+      },
       "/core": {
-        target: "http://localhost:9000",
+        target: API_BASE_URL,
         changeOrigin: true,
       },
       "/api": {
-        target: "http://localhost:9000",
+        target: API_BASE_URL,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, "/api/mock"),
       },
