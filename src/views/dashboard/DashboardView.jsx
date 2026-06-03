@@ -11,13 +11,14 @@ import {
   getInfractionsReportSummary,
 } from "@/services/infractions.service";
 import { SYSTEM_ROLES } from "@/constants/roles";
+import { getTodayLocalDateString } from "@/utils/date";
 
 export function DashboardView() {
   const { currentUser } = useOutletContext() || {};
   const { fiscalizadores } = useFiscalizadoresActivos();
 
   // Fecha de hoy por defecto para el Resumen Diario
-  const today = new Date().toLocaleDateString("en-CA").slice(0, 10);
+  const today = getTodayLocalDateString();
 
   // Inicializar leyendo de sessionStorage si existen filtros guardados de esta sesión
   const [startDate, setStartDate] = useState(() => {

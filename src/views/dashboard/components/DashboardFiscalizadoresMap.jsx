@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Card } from "@/components/ui/Card";
@@ -127,10 +127,37 @@ function FiscalizadorPopup({ fiscalizador }) {
   );
 }
 
+// Componente interno para obtener la referencia del mapa
+function MapRefRegister({ mapRef }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    mapRef.current = map;
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+  return null;
+}
+
 export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [scrollWheelZoomEnabled, setScrollWheelZoomEnabled] = useState(false);
+  const mapRef = useRef(null);
+
   const center = [-33.0456, -71.6214]; // Centro por defecto (Valparaíso/Viña del Mar)
   const height = "500px"; // Altura  del mapa
+
+  // Habilitar/Deshabilitar dinámicamente el scrollWheelZoom en Leaflet
+  useEffect(() => {
+    if (mapRef.current) {
+      if (scrollWheelZoomEnabled) {
+        mapRef.current.scrollWheelZoom.enable();
+      } else {
+        mapRef.current.scrollWheelZoom.disable();
+      }
+    }
+  }, [scrollWheelZoomEnabled]);
 
   // Filtrar fiscalizadores con coordenadas válidas
   const fiscalizadoresConUbicacion =
@@ -154,12 +181,23 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
         </p>
       </div>
 
-      <div style={{ height, position: "relative", zIndex: 0 }}>
+      <div 
+        style={{ height, position: "relative", zIndex: 0 }}
+        className="cursor-pointer"
+        onClick={() => setScrollWheelZoomEnabled(true)}
+        onMouseLeave={() => setScrollWheelZoomEnabled(false)}
+      >
+        {!scrollWheelZoomEnabled && totalActivos > 0 && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-[1000] shadow-sm tracking-wide transition-all duration-300">
+            Click para activar zoom
+          </div>
+        )}
         <MapContainer
           center={center}
           zoom={14}
           style={{ height: "100%", width: "100%", zIndex: 0 }}
           className="rounded-lg"
+          scrollWheelZoom={false}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -168,6 +206,7 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
 
           {/* Ajustar vista para incluir todos los marcadores */}
           <FitBounds data={fiscalizadoresConUbicacion} />
+          <MapRefRegister mapRef={mapRef} />
 
           {/* Renderizar marcadores */}
           {fiscalizadoresConUbicacion.map((fiscalizador, index) => (

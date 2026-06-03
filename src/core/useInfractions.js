@@ -120,10 +120,37 @@ export const useInfractions = () => {
   }, []);
 
   const updateStatus = async (id, newStatus, motivoRechazo) => {
-    // Actualización optimista
+    // Buscar la infracción modificada en el estado local actual
+    const originalInf = infractions.find(inf => inf.id === id);
+    const oldStatus = originalInf ? originalInf.status : null;
+
+    // Actualización optimista de la infracción
     setInfractions(prev =>
       prev.map(inf => inf.id === id ? { ...inf, status: newStatus, motivoRechazo: newStatus === 'rejected' ? motivoRechazo : null } : inf)
     );
+
+    // Actualización optimista de las estadísticas globales
+    if (oldStatus && oldStatus !== newStatus) {
+      setStats(prev => {
+        if (!prev || !prev.cantidadPorEstado) return prev;
+        const newCantidad = { ...prev.cantidadPorEstado };
+        
+        // Disminuir contador del estado anterior
+        if (newCantidad[oldStatus] !== undefined) {
+          newCantidad[oldStatus] = Math.max(0, newCantidad[oldStatus] - 1);
+        }
+        // Aumentar contador del nuevo estado
+        if (newCantidad[newStatus] !== undefined) {
+          newCantidad[newStatus] = (newCantidad[newStatus] || 0) + 1;
+        }
+
+        return {
+          ...prev,
+          cantidadPorEstado: newCantidad,
+        };
+      });
+    }
+
     try {
       await updateInfractionStatus(id, newStatus, motivoRechazo);
       doFetch(); // Actualizar después para refrescar contadores
