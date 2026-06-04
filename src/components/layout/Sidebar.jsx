@@ -12,6 +12,7 @@ import {
   FileWarning,
   ShieldMinus,
   Key,
+  CalendarClock,
 } from "lucide-react";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
@@ -95,6 +96,15 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
           path="infracciones"
           badge={pendingCount}
         />
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR ||
+          currentUser?.role === SYSTEM_ROLES.DEFAULT) && (
+            <NavItem
+              icon={<CalendarClock size={18} />}
+              label="Citaciones JPL"
+              path="citaciones"
+            />
+          )}
         {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
           currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
             <NavItem

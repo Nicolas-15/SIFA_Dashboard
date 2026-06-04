@@ -18,6 +18,7 @@ import { UserManagementView } from "@/views/usuarios/UserManagementView";
 import { FiscalizadoresView } from "@/views/fiscalizadores/FiscalizadoresView";
 import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesView";
 import { TokenManagementView } from "@/views/tokens/TokenManagementView";
+import { CitacionesView } from "@/views/citaciones/CitacionesView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
 // Para rutas protegidas
@@ -133,6 +134,14 @@ export const AppRouter = () => {
               element={
                 <InfraccionesRoute>
                   <InfraccionesView />
+                </InfraccionesRoute>
+              }
+            />
+            <Route
+              path="citaciones"
+              element={
+                <InfraccionesRoute>
+                  <CitacionesView />
                 </InfraccionesRoute>
               }
             />
