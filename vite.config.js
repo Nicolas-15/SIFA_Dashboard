@@ -16,7 +16,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/auth": {
-        // http://44.196.188.33
+        // http://3.219.255.24
         target: "http://localhost:9000",
         changeOrigin: true,
       },
