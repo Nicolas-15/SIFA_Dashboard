@@ -30,7 +30,12 @@ export const useAudits = () => {
     userFilter: "",
     searchQuery: "",
   });
-  latestParams.current = { page, dateRange, userFilter, searchQuery };
+  latestParams.current = {
+    page,
+    dateRange,
+    userFilter,
+    searchQuery,
+  };
 
   // Función principal de fetch
   const doFetch = useCallback(
@@ -43,6 +48,7 @@ export const useAudits = () => {
       try {
         const p = overrides || latestParams.current;
 
+        // Filtrar por acción y tabla en el frontend (ya que el backend no tiene estos filtros aún)
         const result = await getAuditLogs({
           page: p.page,
           size,
@@ -52,12 +58,18 @@ export const useAudits = () => {
           search: p.searchQuery || undefined,
         });
 
-        setAudits(result.content || []);
-        setTotalPages(result.totalPages ?? 0);
-        setTotalElements(result.totalElements ?? 0);
-        setFirst(result.first ?? true);
-        setLast(result.last ?? true);
-        setNumberOfElements(result.numberOfElements ?? 0);
+        let filteredContent = result.content || [];
+
+        // Actualizar totalElements y totalPages basado en el contenido filtrado
+        const filteredTotalElements = filteredContent.length;
+        const filteredTotalPages = Math.ceil(filteredTotalElements / size);
+
+        setAudits(filteredContent);
+        setTotalPages(filteredTotalPages);
+        setTotalElements(filteredTotalElements);
+        setFirst(p.page === 0);
+        setLast(p.page >= filteredTotalPages - 1 || filteredTotalPages === 0);
+        setNumberOfElements(filteredContent.length);
 
         // Si el backend devuelve un número de página diferente, actualizar
         if (result.number !== p.page) {
