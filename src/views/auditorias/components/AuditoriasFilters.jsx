@@ -316,7 +316,7 @@ export function AuditoriasFilters({
           <Input
             icon={Search}
             type="text"
-            placeholder="Buscar por acción…"
+            placeholder="Buscar por email, acción o detalles…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={searchQuery ? "!pr-8" : ""}
@@ -484,6 +484,7 @@ export function AuditoriasFilters({
             </div>
           )}
         </div>
+
         {hasFilters && (
           <div className="sm:pt-[22px] w-full sm:w-auto">
             <Button
