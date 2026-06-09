@@ -14,6 +14,7 @@ import {
   Hash,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Spinner } from "@/components/ui/Spinner";
 
 // Función para formatear fecha y hora
 function formatDateTime(dateString) {
@@ -202,8 +203,8 @@ export function AuditoriasTable({
   if (loading && (!audits || audits.length === 0)) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+        <div className="text-center flex flex-col items-center justify-center gap-3">
+          <Spinner size="lg" />
           <p className="text-slate-400 font-medium">Cargando auditorías...</p>
         </div>
       </div>

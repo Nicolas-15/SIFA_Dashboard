@@ -4,6 +4,7 @@ import { Search, Menu, Shield } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { Toast } from "@/components/ui/Toast";
+import { Spinner } from "@/components/ui/Spinner";
 import { useAuth } from "@/core/AuthContext";
 import { useInfractions } from "@/core/useInfractions";
 
@@ -64,7 +65,7 @@ export function DashboardLayout() {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+          <Spinner size="lg" />
           <p className="text-sm text-slate-500 font-medium">
             Cargando infracciones...
           </p>

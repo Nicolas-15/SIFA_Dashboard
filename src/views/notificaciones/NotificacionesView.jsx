@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { DataTable } from "@/components/ui/DataTable";
+import { Spinner } from "@/components/ui/Spinner";
 import { Pagination } from "@/components/ui/Pagination";
 import { usePushNotifications } from "@/core/usePushNotifications";
 
@@ -538,7 +539,7 @@ export function NotificacionesView() {
 
                   {devicesLoading && devices.length === 0 && (
                     <div className="flex justify-center py-4">
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary" />
+                      <Spinner size="sm" />
                     </div>
                   )}
 
@@ -607,7 +608,7 @@ export function NotificacionesView() {
               {historyLoading && history.length === 0 ? (
                 <div className="flex items-center justify-center py-24">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+                    <Spinner />
                     <p className="text-sm text-slate-500 font-medium">Cargando historial...</p>
                   </div>
                 </div>

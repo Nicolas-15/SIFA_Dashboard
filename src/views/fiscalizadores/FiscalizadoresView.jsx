@@ -9,6 +9,7 @@ import { GenerateReportModal } from "./components/GenerateReportModal";
 import { HeatmapReportModal } from "./components/HeatmapReportModal";
 import { ProductividadReportModal } from "./components/ProductividadReportModal";
 import { TableCard } from "@/components/ui/TableCard";
+import { Spinner } from "@/components/ui/Spinner";
 import { Pagination } from "@/components/ui/Pagination";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -97,7 +98,7 @@ export function FiscalizadoresView() {
       <div className="relative flex-1 flex flex-col">
         {loading && fiscalizadores.length > 0 && (
           <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+            <Spinner />
           </div>
         )}
 

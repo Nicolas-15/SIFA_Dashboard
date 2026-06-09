@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, search, handleEditClick, handleDeleteClick, isAdmin }) {
   return (
@@ -18,7 +19,14 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={isAdmin ? 6 : 5} className="px-6 py-24 text-center text-slate-400">Cargando tipos de infracciones...</td></tr>
+              <tr>
+                <td colSpan={isAdmin ? 6 : 5} className="px-6 py-24">
+                  <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                    <Spinner />
+                    <span className="text-sm font-medium">Cargando tipos de infracciones...</span>
+                  </div>
+                </td>
+              </tr>
             ) : filteredTipoInfracciones.length === 0 ? (
               <tr>
                 <td colSpan={isAdmin ? 6 : 5}>

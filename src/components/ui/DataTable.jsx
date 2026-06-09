@@ -1,4 +1,5 @@
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function DataTable({
   columns,
@@ -27,8 +28,11 @@ export function DataTable({
       <tbody className="divide-y divide-slate-100">
         {loading ? (
           <tr>
-            <td colSpan={columns.length} className="px-5 py-24 text-center text-slate-400">
-              Cargando...
+            <td colSpan={columns.length} className="px-5 py-24">
+              <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                <Spinner />
+                <span className="text-sm font-medium">Cargando...</span>
+              </div>
             </td>
           </tr>
         ) : (
