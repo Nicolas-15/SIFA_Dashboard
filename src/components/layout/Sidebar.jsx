@@ -14,6 +14,7 @@ import {
   Key,
   CalendarClock,
   FileSearch,
+  Bell,
 } from "lucide-react";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
@@ -138,6 +139,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             icon={<FileSearch size={18} />}
             label="Auditorías"
             path="auditorias"
+          />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem
+            icon={<Bell size={18} />}
+            label="Notificaciones"
+            path="notificaciones"
           />
         )}
       </nav>

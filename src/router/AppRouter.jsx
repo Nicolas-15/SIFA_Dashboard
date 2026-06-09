@@ -20,6 +20,7 @@ import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesV
 import { TokenManagementView } from "@/views/tokens/TokenManagementView";
 import { CitacionesView } from "@/views/citaciones/CitacionesView";
 import { AuditoriasView } from "@/views/auditorias/AuditoriasView";
+import { NotificacionesView } from "@/views/notificaciones/NotificacionesView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
 // Para rutas protegidas
@@ -183,6 +184,14 @@ export const AppRouter = () => {
               element={
                 <AdminRoute>
                   <AuditoriasView />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="notificaciones"
+              element={
+                <AdminRoute>
+                  <NotificacionesView />
                 </AdminRoute>
               }
             />
