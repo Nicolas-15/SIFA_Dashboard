@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Search, FileText, RefreshCw } from "lucide-react";
 
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
+import { sendPushToEmail } from "@/utils/pushNotifications";
 import { FiscalizadoresTable } from "./components/FiscalizadoresTable";
 import { FiscalizadoresMobileCards } from "./components/FiscalizadoresMobileCards";
 import { GenerateReportModal } from "./components/GenerateReportModal";
 import { HeatmapReportModal } from "./components/HeatmapReportModal";
 import { ProductividadReportModal } from "./components/ProductividadReportModal";
+import { PushNotificationModal } from "@/components/ui/PushNotificationModal";
+import { MapModal } from "@/components/ui/MapModal";
 import { TableCard } from "@/components/ui/TableCard";
 import { Spinner } from "@/components/ui/Spinner";
 import { Pagination } from "@/components/ui/Pagination";
@@ -38,6 +41,24 @@ export function FiscalizadoresView() {
     startDate: "",
     endDate: "",
   });
+
+  const [notifyTarget, setNotifyTarget] = useState(null);
+  const [mapTarget, setMapTarget] = useState(null);
+
+  const handleNotifySend = useCallback(async (title, body) => {
+    if (!notifyTarget?.email) return;
+    try {
+      await sendPushToEmail(notifyTarget.email, title, body);
+      showToast?.(`Notificación enviada a ${notifyTarget.email}`, "success");
+    } catch (err) {
+      if (err.message === "DEVICE_NOT_FOUND") {
+        showToast?.("El dispositivo de este fiscalizador no está registrado para notificaciones.", "error");
+      } else {
+        showToast?.("Error al enviar notificación", "error");
+      }
+      throw err;
+    }
+  }, [notifyTarget, showToast]);
 
   const filtered = fiscalizadores.filter((f) =>
     f.email.toLowerCase().includes(search.toLowerCase()),
@@ -98,7 +119,10 @@ export function FiscalizadoresView() {
       <div className="relative flex-1 flex flex-col">
         {loading && fiscalizadores.length > 0 && (
           <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-            <Spinner />
+            <div className="flex flex-col items-center gap-3">
+              <Spinner />
+              <p className="text-sm font-semibold text-slate-500">Actualizando fiscalizadores...</p>
+            </div>
           </div>
         )}
 
@@ -117,13 +141,20 @@ export function FiscalizadoresView() {
               loading={loading}
               filtered={filtered}
               search={search}
+              onNotify={setNotifyTarget}
+              onShowMap={setMapTarget}
             />
           </TableCard>
         </div>
 
         {/* Mobile cards */}
         <div className="md:hidden flex-1 overflow-auto space-y-3 pb-4">
-          <FiscalizadoresMobileCards filtered={filtered} search={search} />
+          <FiscalizadoresMobileCards
+            filtered={filtered}
+            search={search}
+            onNotify={setNotifyTarget}
+            onShowMap={setMapTarget}
+          />
         </div>
 
         {/* Mobile pagination */}
@@ -147,6 +178,22 @@ export function FiscalizadoresView() {
         </div>
       </div>
 
+      <PushNotificationModal
+        isOpen={!!notifyTarget}
+        onClose={() => setNotifyTarget(null)}
+        email={notifyTarget?.email}
+        onSend={handleNotifySend}
+      />
+
+      <MapModal
+        isOpen={!!mapTarget}
+        onClose={() => setMapTarget(null)}
+        latitude={mapTarget?.latitud}
+        longitude={mapTarget?.longitud}
+        label={mapTarget?.email}
+        title={`Ubicación de ${mapTarget?.email ?? ''}`}
+      />
+
       {/* Modal para generar reportes */}
       <GenerateReportModal
         isOpen={isReportModalOpen}
@@ -156,7 +203,6 @@ export function FiscalizadoresView() {
           setReportDateRange({ startDate, endDate });
           setIsReportModalOpen(false);
 
-          // Abrir el modal correspondiente según el tipo de reporte
           if (reportType === "ubicaciones") {
             setIsHeatmapModalOpen(true);
           } else if (reportType === "actividad") {
