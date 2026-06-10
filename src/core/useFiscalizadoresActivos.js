@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import { SYSTEM_ROLES } from "@/constants/roles";
 import * as fiscalizadorActivityService from "@/services/fiscalizadorActivity.service";
+import { getAllDevices } from "@/services/pushNotifications.service";
 
 const normalizeFiscalizador = (item) => ({
   email: item.emailUsuario,
@@ -50,17 +51,36 @@ export const useFiscalizadoresActivos = () => {
 
     try {
       const p = overrides || latestParams.current;
-      const data = await fiscalizadorActivityService.getFiscalizadoresActivos({ page: p.page, size });
+      const [activosData, devices] = await Promise.all([
+        fiscalizadorActivityService.getFiscalizadoresActivos({ page: p.page, size }),
+        getAllDevices().catch(() => []),
+      ]);
 
-      const list = Array.isArray(data.content) ? data.content : [];
-      setFiscalizadores(list.map(normalizeFiscalizador));
-      setTotalPages(data.totalPages ?? 0);
-      setTotalElements(data.totalElements ?? 0);
-      setFirst(data.first ?? true);
-      setLast(data.last ?? true);
+      const devicesByEmail = {};
+      if (Array.isArray(devices)) {
+        devices.forEach((d) => {
+          if (d.emailUsuario) devicesByEmail[d.emailUsuario] = d;
+        });
+      }
 
-      if (data.number !== undefined && data.number !== p.page) {
-        setPage(data.number);
+      const list = Array.isArray(activosData.content) ? activosData.content : [];
+      setFiscalizadores(list.map((item) => {
+        const base = normalizeFiscalizador(item);
+        const deviceInfo = devicesByEmail[base.email];
+        if (deviceInfo) {
+          base.versionApp = base.versionApp || deviceInfo.appVersion;
+          base.platform = base.platform || deviceInfo.platform;
+          base.manufacturer = base.manufacturer || deviceInfo.manufacturer;
+        }
+        return base;
+      }));
+      setTotalPages(activosData.totalPages ?? 0);
+      setTotalElements(activosData.totalElements ?? 0);
+      setFirst(activosData.first ?? true);
+      setLast(activosData.last ?? true);
+
+      if (activosData.number !== undefined && activosData.number !== p.page) {
+        setPage(activosData.number);
       }
     } catch (err) {
       console.error("Error fetching fiscalizadores activos:", err);
