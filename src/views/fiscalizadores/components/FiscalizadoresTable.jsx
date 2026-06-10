@@ -1,5 +1,13 @@
 import { useState, Fragment } from "react";
-import { MapPin, Clock, Wifi, Smartphone, Bell, ChevronDown, ChevronUp, Cpu, Monitor, Hash, Crosshair, ExternalLink } from 'lucide-react';
+import { MapPin, Clock, Wifi, Smartphone, Bell, ChevronDown, ChevronUp, Cpu, Monitor, Hash, ExternalLink, User } from 'lucide-react';
+
+function AndroidIcon({ size, className }) {
+  return (
+    <svg viewBox="0 0 32 32" width={size} height={size} className={className} fill="currentColor">
+      <path d="M23.35 12.653l2.496-4.323c0.044-0.074 0.070-0.164 0.070-0.26 0-0.287-0.232-0.519-0.519-0.519-0.191 0-0.358 0.103-0.448 0.257l-0.001 0.002-2.527 4.377c-1.887-0.867-4.094-1.373-6.419-1.373s-4.532 0.506-6.517 1.413l0.098-0.040-2.527-4.378c-0.091-0.156-0.259-0.26-0.45-0.26-0.287 0-0.519 0.232-0.519 0.519 0 0.096 0.026 0.185 0.071 0.262l-0.001-0.002 2.496 4.323c-4.286 2.367-7.236 6.697-7.643 11.744l-0.003 0.052h29.991c-0.41-5.099-3.36-9.429-7.57-11.758l-0.076-0.038zM9.098 20.176c-0 0-0 0-0 0-0.69 0-1.249-0.559-1.249-1.249s0.559-1.249 1.249-1.249c0.69 0 1.249 0.559 1.249 1.249v0c-0.001 0.689-0.559 1.248-1.249 1.249h-0zM22.902 20.176c-0 0-0 0-0 0-0.69 0-1.249-0.559-1.249-1.249s0.559-1.249 1.249-1.249c0.69 0 1.249 0.559 1.249 1.249v0c-0.001 0.689-0.559 1.248-1.249 1.249h-0z"></path>
+    </svg>
+  );
+}
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
@@ -39,40 +47,49 @@ function FiscalizadorExpandedRow({ fiscalizador, onShowMap }) {
 
   return (
     <div className="bg-slate-50/50 px-6 py-4 border-t border-slate-100">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-        {deviceName && (
-          <DeviceDetailRow label="Dispositivo" value={deviceName} icon={Smartphone} />
-        )}
-        {fiscalizador.versionApp && (
-          <DeviceDetailRow label="Versión App" value={`v${fiscalizador.versionApp}`} icon={Cpu} />
-        )}
-        {fiscalizador.manufacturer && (
-          <DeviceDetailRow label="Fabricante" value={fiscalizador.manufacturer} icon={Monitor} />
-        )}
-        {fiscalizador.deviceId && (
-          <DeviceDetailRow label="ID Dispositivo" value={fiscalizador.deviceId} icon={Hash} />
-        )}
-        {platformLabel && (
-          <DeviceDetailRow label="Plataforma" value={platformLabel} icon={Cpu} />
-        )}
-        <DeviceDetailRow
-          label="Último reporte"
-          value={new Date(fiscalizador.ultimaConexion).toLocaleString('es-CL')}
-          icon={Clock}
-        />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dispositivo</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-700">
+            <Smartphone size={12} className="text-slate-400 shrink-0" />
+            <span className="font-semibold truncate">{deviceName || '—'}</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Versión App</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-700">
+            <Cpu size={12} className="text-slate-400 shrink-0" />
+            <span className="font-semibold">{fiscalizador.versionApp ? `v${fiscalizador.versionApp}` : '—'}</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plataforma</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-700">
+            {platformLabel ? <AndroidIcon size={12} className="text-emerald-500 shrink-0" /> : <Monitor size={12} className="text-slate-400 shrink-0" />}
+            <span className="font-semibold">{platformLabel || '—'}</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <Hash size={12} className="text-slate-400 shrink-0" />
+            <span className="font-medium font-mono text-[10px] truncate">{fiscalizador.deviceId || '—'}</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1.5 md:col-span-2">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Último Reporte</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <Clock size={12} className="text-slate-400 shrink-0" />
+            <span className="font-medium">{new Date(fiscalizador.ultimaConexion).toLocaleString('es-CL')}</span>
+          </div>
+        </div>
         {hasCoords && (
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <Crosshair size={13} className="text-slate-400 shrink-0" />
-            <span className="text-slate-500 min-w-[100px]">Coordenadas:</span>
-            <span className="font-mono font-medium text-slate-700">
-              {fiscalizador.latitud.toFixed(5)}, {fiscalizador.longitud.toFixed(5)}
-            </span>
+          <div className="flex items-end justify-end md:col-span-2">
             <button
               onClick={(e) => { e.stopPropagation(); onShowMap?.(fiscalizador); }}
-              className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-              title="Ver en mapa"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs rounded-lg transition-colors"
             >
-              <ExternalLink size={12} />
+              <ExternalLink size={13} />
               Ver ubicación
             </button>
           </div>
@@ -139,7 +156,10 @@ export function FiscalizadoresTable({ loading, filtered, search, onNotify, onSho
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-bold text-slate-800">{f.email}</p>
+                      <div className="flex items-center gap-2">
+                        <User size={14} className="text-slate-400 shrink-0" />
+                        <p className="text-sm font-bold text-slate-800">{f.email}</p>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -187,10 +207,12 @@ export function FiscalizadoresTable({ loading, filtered, search, onNotify, onSho
                   {isExpanded && (
                     <tr key={`${f.email}-detail`} className="bg-slate-50/30">
                       <td colSpan="7" className="p-0">
-                        <FiscalizadorExpandedRow
-                          fiscalizador={f}
-                          onShowMap={onShowMap}
-                        />
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                          <FiscalizadorExpandedRow
+                            fiscalizador={f}
+                            onShowMap={onShowMap}
+                          />
+                        </div>
                       </td>
                     </tr>
                   )}

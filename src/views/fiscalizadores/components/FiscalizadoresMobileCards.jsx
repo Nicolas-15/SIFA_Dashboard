@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { MapPin, Clock, Wifi, Smartphone, Bell, Cpu, Monitor, Hash, Crosshair, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Clock, Wifi, Smartphone, Bell, Cpu, Monitor, Hash, ExternalLink, ChevronDown, ChevronUp, User } from 'lucide-react';
+
+function AndroidIcon({ size, className }) {
+  return (
+    <svg viewBox="0 0 32 32" width={size} height={size} className={className} fill="currentColor">
+      <path d="M23.35 12.653l2.496-4.323c0.044-0.074 0.070-0.164 0.070-0.26 0-0.287-0.232-0.519-0.519-0.519-0.191 0-0.358 0.103-0.448 0.257l-0.001 0.002-2.527 4.377c-1.887-0.867-4.094-1.373-6.419-1.373s-4.532 0.506-6.517 1.413l0.098-0.040-2.527-4.378c-0.091-0.156-0.259-0.26-0.45-0.26-0.287 0-0.519 0.232-0.519 0.519 0 0.096 0.026 0.185 0.071 0.262l-0.001-0.002 2.496 4.323c-4.286 2.367-7.236 6.697-7.643 11.744l-0.003 0.052h29.991c-0.41-5.099-3.36-9.429-7.57-11.758l-0.076-0.038zM9.098 20.176c-0 0-0 0-0 0-0.69 0-1.249-0.559-1.249-1.249s0.559-1.249 1.249-1.249c0.69 0 1.249 0.559 1.249 1.249v0c-0.001 0.689-0.559 1.248-1.249 1.249h-0zM22.902 20.176c-0 0-0 0-0 0-0.69 0-1.249-0.559-1.249-1.249s0.559-1.249 1.249-1.249c0.69 0 1.249 0.559 1.249 1.249v0c-0.001 0.689-0.559 1.248-1.249 1.249h-0z"></path>
+    </svg>
+  );
+}
 import { EmptyState } from '@/components/ui/EmptyState';
 
 function formatLastConnection(dateString) {
@@ -40,9 +48,10 @@ export function FiscalizadoresMobileCards({ filtered, search, onNotify, onShowMa
             className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-slate-800 truncate flex-1 mr-2">
-                {f.email}
-              </p>
+              <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+                <User size={14} className="text-slate-400 shrink-0" />
+                <p className="text-sm font-bold text-slate-800 truncate">{f.email}</p>
+              </div>
               <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs shrink-0">
                 <Wifi size={12} />
                 En terreno
@@ -79,50 +88,52 @@ export function FiscalizadoresMobileCards({ filtered, search, onNotify, onShowMa
             </button>
 
             {isExpanded && (
-              <div className="mt-2 pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
-                {f.versionApp && (
-                  <div className="flex items-center gap-2">
-                    <Cpu size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-slate-500">Versión App:</span>
-                    <span className="font-medium text-slate-700">v{f.versionApp}</span>
+              <div className="animate-in fade-in slide-in-from-top-2 duration-500 mt-2 pt-3 border-t border-slate-100 grid grid-cols-2 gap-x-4 gap-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Dispositivo</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                    <Smartphone size={12} className="text-slate-400 shrink-0" />
+                    <span className="font-semibold truncate">{deviceName || '—'}</span>
                   </div>
-                )}
-                {f.manufacturer && (
-                  <div className="flex items-center gap-2">
-                    <Monitor size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-slate-500">Fabricante:</span>
-                    <span className="font-medium text-slate-700">{f.manufacturer}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Versión App</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                    <Cpu size={12} className="text-slate-400 shrink-0" />
+                    <span className="font-semibold">{f.versionApp ? `v${f.versionApp}` : '—'}</span>
                   </div>
-                )}
-                {f.deviceId && (
-                  <div className="flex items-center gap-2">
-                    <Hash size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-slate-500">ID:</span>
-                    <span className="font-medium text-slate-700 font-mono text-[10px] truncate">{f.deviceId}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Plataforma</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                    {platformLabel ? <AndroidIcon size={12} className="text-emerald-500 shrink-0" /> : <Monitor size={12} className="text-slate-400 shrink-0" />}
+                    <span className="font-semibold">{platformLabel || '—'}</span>
                   </div>
-                )}
-                {platformLabel && (
-                  <div className="flex items-center gap-2">
-                    <Cpu size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-slate-500">Plataforma:</span>
-                    <span className="font-medium text-slate-700">{platformLabel}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">ID</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <Hash size={12} className="text-slate-400 shrink-0" />
+                    <span className="font-medium font-mono text-[10px] truncate">{f.deviceId || '—'}</span>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Clock size={13} className="text-slate-400 shrink-0" />
-                  <span className="text-slate-500">Último reporte:</span>
-                  <span className="font-medium text-slate-700">
-                    {f.ultimaConexion ? new Date(f.ultimaConexion).toLocaleString('es-CL') : '—'}
-                  </span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Último Reporte</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <Clock size={12} className="text-slate-400 shrink-0" />
+                    <span className="font-medium">{new Date(f.ultimaConexion).toLocaleString('es-CL')}</span>
+                  </div>
                 </div>
                 {hasCoords && (
-                  <button
-                    onClick={() => onShowMap?.(f)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs rounded-lg transition-colors mt-1"
-                  >
-                    <ExternalLink size={13} />
-                    Ver ubicación en mapa
-                  </button>
+                  <div className="col-span-2">
+                    <button
+                      onClick={() => onShowMap?.(f)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={13} />
+                      Ver ubicación en mapa
+                    </button>
+                  </div>
                 )}
               </div>
             )}
