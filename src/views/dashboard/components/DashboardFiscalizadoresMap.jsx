@@ -8,8 +8,8 @@ import { X, Maximize2, User, Mail, Clock, Smartphone, Bell } from "lucide-react"
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Modal } from "@/components/ui/Modal";
-import { PushNotificationModal } from "./PushNotificationModal";
-import { getAllDevices, sendSelectPush } from "@/services/pushNotifications.service";
+import { PushNotificationModal } from "@/components/ui/PushNotificationModal";
+import { sendPushToEmail } from "@/utils/pushNotifications";
 
 // Crear ícono SVG desde lucide User
 const createFiscalizadorIcon = () => {
@@ -173,23 +173,17 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
     const email = notifyTarget?.email;
     if (!email) throw new Error("Destino no especificado");
 
-    const devices = await getAllDevices();
-    const device = Array.isArray(devices)
-      ? devices.find((d) => d.emailUsuario === email)
-      : null;
-
-    if (!device?.id) {
-      showToast?.("El dispositivo de este fiscalizador no está registrado para notificaciones.", "error");
-      throw new Error("Dispositivo no encontrado");
+    try {
+      await sendPushToEmail(email, title, body);
+      showToast?.(`Notificación enviada a ${email}`, "success");
+    } catch (err) {
+      if (err.message === "DEVICE_NOT_FOUND") {
+        showToast?.("El dispositivo de este fiscalizador no está registrado para notificaciones.", "error");
+      } else {
+        showToast?.("Error al enviar notificación", "error");
+      }
+      throw err;
     }
-
-    await sendSelectPush({
-      deviceIds: [device.id],
-      title: title || "Notificación SIFA",
-      body,
-    });
-
-    showToast?.(`Notificación enviada a ${email}`, "success");
   }, [notifyTarget, showToast]);
 
   const center = [-33.0456, -71.6214]; // Centro por defecto (Valparaíso/Viña del Mar)
