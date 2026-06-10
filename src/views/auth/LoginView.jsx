@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Lock, Mail, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -32,6 +32,8 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
       localStorage.removeItem('auth_error');
     }
   }, []);
+
+  const closeToast = useCallback(() => setToast(null), []);
 
   const validate = () => {
     const newErrors = { email: '', password: '' };
@@ -149,7 +151,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
         key={toast.key}
         message={toast.message}
         type={toast.type}
-        onClose={() => setToast(null)}
+        onClose={closeToast}
       />
     )}
     </>
