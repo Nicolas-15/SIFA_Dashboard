@@ -1,7 +1,8 @@
 import { useState, Fragment } from "react";
-import { MapPin, Clock, Wifi, Smartphone, Bell, ChevronDown, ChevronUp, Cpu, Monitor, Hash } from 'lucide-react';
+import { MapPin, Clock, Wifi, Smartphone, Bell, ChevronDown, ChevronUp, Cpu, Monitor, Hash, Crosshair, ExternalLink } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
+import { Button } from '@/components/ui/Button';
 
 function formatLastConnection(dateString) {
   if (!dateString) return '-';
@@ -25,15 +26,16 @@ function DeviceDetailRow({ label, value, icon: Icon }) {
   return (
     <div className="flex items-center gap-2 text-xs text-slate-600">
       <Icon size={13} className="text-slate-400 shrink-0" />
-      <span className="text-slate-500 min-w-[90px]">{label}:</span>
+      <span className="text-slate-500 min-w-[100px]">{label}:</span>
       <span className="font-medium text-slate-700">{value}</span>
     </div>
   );
 }
 
-function FiscalizadorExpandedRow({ fiscalizador }) {
+function FiscalizadorExpandedRow({ fiscalizador, onShowMap }) {
   const deviceName = [fiscalizador.marcaDispositivo, fiscalizador.modeloDispositivo].filter(Boolean).join(" / ");
-  const platformLabel = fiscalizador.platform === "ANDROID" ? "Android" : fiscalizador.platform;
+  const platformLabel = fiscalizador.platform === "ANDROID" ? "Android" : fiscalizador.platform || null;
+  const hasCoords = fiscalizador.latitud !== undefined && fiscalizador.longitud !== undefined;
 
   return (
     <div className="bg-slate-50/50 px-6 py-4 border-t border-slate-100">
@@ -50,10 +52,31 @@ function FiscalizadorExpandedRow({ fiscalizador }) {
         {fiscalizador.deviceId && (
           <DeviceDetailRow label="ID Dispositivo" value={fiscalizador.deviceId} icon={Hash} />
         )}
-        {platformLabel && platformLabel !== fiscalizador.platform && (
+        {platformLabel && (
           <DeviceDetailRow label="Plataforma" value={platformLabel} icon={Cpu} />
         )}
-        <DeviceDetailRow label="Último reporte" value={new Date(fiscalizador.ultimaConexion).toLocaleString('es-CL')} icon={Clock} />
+        <DeviceDetailRow
+          label="Último reporte"
+          value={new Date(fiscalizador.ultimaConexion).toLocaleString('es-CL')}
+          icon={Clock}
+        />
+        {hasCoords && (
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <Crosshair size={13} className="text-slate-400 shrink-0" />
+            <span className="text-slate-500 min-w-[100px]">Coordenadas:</span>
+            <span className="font-mono font-medium text-slate-700">
+              {fiscalizador.latitud.toFixed(5)}, {fiscalizador.longitud.toFixed(5)}
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); onShowMap?.(fiscalizador); }}
+              className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+              title="Ver en mapa"
+            >
+              <ExternalLink size={12} />
+              Ver ubicación
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -125,16 +148,12 @@ export function FiscalizadoresTable({ loading, filtered, search, onNotify, onSho
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onShowMap?.(f); }}
-                        className="flex items-center gap-2 text-sm text-slate-600 hover:text-primary transition-colors"
-                        title="Ver en mapa"
-                      >
-                        <MapPin size={14} className="text-slate-400 group-hover:text-primary transition-colors" />
-                        <span className="font-mono underline decoration-dotted underline-offset-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <MapPin size={14} className="text-slate-400 shrink-0" />
+                        <span className="font-mono">
                           {f.latitud?.toFixed(4)}, {f.longitud?.toFixed(4)}
                         </span>
-                      </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {deviceName ? (
@@ -168,7 +187,10 @@ export function FiscalizadoresTable({ loading, filtered, search, onNotify, onSho
                   {isExpanded && (
                     <tr key={`${f.email}-detail`} className="bg-slate-50/30">
                       <td colSpan="7" className="p-0">
-                        <FiscalizadorExpandedRow fiscalizador={f} />
+                        <FiscalizadorExpandedRow
+                          fiscalizador={f}
+                          onShowMap={onShowMap}
+                        />
                       </td>
                     </tr>
                   )}
