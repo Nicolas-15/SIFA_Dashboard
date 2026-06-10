@@ -45,6 +45,7 @@ export function CitacionesView() {
 
   return (
     <ListView
+      loadingLabel="citaciones"
       title="Citaciones JPL"
       filters={
         <CitacionesFilters

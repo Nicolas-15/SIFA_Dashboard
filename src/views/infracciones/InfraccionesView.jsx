@@ -73,6 +73,7 @@ export function InfraccionesView() {
 
   return (
     <ListView
+      loadingLabel="infracciones"
       title="Registro de Infracciones"
       filters={
         <InfractionsFilters

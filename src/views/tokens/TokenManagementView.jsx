@@ -104,6 +104,7 @@ export function TokenManagementView() {
 
   return (
     <ListView
+      loadingLabel="tokens"
       title="Tokens de Acceso"
       filters={
         <div className="flex flex-col gap-3">

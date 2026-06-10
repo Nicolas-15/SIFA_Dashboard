@@ -49,6 +49,7 @@ export function AuditoriasView() {
 
   return (
     <ListView
+      loadingLabel="auditorías"
       title="Registro de Auditorías"
       filters={
         <AuditoriasFilters
