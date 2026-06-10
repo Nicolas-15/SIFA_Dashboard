@@ -1,12 +1,15 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useOutletContext } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
-import { X, Maximize2, User, Mail, Clock } from "lucide-react";
+import { X, Maximize2, User, Mail, Clock, Smartphone, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Modal } from "@/components/ui/Modal";
+import { PushNotificationModal } from "./PushNotificationModal";
+import { getAllDevices, sendSelectPush } from "@/services/pushNotifications.service";
 
 // Crear ícono SVG desde lucide User
 const createFiscalizadorIcon = () => {
@@ -72,17 +75,18 @@ function FitBounds({ data }) {
   return null;
 }
 
-// Componente del Popup mejorado (versión compacta)
-function FiscalizadorPopup({ fiscalizador }) {
+function FiscalizadorPopup({ fiscalizador, onNotify }) {
   const formattedDate = useMemo(
     () => formatDate(fiscalizador.ultimaConexion),
     [fiscalizador.ultimaConexion],
   );
 
+  const deviceName = [fiscalizador.marcaDispositivo, fiscalizador.modeloDispositivo]
+    .filter(Boolean)
+    .join(" / ");
+
   return (
-    /* Contenedor principal: Más limpio, con sombra pronunciada y un borde súper sutil */
-    <div className="w-56 p-3 bg-white rounded-xl shadow-lg ring-1 ring-slate-900/5">
-      {/* Cabecera y Badge de Estado integrados en la misma línea */}
+    <div className="w-64 p-3 bg-white rounded-xl shadow-lg ring-1 ring-slate-900/5">
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <div className="bg-blue-50 p-1.5 rounded-md">
@@ -93,7 +97,6 @@ function FiscalizadorPopup({ fiscalizador }) {
           </span>
         </div>
 
-        {/* Badge de Estado: Se mueve arriba para equilibrar el diseño */}
         <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-full ring-1 ring-green-500/20">
           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
           <span className="text-[9px] text-green-700 font-bold uppercase tracking-wider">
@@ -102,26 +105,45 @@ function FiscalizadorPopup({ fiscalizador }) {
         </div>
       </div>
 
-      {/* Lista de Información: Estructura horizontal para ahorrar espacio vertical */}
-      <div className="flex flex-col gap-2.5">
-        {/* Email */}
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2.5">
           <Mail size={14} className="text-slate-400 shrink-0" />
           <span
             className="text-xs text-slate-600 font-medium truncate"
-            title={fiscalizador.email} // Muestra el email completo si el usuario deja el mouse quieto
+            title={fiscalizador.email}
           >
             {fiscalizador.email}
           </span>
         </div>
 
-        {/* Última conexión */}
         <div className="flex items-center gap-2.5">
           <Clock size={14} className="text-slate-400 shrink-0" />
           <span className="text-xs text-slate-600 truncate">
             {formattedDate}
           </span>
         </div>
+
+        {deviceName && (
+          <div className="flex items-center gap-2.5">
+            <Smartphone size={14} className="text-slate-400 shrink-0" />
+            <span className="text-xs text-slate-600 font-medium truncate">
+              {deviceName}
+            </span>
+          </div>
+        )}
+
+        {onNotify && fiscalizador.deviceId && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNotify(fiscalizador);
+            }}
+            className="mt-1.5 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs rounded-lg transition-colors"
+          >
+            <Bell size={13} />
+            Enviar notificación
+          </button>
+        )}
       </div>
     </div>
   );
@@ -141,9 +163,34 @@ function MapRefRegister({ mapRef }) {
 }
 
 export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
+  const { showToast } = useOutletContext() || {};
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [scrollWheelZoomEnabled, setScrollWheelZoomEnabled] = useState(false);
+  const [notifyTarget, setNotifyTarget] = useState(null);
   const mapRef = useRef(null);
+
+  const handleNotifySend = useCallback(async (title, body) => {
+    const email = notifyTarget?.email;
+    if (!email) throw new Error("Destino no especificado");
+
+    const devices = await getAllDevices();
+    const device = Array.isArray(devices)
+      ? devices.find((d) => d.emailUsuario === email)
+      : null;
+
+    if (!device?.id) {
+      showToast?.("El dispositivo de este fiscalizador no está registrado para notificaciones.", "error");
+      throw new Error("Dispositivo no encontrado");
+    }
+
+    await sendSelectPush({
+      deviceIds: [device.id],
+      title: title || "Notificación SIFA",
+      body,
+    });
+
+    showToast?.(`Notificación enviada a ${email}`, "success");
+  }, [notifyTarget, showToast]);
 
   const center = [-33.0456, -71.6214]; // Centro por defecto (Valparaíso/Viña del Mar)
   const height = "500px"; // Altura  del mapa
@@ -216,7 +263,10 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
               icon={createFiscalizadorIcon()}
             >
               <Popup>
-                <FiscalizadorPopup fiscalizador={fiscalizador} />
+                <FiscalizadorPopup
+                  fiscalizador={fiscalizador}
+                  onNotify={setNotifyTarget}
+                />
               </Popup>
             </Marker>
           ))}
@@ -274,12 +324,22 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
               icon={createFiscalizadorIcon()}
             >
               <Popup>
-                <FiscalizadorPopup fiscalizador={fiscalizador} />
+                <FiscalizadorPopup
+                  fiscalizador={fiscalizador}
+                  onNotify={setNotifyTarget}
+                />
               </Popup>
             </Marker>
           ))}
         </MapContainer>
       </Modal>
+
+      <PushNotificationModal
+        isOpen={!!notifyTarget}
+        onClose={() => setNotifyTarget(null)}
+        email={notifyTarget?.email}
+        onSend={handleNotifySend}
+      />
     </Card>
   );
 }

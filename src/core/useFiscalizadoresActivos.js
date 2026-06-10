@@ -8,6 +8,9 @@ const normalizeFiscalizador = (item) => ({
   latitud: item.latitud,
   longitud: item.longitud,
   ultimaConexion: item.ultimaConexion,
+  deviceId: item.idDispositivo || item.deviceId,
+  marcaDispositivo: item.marcaDispositivo || item.marca,
+  modeloDispositivo: item.modeloDispositivo || item.modelo,
 });
 
 export const useFiscalizadoresActivos = () => {
