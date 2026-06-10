@@ -11,6 +11,9 @@ const normalizeFiscalizador = (item) => ({
   deviceId: item.idDispositivo || item.deviceId,
   marcaDispositivo: item.marcaDispositivo || item.marca,
   modeloDispositivo: item.modeloDispositivo || item.modelo,
+  versionApp: item.versionApp || item.appVersion,
+  platform: item.platform,
+  manufacturer: item.fabricante || item.manufacturer,
 });
 
 export const useFiscalizadoresActivos = () => {
