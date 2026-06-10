@@ -14,6 +14,7 @@ export function UserManagementView() {
     users,
     loading,
     error,
+    fetchUsers,
     createUser,
     updateUser,
     toggleUserStatus,
@@ -175,6 +176,8 @@ export function UserManagementView() {
         search={search}
         setSearch={setSearch}
         onNewUser={handleNewUserClick}
+        onRefresh={fetchUsers}
+        loading={loading}
       />
 
       {error && (

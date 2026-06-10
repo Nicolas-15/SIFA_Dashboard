@@ -74,30 +74,6 @@ export function DashboardLayout() {
     );
   }
 
-  if (error && infractions.length === 0) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center max-w-sm px-6">
-          <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-black text-slate-800 mb-2">
-            No se pudo conectar
-          </h2>
-          <p className="text-sm text-slate-500 mb-6">
-            El servidor de la API no está disponible.
-          </p>
-          <button
-            onClick={() => fetchInfractions()}
-            className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors"
-          >
-            Reintentar conexión
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Overlay móvil */}

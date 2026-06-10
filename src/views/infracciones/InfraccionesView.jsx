@@ -21,7 +21,7 @@ export function InfraccionesView() {
   const {
     infractions, stats, updateStatus, saveInfractionEdit: updateInfraction, showToast,
     headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser,
-    loading, page, totalPages, totalElements, size, first, last,
+    loading, error, page, totalPages, totalElements, size, first, last,
     goToPage, nextPage, prevPage,
     dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
     activeFilter, setActiveFilter, searchQuery, setSearchQuery,
@@ -71,10 +71,17 @@ export function InfraccionesView() {
     </div>
   );
 
+  const handleRetry = () => {
+    showToast("Reintentando conexión con el servidor de infracciones...", "info");
+    onRefresh();
+  };
+
   return (
     <ListView
       loadingLabel="infracciones"
       title="Registro de Infracciones"
+      error={error}
+      onRetry={handleRetry}
       filters={
         <InfractionsFilters
           searchQuery={searchQuery}

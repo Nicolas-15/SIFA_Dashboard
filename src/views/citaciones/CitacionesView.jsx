@@ -43,10 +43,17 @@ export function CitacionesView() {
     </div>
   );
 
+  const handleRetry = () => {
+    showToast("Reintentando conexión con el servidor de citaciones...", "info");
+    fetchCitaciones();
+  };
+
   return (
     <ListView
       loadingLabel="citaciones"
       title="Citaciones JPL"
+      error={error}
+      onRetry={handleRetry}
       filters={
         <CitacionesFilters
           searchQuery={searchQuery}

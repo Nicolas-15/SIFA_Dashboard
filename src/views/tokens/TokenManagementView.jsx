@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { Search } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 import { Pagination } from "@/components/ui/Pagination";
 import { TableCard } from "@/components/ui/TableCard";
 import { Button } from "@/components/ui/Button";
@@ -102,10 +102,17 @@ export function TokenManagementView() {
     </div>
   );
 
+  const handleRetry = () => {
+    showToast("Reintentando conexión con el servidor de autenticación...", "info");
+    fetchTokens();
+  };
+
   return (
     <ListView
       loadingLabel="tokens"
       title="Tokens de Acceso"
+      error={error}
+      onRetry={handleRetry}
       filters={
         <div className="flex flex-col gap-3">
           {error && (
@@ -135,6 +142,16 @@ export function TokenManagementView() {
                   {f.label}
                 </Button>
               ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={fetchTokens}
+                title="Actualizar tokens"
+                className="flex-1 sm:flex-none min-w-[120px] sm:min-w-0 max-w-[calc(50%-4px)] sm:max-w-none gap-1.5"
+              >
+                <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+                {loading ? 'Actualizando...' : 'Actualizar'}
+              </Button>
             </div>
           </div>
         </div>

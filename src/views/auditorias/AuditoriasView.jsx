@@ -1,3 +1,4 @@
+import { useOutletContext } from "react-router-dom";
 import { TableCard } from "@/components/ui/TableCard";
 import { ListView } from "@/components/ui/ListView";
 import { Pagination } from "@/components/ui/Pagination";
@@ -7,9 +8,11 @@ import { AuditoriasFilters } from "./components/AuditoriasFilters";
 import { AuditoriasTable } from "./components/AuditoriasTable";
 
 export function AuditoriasView() {
+  const { showToast } = useOutletContext() || {};
   const {
     audits,
     loading,
+    error,
     fetchAudits,
     page,
     totalPages,
@@ -47,10 +50,19 @@ export function AuditoriasView() {
     </div>
   );
 
+  const handleRetry = () => {
+    if (showToast) {
+      showToast("Reintentando conexión con el servidor de auditorías...", "info");
+    }
+    fetchAudits();
+  };
+
   return (
     <ListView
       loadingLabel="auditorías"
       title="Registro de Auditorías"
+      error={error}
+      onRetry={handleRetry}
       filters={
         <AuditoriasFilters
           searchQuery={searchQuery}

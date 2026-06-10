@@ -1,8 +1,8 @@
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-export function TipoInfraccionesHeader({ search, setSearch, onNew, isAdmin }) {
+export function TipoInfraccionesHeader({ search, setSearch, onNew, isAdmin, onRefresh, loading }) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
@@ -17,6 +17,17 @@ export function TipoInfraccionesHeader({ search, setSearch, onNew, isAdmin }) {
           icon={Search}
           className="w-64 !py-2"
         />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onRefresh}
+          disabled={loading}
+          className="!w-auto px-4 py-2 flex items-center gap-1.5"
+          title="Actualizar tipos de infracciones"
+        >
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+          {loading ? 'Actualizando...' : 'Actualizar'}
+        </Button>
         {isAdmin && (
           <Button onClick={onNew} className="!w-auto px-4 !py-2.5">
             <Plus size={18} /> Nuevo Tipo
