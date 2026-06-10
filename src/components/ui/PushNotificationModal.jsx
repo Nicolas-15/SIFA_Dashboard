@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Send } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,13 @@ export function PushNotificationModal({
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    setTitle("");
+    setBody("");
+    setSending(false);
+    setSent(false);
+  }, [email]);
 
   const handleSend = async () => {
     if (!body.trim() || !onSend) return;
