@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
-import { Maximize2, Download, Calendar } from "lucide-react";
+import { Maximize2, Download } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { HeatmapPDFTemplate } from "./HeatmapPDFTemplate";
-import { HeatmapLayer, MapRefRegister } from "./LeafletHelpers";
+import { HeatmapLayer, MapRefRegister, SelectedLocationMarker } from "./LeafletHelpers";
 import { FullscreenMapModal } from "./FullscreenMapModal";
 import { exportHeatmapReport } from "../utils/pdfExporter";
 import { getInfractionsReportSummary } from "@/services/infractions.service";
@@ -16,6 +16,7 @@ export function DashboardHeatmap({
   loadingSummary,
   startDate,
   endDate,
+  selectedLocation,
   className = ''
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -190,6 +191,7 @@ export function DashboardHeatmap({
           />
           <HeatmapLayer data={heatmapPoints} />
           <MapRefRegister mapRef={mainMapRef} />
+          <SelectedLocationMarker location={selectedLocation} />
         </MapContainer>
 
         {/* Botón flotante para modo pantalla completa */}
@@ -209,6 +211,7 @@ export function DashboardHeatmap({
         mapCenter={mapCenter}
         mapZoom={mapZoom}
         heatmapPoints={heatmapPoints}
+        selectedLocation={selectedLocation}
         isExporting={isExporting}
         handleExportReport={handleExportReport}
         fullscreenMapContainerRef={fullscreenMapContainerRef}

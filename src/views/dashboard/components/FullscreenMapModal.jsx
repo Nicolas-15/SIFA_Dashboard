@@ -1,7 +1,7 @@
 import React from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { Download } from "lucide-react";
-import { HeatmapLayer, MapRefRegister } from "./LeafletHelpers";
+import { HeatmapLayer, MapRefRegister, SelectedLocationMarker } from "./LeafletHelpers";
 import { Modal } from "@/components/ui/Modal";
 
 export function FullscreenMapModal({
@@ -10,6 +10,7 @@ export function FullscreenMapModal({
   mapCenter,
   mapZoom,
   heatmapPoints,
+  selectedLocation,
   infractions = [],
   isExporting,
   handleExportReport,
@@ -71,6 +72,7 @@ export function FullscreenMapModal({
           />
           <HeatmapLayer data={heatmapPoints} />
           <MapRefRegister mapRef={fullscreenMapRef} />
+          <SelectedLocationMarker location={selectedLocation} />
         </MapContainer>
       </div>
     </Modal>

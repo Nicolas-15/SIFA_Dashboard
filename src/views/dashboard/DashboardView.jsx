@@ -38,6 +38,7 @@ export function DashboardView() {
   const [summaryData, setSummaryData] = useState(null);
   const [recentInfractions, setRecentInfractions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedInfractionLocation, setSelectedInfractionLocation] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -137,9 +138,19 @@ export function DashboardView() {
           loadingSummary={loading}
           startDate={startDate}
           endDate={endDate}
+          selectedLocation={selectedInfractionLocation}
           className="lg:col-span-2"
         />
-        <DashboardRecentActivity infractions={recentInfractions} />
+        <DashboardRecentActivity
+          infractions={recentInfractions}
+          selectedInfractionId={selectedInfractionLocation?.id}
+          onSelectInfraction={({ id, lat, lng, plate, fiscalizador, tipoNombre }) => {
+            const sameAsSelected = selectedInfractionLocation?.id === id;
+            setSelectedInfractionLocation(
+              sameAsSelected ? null : { id, lat, lng, plate, fiscalizador, tipoNombre },
+            );
+          }}
+        />
       </div>
 
       {isSupervisorOrAdmin && (
