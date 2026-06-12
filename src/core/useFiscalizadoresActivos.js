@@ -51,27 +51,32 @@ export const useFiscalizadoresActivos = () => {
 
     try {
       const p = overrides || latestParams.current;
-      const [activosData, devices] = await Promise.all([
+      const [activosData, devicesRaw] = await Promise.all([
         fiscalizadorActivityService.getFiscalizadoresActivos({ page: p.page, size }),
         getAllDevices().catch(() => []),
       ]);
 
+      const deviceList = Array.isArray(devicesRaw)
+        ? devicesRaw
+        : devicesRaw?.content && Array.isArray(devicesRaw.content)
+          ? devicesRaw.content
+          : [];
+
       const devicesByEmail = {};
-      if (Array.isArray(devices)) {
-        devices.forEach((d) => {
-          if (d.emailUsuario) devicesByEmail[d.emailUsuario] = d;
-        });
-      }
+      deviceList.forEach((d) => {
+        if (d.emailUsuario) devicesByEmail[d.emailUsuario.trim().toLowerCase()] = d;
+      });
 
       const list = Array.isArray(activosData.content) ? activosData.content : [];
       setFiscalizadores(list.map((item) => {
         const base = normalizeFiscalizador(item);
-        const deviceInfo = devicesByEmail[base.email];
+        const deviceInfo = devicesByEmail[base.email?.trim().toLowerCase()];
         if (deviceInfo) {
           base.versionApp = base.versionApp || deviceInfo.appVersion;
           base.platform = base.platform || deviceInfo.platform;
           base.manufacturer = base.manufacturer || deviceInfo.manufacturer;
         }
+        base.deviceRegistered = !!deviceInfo;
         return base;
       }));
       setTotalPages(activosData.totalPages ?? 0);
