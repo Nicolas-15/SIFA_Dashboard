@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -36,5 +37,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, "/api/mock"),
       },
     },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    include: ["src/**/*.{test,spec}.{js,jsx}", "tests/**/*.{test,spec}.{js,jsx}"],
   },
 });
