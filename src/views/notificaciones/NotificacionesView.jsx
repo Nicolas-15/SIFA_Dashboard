@@ -159,6 +159,7 @@ function DeviceRow({ device, showCheckbox, selected, onToggle }) {
   const PlatformIcon = PLATFORM_ICONS[device.platform] || Smartphone;
   const colors = PLATFORM_COLORS[device.platform] || { bg: "bg-green-100", fg: "text-green-600" };
   const modelInfo = [device.manufacturer, device.deviceModel].filter(Boolean).join(" ");
+  const showId = device.id || device.deviceId;
 
   return (
     <div
@@ -170,6 +171,7 @@ function DeviceRow({ device, showCheckbox, selected, onToggle }) {
       onClick={showCheckbox ? () => onToggle(device.id) : undefined}
       role={showCheckbox ? "option" : undefined}
       aria-selected={showCheckbox ? selected : undefined}
+      title={`ID: ${device.id ?? "—"} | Dispositivo: ${device.deviceId ?? "—"}`}
     >
       {showCheckbox && (
         <DeviceCheckbox checked={selected} onChange={() => onToggle(device.id)} />
@@ -184,9 +186,16 @@ function DeviceRow({ device, showCheckbox, selected, onToggle }) {
           </p>
           <DeviceStatusBadge status={device.status} />
         </div>
-        {modelInfo && (
-          <p className="text-[10px] text-slate-600 truncate">{modelInfo}</p>
-        )}
+        <div className="flex items-center gap-2">
+          {modelInfo && (
+            <p className="text-[10px] text-slate-600 truncate">{modelInfo}</p>
+          )}
+          {showId && (
+            <span className="text-[9px] font-mono text-slate-400 truncate" title={`ID: ${device.id}, deviceId: ${device.deviceId}`}>
+              #{device.id ?? device.deviceId}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 ml-2 shrink-0">
         <span className="text-[10px] font-bold text-slate-700 bg-slate-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
@@ -225,7 +234,10 @@ export function NotificacionesView() {
   }, [error, showToast]);
 
   useEffect(() => {
-    if (result) showToast(`Notificación enviada a ${result.sent} dispositivo${result.sent !== 1 ? "s" : ""}.`, "success");
+    if (result) {
+      showToast(`Notificación enviada a ${result.sent} dispositivo${result.sent !== 1 ? "s" : ""}.`, "success");
+      handleReset();
+    }
   }, [result, showToast]);
 
   const deviceCount = devices.length;
