@@ -141,13 +141,16 @@ export function FiscalizadoresMobileCards({ filtered, search, onNotify, onShowMa
             <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
               <button
                 onClick={() => onNotify?.(f)}
-                disabled={!f.deviceId}
-                title={f.deviceId ? "Enviar notificación push" : "Sin dispositivo registrado"}
+                disabled={!f.deviceRegistered}
+                title={f.deviceRegistered ? "Enviar notificación push" : "Sin dispositivo registrado para notificaciones"}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Bell size={14} />
                 Notificar
               </button>
+              <span className={`text-[10px] font-semibold ${f.deviceRegistered ? "text-emerald-600" : "text-red-400"}`}>
+                {f.deviceRegistered ? "Registrado" : "Sin registro"}
+              </span>
             </div>
           </div>
         );

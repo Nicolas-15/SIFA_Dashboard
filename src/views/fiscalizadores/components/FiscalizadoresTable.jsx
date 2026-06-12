@@ -194,14 +194,22 @@ export function FiscalizadoresTable({ loading, filtered, search, onNotify, onSho
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onNotify?.(f); }}
-                        disabled={!f.deviceId}
-                        title={f.deviceId ? "Enviar notificación push" : "Sin dispositivo registrado"}
-                        className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <Bell size={16} />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                            f.deviceRegistered ? "bg-emerald-500" : "bg-red-400"
+                          }`}
+                          title={f.deviceRegistered ? "Dispositivo registrado para notificaciones" : "Sin registro de notificaciones push"}
+                        />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onNotify?.(f); }}
+                          disabled={!f.deviceRegistered}
+                          title={f.deviceRegistered ? "Enviar notificación push" : "Sin dispositivo registrado para notificaciones"}
+                          className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Bell size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   {isExpanded && (

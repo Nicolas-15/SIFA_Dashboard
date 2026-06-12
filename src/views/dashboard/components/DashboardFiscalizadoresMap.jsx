@@ -132,16 +132,22 @@ function FiscalizadorPopup({ fiscalizador, onNotify }) {
           </div>
         )}
 
-        {onNotify && fiscalizador.deviceId && (
+        {onNotify && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onNotify(fiscalizador);
             }}
-            className="mt-1.5 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs rounded-lg transition-colors"
+            disabled={!fiscalizador.deviceRegistered}
+            className={`mt-1.5 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-colors ${
+              fiscalizador.deviceRegistered
+                ? "bg-primary/10 hover:bg-primary/20 text-primary"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
+            }`}
+            title={fiscalizador.deviceRegistered ? "Enviar notificación push" : "Sin dispositivo registrado para notificaciones"}
           >
             <Bell size={13} />
-            Enviar notificación
+            {fiscalizador.deviceRegistered ? "Enviar notificación" : "Sin registro"}
           </button>
         )}
       </div>
