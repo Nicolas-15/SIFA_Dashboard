@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
+import { Calendar } from "lucide-react";
 import { DashboardStatsCards } from "./components/DashboardStatsCards";
 import { DashboardHeatmap } from "./components/DashboardHeatMap";
 import { DashboardRecentActivity } from "./components/DashboardRecentActivity";
@@ -12,6 +13,28 @@ import {
 } from "@/services/infractions.service";
 import { SYSTEM_ROLES } from "@/constants/roles";
 import { getTodayLocalDateString } from "@/utils/date";
+
+function formatDateInput(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function toApiDate(display) {
+  if (!display || display.length !== 10) return '';
+  const [dd, mm, yyyy] = display.split('/');
+  if (!dd || !mm || !yyyy) return '';
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function fromApiDate(api) {
+  if (!api) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(api)) return api;
+  const parts = api.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return api;
+}
 
 export function DashboardView() {
   const { currentUser } = useOutletContext() || {};
@@ -33,6 +56,49 @@ export function DashboardView() {
     sessionStorage.setItem("dashboard_startDate", startDate);
     sessionStorage.setItem("dashboard_endDate", endDate);
   }, [startDate, endDate]);
+
+  const startPickerRef = useRef(null);
+  const endPickerRef = useRef(null);
+
+  const [localStartDate, setLocalStartDate] = useState(fromApiDate(startDate));
+  const [localEndDate, setLocalEndDate] = useState(fromApiDate(endDate));
+
+  const openStartPicker = () => startPickerRef.current?.showPicker();
+  const openEndPicker = () => endPickerRef.current?.showPicker();
+
+  const handleStartDateChange = (e) => {
+    const raw = e.target.value;
+    const formatted = formatDateInput(raw);
+    setLocalStartDate(formatted);
+    const apiDate = toApiDate(formatted);
+    if (apiDate) setStartDate(apiDate);
+  };
+
+  const handleEndDateChange = (e) => {
+    const raw = e.target.value;
+    const formatted = formatDateInput(raw);
+    setLocalEndDate(formatted);
+    const apiDate = toApiDate(formatted);
+    if (apiDate) setEndDate(apiDate);
+  };
+
+  const handleStartNativeDateChange = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const [yyyy, mm, dd] = val.split('-');
+    const formatted = `${dd}/${mm}/${yyyy}`;
+    setLocalStartDate(formatted);
+    setStartDate(val);
+  };
+
+  const handleEndNativeDateChange = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const [yyyy, mm, dd] = val.split('-');
+    const formatted = `${dd}/${mm}/${yyyy}`;
+    setLocalEndDate(formatted);
+    setEndDate(val);
+  };
 
   // Estados locales para los datos del dashboard
   const [summaryData, setSummaryData] = useState(null);
@@ -97,33 +163,71 @@ export function DashboardView() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 mr-4">
           {/* Selector de Fecha Desde */}
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
+          <div className="flex items-center gap-1 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
             <span className="text-[10px] font-bold text-slate-400 uppercase">
               Desde
             </span>
             <input
+              type="text"
+              inputMode="numeric"
+              placeholder="dd/mm/aaaa"
+              value={localStartDate}
+              onChange={handleStartDateChange}
+              onClick={openStartPicker}
+              className="bg-transparent text-slate-700 text-xs font-semibold outline-none w-[85px] cursor-pointer"
+            />
+            <button
+              type="button"
+              onClick={openStartPicker}
+              className="p-0.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+              tabIndex={-1}
+              title="Abrir calendario"
+            >
+              <Calendar size={14} />
+            </button>
+            <input
+              ref={startPickerRef}
               type="date"
               value={startDate}
               max={endDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent text-slate-700 text-xs font-semibold outline-none w-[110px]"
+              onChange={handleStartNativeDateChange}
+              className="sr-only"
             />
           </div>
 
           {/* Selector de Fecha Hasta */}
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
+          <div className="flex items-center gap-1 bg-white border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
             <span className="text-[10px] font-bold text-slate-400 uppercase">
               Hasta
             </span>
             <input
+              type="text"
+              inputMode="numeric"
+              placeholder="dd/mm/aaaa"
+              value={localEndDate}
+              onChange={handleEndDateChange}
+              onClick={openEndPicker}
+              className="bg-transparent text-slate-700 text-xs font-semibold outline-none w-[85px] cursor-pointer"
+            />
+            <button
+              type="button"
+              onClick={openEndPicker}
+              className="p-0.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+              tabIndex={-1}
+              title="Abrir calendario"
+            >
+              <Calendar size={14} />
+            </button>
+            <input
+              ref={endPickerRef}
               type="date"
               value={endDate}
               min={startDate}
               max={today}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent text-slate-700 text-xs font-semibold outline-none w-[110px]"
+              onChange={handleEndNativeDateChange}
+              className="sr-only"
             />
           </div>
         </div>
