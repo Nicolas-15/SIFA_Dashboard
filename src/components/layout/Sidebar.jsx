@@ -141,7 +141,8 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             path="auditorias"
           />
         )}
-        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
           <NavItem
             icon={<Bell size={18} />}
             label="Notificaciones"

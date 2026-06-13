@@ -190,9 +190,9 @@ export const AppRouter = () => {
             <Route
               path="notificaciones"
               element={
-                <AdminRoute>
+                <TipoInfraccionesRoute>
                   <NotificacionesView />
-                </AdminRoute>
+                </TipoInfraccionesRoute>
               }
             />
             <Route path="access-denied" element={<AccessDeniedView />} />
