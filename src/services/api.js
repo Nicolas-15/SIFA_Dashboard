@@ -64,6 +64,16 @@ export async function refreshToken() {
   return data.accessToken;
 }
 
+function isTokenLocallyExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return !payload.exp || payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
 function clearAuth() {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
@@ -95,7 +105,12 @@ export const apiFetch = async (endpoint, options = {}) => {
   }
   clearTimeout(timeoutId);
 
-  if (response.status === 401 && localStorage.getItem('refreshToken')) {
+  const shouldRefresh = (
+    response.status === 401 ||
+    (response.status === 403 && isTokenLocallyExpired(localStorage.getItem('token')))
+  ) && localStorage.getItem('refreshToken');
+
+  if (shouldRefresh) {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
