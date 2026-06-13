@@ -246,7 +246,7 @@ export function CitacionesFilters({
             <button
               type="button"
               onClick={openStartPicker}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
               tabIndex={-1}
               title="Abrir calendario"
             >
@@ -288,7 +288,7 @@ export function CitacionesFilters({
             <button
               type="button"
               onClick={openEndPicker}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
               tabIndex={-1}
               title="Abrir calendario"
             >

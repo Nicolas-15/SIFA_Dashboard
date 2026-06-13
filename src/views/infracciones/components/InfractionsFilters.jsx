@@ -364,7 +364,7 @@ export function InfractionsFilters({
             <button
               type="button"
               onClick={openStartPicker}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
               tabIndex={-1}
               title="Abrir calendario"
             >
@@ -406,7 +406,7 @@ export function InfractionsFilters({
             <button
               type="button"
               onClick={openEndPicker}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
               tabIndex={-1}
               title="Abrir calendario"
             >
@@ -432,7 +432,7 @@ export function InfractionsFilters({
               onFocus={handleUserFocus}
               onBlur={handleUserBlur}
               onKeyDown={handleUserKeyDown}
-              placeholder="Nombre o RUT…"
+              placeholder="Email del fiscalizador…"
               className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all pr-9"
             />
             {localUser && (
