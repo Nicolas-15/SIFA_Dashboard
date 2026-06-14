@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as authLogin, decodeJWT, getUserFromToken, refreshSession } from '@/services/auth.service';
+import { login as authLogin, decodeJWT, getUserFromToken, refreshSession, logout as apiLogout } from '@/services/auth.service';
 import { SYSTEM_ROLES } from '@/constants/roles';
 import SessionLoadingScreen from '@/components/ui/SessionLoadingScreen';
 
@@ -88,12 +88,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    sessionStorage.clear();
-    setCurrentUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      await apiLogout();
+    } catch (err) {
+      console.warn('Logout API call failed, cleaning up locally:', err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.clear();
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   if (isInitializing) {
