@@ -47,8 +47,8 @@ export function DashboardLayout() {
 
   const pendingCount = stats?.cantidadPorEstado?.pending ?? 0;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
