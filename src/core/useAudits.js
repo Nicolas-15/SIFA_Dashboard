@@ -58,18 +58,13 @@ export const useAudits = () => {
           search: p.searchQuery || undefined,
         });
 
-        let filteredContent = result.content || [];
-
-        // Actualizar totalElements y totalPages basado en el contenido filtrado
-        const filteredTotalElements = filteredContent.length;
-        const filteredTotalPages = Math.ceil(filteredTotalElements / size);
-
-        setAudits(filteredContent);
-        setTotalPages(filteredTotalPages);
-        setTotalElements(filteredTotalElements);
-        setFirst(p.page === 0);
-        setLast(p.page >= filteredTotalPages - 1 || filteredTotalPages === 0);
-        setNumberOfElements(filteredContent.length);
+        // Usamos los datos de paginación que provienen del backend
+        setAudits(result.content || []);
+        setTotalPages(result.totalPages);
+        setTotalElements(result.totalElements);
+        setFirst(result.first);
+        setLast(result.last);
+        setNumberOfElements(result.numberOfElements);
 
         // Si el backend devuelve un número de página diferente, actualizar
         if (result.number !== p.page) {
