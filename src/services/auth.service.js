@@ -45,6 +45,12 @@ export const refreshSession = async () => {
   return refreshToken();
 };
 
+export const logout = async () => {
+  return apiFetch('/auth/api/v1/logout', {
+    method: 'POST'
+  });
+};
+
 export const login = async (email, password) => {
   const data = await apiFetch('/auth/api/v1/login', {
     method: 'POST',
