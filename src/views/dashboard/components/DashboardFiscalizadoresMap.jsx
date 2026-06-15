@@ -362,7 +362,7 @@ export function DashboardFiscalizadoresMap({
         titleClassName="text-xs font-bold text-slate-200 uppercase tracking-wider"
         closeButtonClassName="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors w-8 h-8 border-0 bg-transparent flex items-center justify-center shrink-0"
       >
-        <div className="absolute top-2 left-2 right-2 z-[1000] flex gap-1.5 overflow-x-auto pb-1 pointer-events-none">
+        <div className="absolute top-2 right-2 z-[1000] flex flex-col gap-1 pointer-events-none max-h-[calc(100%-16px)] overflow-y-auto">
           {fiscalizadoresConUbicacion.map((f) => {
             const isSelected = selectedFiscalizadorEmail === f.email;
             const deviceName = [f.marcaDispositivo, f.modeloDispositivo].filter(Boolean).join(" / ");
