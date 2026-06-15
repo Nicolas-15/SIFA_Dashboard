@@ -67,7 +67,6 @@ export const useInfractions = () => {
       setLast(result.last);
 
       setStats(statsResult);
-      console.log("DEBUG: statsResult from backend:", statsResult);
 
       if (result.number !== p.page) {
         setPage(result.number);
