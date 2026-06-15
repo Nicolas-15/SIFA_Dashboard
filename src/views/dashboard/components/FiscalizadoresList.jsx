@@ -38,13 +38,13 @@ export function FiscalizadoresList({
           <button
             onClick={() => onRefresh({ page: 0 })}
             disabled={loading}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-40"
-            title="Actualizar lista"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-40"
           >
             <RefreshCw
-              size={15}
+              size={14}
               className={loading ? "animate-spin" : ""}
             />
+            Actualizar
           </button>
         )}
       </div>
