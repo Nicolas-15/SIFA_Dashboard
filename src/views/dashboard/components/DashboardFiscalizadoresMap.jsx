@@ -362,6 +362,29 @@ export function DashboardFiscalizadoresMap({
         titleClassName="text-xs font-bold text-slate-200 uppercase tracking-wider"
         closeButtonClassName="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors w-8 h-8 border-0 bg-transparent flex items-center justify-center shrink-0"
       >
+        <div className="absolute top-2 left-2 right-2 z-[1000] flex gap-1.5 overflow-x-auto pb-1 pointer-events-none">
+          {fiscalizadoresConUbicacion.map((f) => {
+            const isSelected = selectedFiscalizadorEmail === f.email;
+            const deviceName = [f.marcaDispositivo, f.modeloDispositivo].filter(Boolean).join(" / ");
+            return (
+              <button
+                key={f.email}
+                onClick={() => onSelectFiscalizador?.(f)}
+                className={`pointer-events-auto shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                  isSelected
+                    ? "bg-amber-500/90 text-white shadow-lg ring-1 ring-amber-300"
+                    : "bg-slate-900/80 backdrop-blur-sm text-slate-200 hover:bg-slate-800/90 ring-1 ring-white/10"
+                }`}
+              >
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full shrink-0" />
+                <span className="font-medium whitespace-nowrap max-w-[120px] truncate">{f.email}</span>
+                {deviceName && (
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap truncate max-w-[100px] hidden sm:inline">{deviceName}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
         <MapContainer
           center={center}
           zoom={14}
