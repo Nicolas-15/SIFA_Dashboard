@@ -24,9 +24,10 @@ export function UserManagementView() {
     first,
     last,
     goToPage,
+    searchQuery,
+    setSearchQuery,
   } = useUsers();
 
-  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -164,17 +165,11 @@ export function UserManagementView() {
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    (u.name + " " + u.lastname + " " + u.rut + " " + u.email)
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
-
   return (
     <div className="flex flex-col h-full space-y-6">
       <UsersHeader
-        search={search}
-        setSearch={setSearch}
+        search={searchQuery}
+        setSearch={setSearchQuery}
         onNewUser={handleNewUserClick}
         onRefresh={fetchUsers}
         loading={loading}
@@ -197,8 +192,8 @@ export function UserManagementView() {
       >
         <UsersTable
           loading={loading}
-          filteredUsers={filteredUsers}
-          search={search}
+          filteredUsers={users}
+          search={searchQuery}
           currentUser={currentUser}
           toggleStatus={toggleStatus}
           handleEditClick={handleEditClick}
