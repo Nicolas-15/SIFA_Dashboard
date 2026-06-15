@@ -70,12 +70,15 @@ const formatDate = (dateString) => {
   }
 };
 
-// Componente para actualizar el centro del mapa cuando hay marcadores
+// Componente para ajustar el mapa SOLO al montar (evita zoom-out en re-renders)
 function FitBounds({ data }) {
   const map = useMap();
+  const hasRun = useRef(false);
 
   useEffect(() => {
     if (!map || !data || data.length === 0) return;
+    if (hasRun.current) return;
+    hasRun.current = true;
 
     const validPoints = data.filter(
       (f) => f.latitud !== undefined && f.longitud !== undefined,
@@ -183,7 +186,7 @@ function MapRefRegister({ mapRef }) {
   return null;
 }
 
-function MapContent({ fiscalizadores, selectedFiscalizadorEmail, onNotify }) {
+function MapContent({ fiscalizadores, selectedFiscalizadorEmail, onNotify, onSelectFiscalizador }) {
   return (
     <>
       <TileLayer
@@ -191,20 +194,27 @@ function MapContent({ fiscalizadores, selectedFiscalizadorEmail, onNotify }) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <FitBounds data={fiscalizadores} />
-      {fiscalizadores.map((fiscalizador) => (
-        <Marker
-          key={fiscalizador.email}
-          position={[fiscalizador.latitud, fiscalizador.longitud]}
-          icon={getFiscalizadorIcon(selectedFiscalizadorEmail === fiscalizador.email)}
-        >
-          <Popup>
-            <FiscalizadorPopup
-              fiscalizador={fiscalizador}
-              onNotify={onNotify}
-            />
-          </Popup>
-        </Marker>
-      ))}
+      {fiscalizadores.map((fiscalizador) => {
+        const isSelected = selectedFiscalizadorEmail === fiscalizador.email;
+        return (
+          <Marker
+            key={fiscalizador.email}
+            position={[fiscalizador.latitud, fiscalizador.longitud]}
+            icon={getFiscalizadorIcon(isSelected)}
+            zIndexOffset={isSelected ? 1000 : 0}
+            eventHandlers={{
+              click: () => onSelectFiscalizador?.(fiscalizador),
+            }}
+          >
+            <Popup>
+              <FiscalizadorPopup
+                fiscalizador={fiscalizador}
+                onNotify={onNotify}
+              />
+            </Popup>
+          </Marker>
+        );
+      })}
     </>
   );
 }
@@ -227,6 +237,7 @@ function FlyToSelected({ selectedFiscalizador }) {
 export function DashboardFiscalizadoresMap({
   fiscalizadores,
   selectedFiscalizadorEmail,
+  onSelectFiscalizador,
   className = "",
 }) {
   const { showToast } = useOutletContext() || {};
@@ -298,6 +309,7 @@ export function DashboardFiscalizadoresMap({
             fiscalizadores={fiscalizadoresConUbicacion}
             selectedFiscalizadorEmail={selectedFiscalizadorEmail}
             onNotify={setNotifyTarget}
+            onSelectFiscalizador={onSelectFiscalizador}
           />
           {selectedFiscalizador && (
             <FlyToSelected selectedFiscalizador={selectedFiscalizador} />
@@ -345,6 +357,7 @@ export function DashboardFiscalizadoresMap({
             fiscalizadores={fiscalizadoresConUbicacion}
             selectedFiscalizadorEmail={selectedFiscalizadorEmail}
             onNotify={setNotifyTarget}
+            onSelectFiscalizador={onSelectFiscalizador}
           />
           {selectedFiscalizador && (
             <FlyToSelected selectedFiscalizador={selectedFiscalizador} />

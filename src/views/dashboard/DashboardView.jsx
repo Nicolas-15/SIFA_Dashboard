@@ -275,6 +275,10 @@ export function DashboardView() {
           <DashboardFiscalizadoresMap
             fiscalizadores={fiscalizadores}
             selectedFiscalizadorEmail={selectedFiscalizadorEmail}
+            onSelectFiscalizador={(f) => {
+              const sameAsSelected = selectedFiscalizadorEmail === f.email;
+              setSelectedFiscalizadorEmail(sameAsSelected ? null : f.email);
+            }}
             className="lg:col-span-3"
           />
         </div>
