@@ -219,18 +219,31 @@ function MapContent({ fiscalizadores, selectedFiscalizadorEmail, onNotify, onSel
   );
 }
 
-function FlyToSelected({ selectedFiscalizador }) {
+function FlyToSelected({ selectedFiscalizador, allFiscalizadores }) {
   const map = useMap();
+  const prevSelected = useRef(selectedFiscalizador);
+
   useEffect(() => {
-    if (!map || !selectedFiscalizador) return;
-    if (selectedFiscalizador.latitud && selectedFiscalizador.longitud) {
+    if (!map) return;
+
+    const wasSelected = prevSelected.current;
+    prevSelected.current = selectedFiscalizador;
+
+    if (selectedFiscalizador?.latitud && selectedFiscalizador?.longitud) {
       map.flyTo(
         [selectedFiscalizador.latitud, selectedFiscalizador.longitud],
         16,
         { duration: 1 },
       );
+      return;
     }
-  }, [map, selectedFiscalizador]);
+
+    if (wasSelected && !selectedFiscalizador && allFiscalizadores?.length > 0) {
+      const bounds = allFiscalizadores.map((f) => [f.latitud, f.longitud]);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [map, selectedFiscalizador, allFiscalizadores]);
+
   return null;
 }
 
@@ -311,9 +324,10 @@ export function DashboardFiscalizadoresMap({
             onNotify={setNotifyTarget}
             onSelectFiscalizador={onSelectFiscalizador}
           />
-          {selectedFiscalizador && (
-            <FlyToSelected selectedFiscalizador={selectedFiscalizador} />
-          )}
+          <FlyToSelected
+            selectedFiscalizador={selectedFiscalizador}
+            allFiscalizadores={fiscalizadoresConUbicacion}
+          />
         </MapContainer>
 
         <button
@@ -359,9 +373,10 @@ export function DashboardFiscalizadoresMap({
             onNotify={setNotifyTarget}
             onSelectFiscalizador={onSelectFiscalizador}
           />
-          {selectedFiscalizador && (
-            <FlyToSelected selectedFiscalizador={selectedFiscalizador} />
-          )}
+          <FlyToSelected
+            selectedFiscalizador={selectedFiscalizador}
+            allFiscalizadores={fiscalizadoresConUbicacion}
+          />
         </MapContainer>
       </Modal>
 
