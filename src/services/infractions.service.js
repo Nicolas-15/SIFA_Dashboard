@@ -96,12 +96,13 @@ export const getProductividadFiscalizadorReporte = async (params = {}) => {
  * Si no se envían fechas, el backend filtra por el día actual.
  */
 export const getDashboardStats = async (params = {}) => {
-  const { startDate, endDate, user } = params;
+  const { startDate, endDate, user, search } = params;
 
   const queryParams = new URLSearchParams();
   if (startDate) queryParams.set("startDate", startDate);
   if (endDate) queryParams.set("endDate", endDate);
   if (user) queryParams.set("user", user);
+  if (search) queryParams.set("search", search);
 
   return apiFetch(`/core/api/v1/infracciones/estadisticas?${queryParams}`);
 };

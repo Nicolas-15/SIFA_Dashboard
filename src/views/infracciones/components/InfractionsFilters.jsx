@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, X, RefreshCw, Calendar, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { DebouncedSearchInput } from '@/components/ui/DebouncedSearchInput';
 
 function useDebouncedCallback(fn, delay = 300) {
   const timerRef = useRef(null);
@@ -285,12 +286,12 @@ export function InfractionsFilters({
       {/* Fila 1: Búsqueda + Filtros de estado + Actualizar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="sm:w-72">
-          <Input
+          <DebouncedSearchInput
             icon={Search}
             type="text"
             placeholder="Buscar por patente, tipo o ID…"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
             className={searchQuery ? '!pr-8' : ''}
           />
         </div>
