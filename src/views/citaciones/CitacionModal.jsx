@@ -1,8 +1,22 @@
-import { useState, useEffect } from "react";
-import { X, CalendarClock, Car, User, MapPin, FileText, Clock, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Check, CalendarClock, Car, User, MapPin, FileText, Clock, AlertTriangle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { parseISODateTime } from "@/views/infracciones/utils/infractionFormatters";
+
+function formatDateInput(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function toApiDate(display) {
+  if (!display || display.length !== 10) return '';
+  const [dd, mm, yyyy] = display.split('/');
+  if (!dd || !mm || !yyyy) return '';
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function InfoRow({ label, value, mono = false }) {
   if (!value) return null;
@@ -35,8 +49,20 @@ function isFuture(fecha) {
 
 export function CitacionModal({ citacion, onClose, onReprogramar, showToast, currentUser }) {
   const [showReprogramar, setShowReprogramar] = useState(false);
+  const [showConfirmReprogramar, setShowConfirmReprogramar] = useState(false);
   const [nuevaFecha, setNuevaFecha] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [fechaCitacion, setFechaCitacion] = useState(citacion?.fecha || "");
+  const datePickerRef = useRef(null);
+
+  const openDatePicker = () => datePickerRef.current?.showPicker();
+
+  const handleNativeDateChange = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    const [yyyy, mm, dd] = val.split('-');
+    setNuevaFecha(`${dd}/${mm}/${yyyy}`);
+  };
 
   const inf = citacion?.infraccion;
   const vehicle = inf?.vehicle;
@@ -46,7 +72,7 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
 
   // RBAC: solo JPL puede reprogramar
   const isJPL = currentUser?.role === "Administrativo JPL";
-  const canReprogramar = isJPL && isFuture(citacion?.fecha);
+  const canReprogramar = isJPL && isFuture(fechaCitacion);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -56,19 +82,30 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const handleReprogramar = async () => {
-    if (!nuevaFecha) {
-      showToast("Seleccione una fecha y hora válida.", "error");
+  const handleShowConfirm = () => {
+    if (!nuevaFecha || nuevaFecha.length !== 10) {
+      showToast("Seleccione una fecha válida.", "error");
       return;
     }
+    const apiDate = toApiDate(nuevaFecha);
+    if (!apiDate) {
+      showToast("Formato de fecha inválido.", "error");
+      return;
+    }
+    setShowConfirmReprogramar(true);
+  };
 
-    const fechaISO = nuevaFecha.includes("T") ? nuevaFecha + ":00" : nuevaFecha;
+  const handleReprogramar = async () => {
+    const apiDate = toApiDate(nuevaFecha);
+    const fechaISO = apiDate + "T09:00:00";
 
     setSubmitting(true);
     try {
       await onReprogramar(citacion.idCitacion, fechaISO);
+      setFechaCitacion(fechaISO);
       showToast("Citación reprogramada exitosamente");
       setShowReprogramar(false);
+      setShowConfirmReprogramar(false);
       setNuevaFecha("");
     } catch (err) {
       showToast(err.message || "Error al reprogramar la citación", "error");
@@ -78,6 +115,7 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[93vh] animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
@@ -107,22 +145,22 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
         <div className="overflow-y-auto flex-1 p-4 md:p-6 space-y-4">
           {/* Fecha de citación destacada */}
           <div className={`rounded-xl border-2 p-4 flex items-center gap-4 ${
-            isFuture(citacion?.fecha)
+            isFuture(fechaCitacion)
               ? 'bg-primary/5 border-primary/30'
               : 'bg-slate-50 border-slate-200'
           }`}>
-            <div className={`p-3 rounded-xl ${isFuture(citacion?.fecha) ? 'bg-primary/10' : 'bg-slate-100'}`}>
-              <CalendarClock size={24} className={isFuture(citacion?.fecha) ? 'text-primary' : 'text-slate-400'} />
+            <div className={`p-3 rounded-xl ${isFuture(fechaCitacion) ? 'bg-primary/10' : 'bg-slate-100'}`}>
+              <CalendarClock size={24} className={isFuture(fechaCitacion) ? 'text-primary' : 'text-slate-400'} />
             </div>
             <div className="flex-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Fecha de Citación al JPL
               </p>
-              <p className={`text-lg font-black ${isFuture(citacion?.fecha) ? 'text-primary' : 'text-slate-600'}`}>
-                {citacion?.fecha ? parseISODateTime(citacion.fecha) : 'No definida'}
+              <p className={`text-lg font-black ${isFuture(fechaCitacion) ? 'text-primary' : 'text-slate-600'}`}>
+                {fechaCitacion ? parseISODateTime(fechaCitacion) : 'No definida'}
               </p>
-              <p className={`text-xs font-semibold ${isFuture(citacion?.fecha) ? 'text-emerald-600' : 'text-slate-400'}`}>
-                {isFuture(citacion?.fecha) ? '● Próxima' : '● Pasada'}
+              <p className={`text-xs font-semibold ${isFuture(fechaCitacion) ? 'text-emerald-600' : 'text-slate-400'}`}>
+                {isFuture(fechaCitacion) ? '● Próxima' : '● Pasada'}
               </p>
             </div>
           </div>
@@ -134,17 +172,45 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
                 <AlertTriangle size={15} className="shrink-0" />
                 <p className="text-xs font-bold">Reprogramar citación</p>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">
-                  Nueva fecha y hora <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  value={nuevaFecha}
-                  onChange={(e) => setNuevaFecha(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
-                  className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white text-slate-800"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    Nueva fecha <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="dd/mm/aaaa"
+                      value={nuevaFecha}
+                      onChange={(e) => setNuevaFecha(formatDateInput(e.target.value))}
+                      onClick={openDatePicker}
+                      className="w-full px-2.5 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white text-slate-800 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={openDatePicker}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-amber-600 hover:bg-amber-100 transition-colors cursor-pointer"
+                      tabIndex={-1}
+                      title="Abrir calendario"
+                    >
+                      <Calendar size={16} />
+                    </button>
+                    <input
+                      ref={datePickerRef}
+                      type="date"
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={handleNativeDateChange}
+                      className="sr-only"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-end pb-2">
+                  <div className="flex items-center gap-1.5 text-amber-700 bg-amber-100/50 px-3 py-1.5 rounded-lg">
+                    <Clock size={14} />
+                    <span className="text-xs font-bold">Se agendará la citación a las 09:00 hrs</span>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -152,15 +218,15 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
                   variant="ghost"
                   onClick={() => { setShowReprogramar(false); setNuevaFecha(""); }}
                 >
+                  <X size={14} />
                   Cancelar
                 </Button>
                 <Button
                   size="sm"
                   variant="primary"
-                  onClick={handleReprogramar}
-                  isLoading={submitting}
-                  loadingText="Reprogramando..."
+                  onClick={handleShowConfirm}
                 >
+                  <Check size={14} />
                   Confirmar nueva fecha
                 </Button>
               </div>
@@ -242,5 +308,58 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
         </div>
       </div>
     </div>
+
+      {showConfirmReprogramar && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full mx-4 p-6 animate-in zoom-in-95 duration-200 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-amber-100 rounded-xl">
+                <CalendarClock size={22} className="text-amber-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-slate-800">Reprogramar citación</h4>
+                <p className="text-xs text-slate-500">¿Está seguro de reprogramar esta citación?</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-400">Citación</span>
+                <span className="text-sm font-bold text-slate-800">#{citacion?.idCitacion}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-400">Nueva fecha</span>
+                <span className="text-sm font-bold text-slate-800">{nuevaFecha}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-400">Hora</span>
+                <span className="text-sm font-bold text-slate-800">09:00 hrs</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowConfirmReprogramar(false)}
+              >
+                <X size={14} />
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={handleReprogramar}
+                isLoading={submitting}
+                loadingText="Reprogramando..."
+              >
+                <Check size={14} />
+                Confirmar reprogramación
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
