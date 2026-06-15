@@ -265,7 +265,10 @@ export function AuditoriasTable({
             return (
               <Fragment key={index}>
                 {/* Fila Principal */}
-                <tr className="group hover:bg-slate-50 transition-colors">
+                <tr
+                  className="group hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => toggleRow(index)}
+                >
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
@@ -298,7 +301,7 @@ export function AuditoriasTable({
                   </td>
                   <td className="px-4 py-4 text-right">
                     <button
-                      onClick={() => toggleRow(index)}
+                      onClick={(e) => { e.stopPropagation(); toggleRow(index); }}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         rowExpanded
                           ? "bg-primary text-white"
