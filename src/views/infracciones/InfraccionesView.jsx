@@ -30,10 +30,10 @@ export function InfraccionesView() {
   const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
-    if (headerSearch !== undefined && headerSearch !== searchQuery) {
+    if (headerSearch !== undefined) {
       setSearchQuery(headerSearch);
     }
-  }, [headerSearch, searchQuery, setSearchQuery]);
+  }, [headerSearch, setSearchQuery]);
 
   const selectedInfraction = infractions.find(i => i.id === selectedId) ?? null;
 

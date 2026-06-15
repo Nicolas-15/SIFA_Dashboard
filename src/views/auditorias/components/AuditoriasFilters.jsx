@@ -316,7 +316,7 @@ export function AuditoriasFilters({
           <Input
             icon={Search}
             type="text"
-            placeholder="Buscar por email, acción o detalles…"
+            placeholder="Buscar por email o acción"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={searchQuery ? "!pr-8" : ""}

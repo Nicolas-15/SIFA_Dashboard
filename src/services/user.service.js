@@ -5,10 +5,11 @@ export const getUsersFiscalizadores = async () => {
 };
 
 export const getUsers = async (params = {}) => {
-  const { page = 0, size = 10 } = params;
+  const { page = 0, size = 10, search } = params;
   const queryParams = new URLSearchParams();
   queryParams.set("page", page);
   queryParams.set("size", size);
+  if (search) queryParams.set("search", search);
   return apiFetch(`/auth/api/v1/users?${queryParams}`);
 };
 

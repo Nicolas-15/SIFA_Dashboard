@@ -36,10 +36,12 @@ export const useUsers = () => {
   const [last, setLast] = useState(true);
   const [size] = useState(10);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { isAuthenticated } = useAuth();
 
-  const latestParams = useRef({ page: 0 });
-  latestParams.current = { page };
+  const latestParams = useRef({ page: 0, searchQuery: "" });
+  latestParams.current = { page, searchQuery };
 
   const doFetch = useCallback(async (overrides) => {
     if (!isAuthenticated) return;
@@ -48,7 +50,7 @@ export const useUsers = () => {
 
     try {
       const p = overrides || latestParams.current;
-      const data = await userService.getUsers({ page: p.page, size });
+      const data = await userService.getUsers({ page: p.page, size, search: p.searchQuery || undefined });
 
       const list = Array.isArray(data.content) ? data.content : [];
       setUsers(list.map(normalizeUser));
@@ -70,9 +72,14 @@ export const useUsers = () => {
 
   useEffect(() => {
     doFetch();
-  }, [page, doFetch]);
+  }, [page, searchQuery, doFetch]);
 
   const goToPage = useCallback((p) => setPage(p), []);
+
+  const updateSearchQuery = useCallback((query) => {
+    setSearchQuery(query);
+    setPage(0);
+  }, []);
 
   const fetchUsersFiscalizadores = useCallback(async () => {
     setLoading(true);
@@ -170,5 +177,7 @@ export const useUsers = () => {
     first,
     last,
     goToPage,
+    searchQuery,
+    setSearchQuery: updateSearchQuery,
   };
 };

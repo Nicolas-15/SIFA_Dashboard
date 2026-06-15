@@ -3,7 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-const API_BASE_URL = "http://3.219.255.24";
+const API_BASE_URL = "http://3.214.183.222";
+//const API_BASE_URL = "http://localhost:9000";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -41,6 +42,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    include: ["src/**/*.{test,spec}.{js,jsx}", "tests/**/*.{test,spec}.{js,jsx}"],
+    include: [
+      "src/**/*.{test,spec}.{js,jsx}",
+      "tests/**/*.{test,spec}.{js,jsx}",
+    ],
   },
 });
