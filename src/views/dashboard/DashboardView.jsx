@@ -39,7 +39,7 @@ function fromApiDate(api) {
 
 export function DashboardView() {
   const { currentUser } = useOutletContext() || {};
-  const { fiscalizadores } = useFiscalizadoresActivos();
+  const { fiscalizadores, loading: loadingFiscalizadores, fetchFiscalizadoresActivos } = useFiscalizadoresActivos();
 
   // Fecha de hoy por defecto para el Resumen Diario
   const today = getTodayLocalDateString();
@@ -268,6 +268,8 @@ export function DashboardView() {
               const sameAsSelected = selectedFiscalizadorEmail === f.email;
               setSelectedFiscalizadorEmail(sameAsSelected ? null : f.email);
             }}
+            onRefresh={fetchFiscalizadoresActivos}
+            loading={loadingFiscalizadores}
             className="lg:col-span-2"
           />
           <DashboardFiscalizadoresMap

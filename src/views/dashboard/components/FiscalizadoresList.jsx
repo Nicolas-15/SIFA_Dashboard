@@ -1,4 +1,4 @@
-import { User, Clock, Smartphone, MapPin } from "lucide-react";
+import { User, Clock, Smartphone, MapPin, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,20 +16,37 @@ export function FiscalizadoresList({
   fiscalizadores = [],
   selectedFiscalizadorEmail,
   onSelectFiscalizador,
+  onRefresh,
+  loading = false,
   className = "",
 }) {
   return (
     <Card className={className}>
-      <div className="mb-3">
-        <h3 className="text-base font-bold text-slate-800">
-          Fiscalizadores en Terreno
-        </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
-          {fiscalizadores.length}{" "}
-          {fiscalizadores.length === 1
-            ? "fiscalizador activo"
-            : "fiscalizadores activos"}
-        </p>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="text-base font-bold text-slate-800">
+            Fiscalizadores en Terreno
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {fiscalizadores.length}{" "}
+            {fiscalizadores.length === 1
+              ? "fiscalizador activo"
+              : "fiscalizadores activos"}
+          </p>
+        </div>
+        {onRefresh && (
+          <button
+            onClick={() => onRefresh({ page: 0 })}
+            disabled={loading}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-40"
+            title="Actualizar lista"
+          >
+            <RefreshCw
+              size={15}
+              className={loading ? "animate-spin" : ""}
+            />
+          </button>
+        )}
       </div>
 
       {fiscalizadores.length === 0 ? (
