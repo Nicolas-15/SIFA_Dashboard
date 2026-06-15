@@ -4,32 +4,38 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Card } from "@/components/ui/Card";
 import "leaflet/dist/leaflet.css";
-import { X, Maximize2, User, Mail, Clock, Smartphone, Bell } from "lucide-react";
+import { Maximize2, User, Mail, Clock, Smartphone, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Modal } from "@/components/ui/Modal";
 import { PushNotificationModal } from "@/components/ui/PushNotificationModal";
 import { sendPushToEmail } from "@/utils/pushNotifications";
 
-// Crear ícono SVG desde lucide User
-const createFiscalizadorIcon = () => {
-  const userSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+const createFiscalizadorIcon = (isSelected = false) => {
+  const bgColor = isSelected ? "#f59e0b" : "#3b82f6";
+  const shadowColor = isSelected
+    ? "rgba(245, 158, 11, 0.5)"
+    : "rgba(59, 130, 246, 0.4)";
+  const size = isSelected ? 50 : 40;
+  const iconSize = isSelected ? 24 : 20;
+
+  const userSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
   const html = `
     <div style="
-      background-color: #3b82f6;
-      width: 40px;
-      height: 40px;
+      background-color: ${bgColor};
+      width: ${size}px;
+      height: ${size}px;
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 12px ${shadowColor};
       border: 3px solid white;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-    " onmouseover="this.style.transform='rotate(-45deg) scale(1.1)'; this.style.boxShadow='0 6px 16px rgba(59, 130, 246, 0.5)';" 
-      onmouseout="this.style.transform='rotate(-45deg) scale(1)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.4)';">
+    " onmouseover="this.style.transform='rotate(-45deg) scale(1.1)'; this.style.boxShadow='0 6px 16px ${shadowColor}';" 
+      onmouseout="this.style.transform='rotate(-45deg) scale(1)'; this.style.boxShadow='0 4px 12px ${shadowColor}';">
       <div style="transform: rotate(45deg); display: flex; align-items: center; justify-content: center;">
         ${userSvg}
       </div>
@@ -37,12 +43,21 @@ const createFiscalizadorIcon = () => {
   `;
 
   return L.divIcon({
-    className: "custom-fiscalizador-marker",
-    html: html,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
+    className: `custom-fiscalizador-marker${isSelected ? " selected" : ""}`,
+    html,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
   });
+};
+
+const iconCache = {};
+const getFiscalizadorIcon = (isSelected) => {
+  const key = isSelected ? "selected" : "default";
+  if (!iconCache[key]) {
+    iconCache[key] = createFiscalizadorIcon(isSelected);
+  }
+  return iconCache[key];
 };
 
 // Formatear fecha de manera legible
@@ -168,7 +183,52 @@ function MapRefRegister({ mapRef }) {
   return null;
 }
 
-export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
+function MapContent({ fiscalizadores, selectedFiscalizadorEmail, onNotify }) {
+  return (
+    <>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
+      <FitBounds data={fiscalizadores} />
+      {fiscalizadores.map((fiscalizador) => (
+        <Marker
+          key={fiscalizador.email}
+          position={[fiscalizador.latitud, fiscalizador.longitud]}
+          icon={getFiscalizadorIcon(selectedFiscalizadorEmail === fiscalizador.email)}
+        >
+          <Popup>
+            <FiscalizadorPopup
+              fiscalizador={fiscalizador}
+              onNotify={onNotify}
+            />
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
+}
+
+function FlyToSelected({ selectedFiscalizador }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !selectedFiscalizador) return;
+    if (selectedFiscalizador.latitud && selectedFiscalizador.longitud) {
+      map.flyTo(
+        [selectedFiscalizador.latitud, selectedFiscalizador.longitud],
+        16,
+        { duration: 1 },
+      );
+    }
+  }, [map, selectedFiscalizador]);
+  return null;
+}
+
+export function DashboardFiscalizadoresMap({
+  fiscalizadores,
+  selectedFiscalizadorEmail,
+  className = "",
+}) {
   const { showToast } = useOutletContext() || {};
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [scrollWheelZoomEnabled, setScrollWheelZoomEnabled] = useState(false);
@@ -178,7 +238,6 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
   const handleNotifySend = useCallback(async (title, body) => {
     const email = notifyTarget?.email;
     if (!email) throw new Error("Destino no especificado");
-
     try {
       await sendPushToEmail(email, title, body);
       showToast?.(`Notificación enviada a ${email}`, "success");
@@ -192,10 +251,9 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
     }
   }, [notifyTarget, showToast]);
 
-  const center = [-33.0456, -71.6214]; // Centro por defecto (Valparaíso/Viña del Mar)
-  const height = "500px"; // Altura  del mapa
+  const center = [-33.0456, -71.6214];
+  const height = "500px";
 
-  // Habilitar/Deshabilitar dinámicamente el scrollWheelZoom en Leaflet
   useEffect(() => {
     if (mapRef.current) {
       if (scrollWheelZoomEnabled) {
@@ -206,36 +264,25 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
     }
   }, [scrollWheelZoomEnabled]);
 
-  // Filtrar fiscalizadores con coordenadas válidas
   const fiscalizadoresConUbicacion =
     fiscalizadores?.filter(
       (f) => f.latitud !== undefined && f.longitud !== undefined,
     ) || [];
 
-  const totalActivos = fiscalizadoresConUbicacion.length;
+  const selectedFiscalizador = selectedFiscalizadorEmail
+    ? fiscalizadoresConUbicacion.find((f) => f.email === selectedFiscalizadorEmail)
+    : null;
 
   return (
-    <Card className={`${className}`}>
-      <div className="mb-2 md:mb-3">
-        <h3 className="text-base font-bold text-slate-800">
-          Fiscalizadores en Terreno
-        </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
-          {totalActivos}{" "}
-          {totalActivos === 1
-            ? "fiscalizador activo"
-            : "fiscalizadores activos"}
-        </p>
-      </div>
-
-      <div 
+    <Card className={className}>
+      <div
         style={{ height, position: "relative", zIndex: 0 }}
         className="cursor-pointer"
         onClick={() => setScrollWheelZoomEnabled(true)}
         onMouseLeave={() => setScrollWheelZoomEnabled(false)}
       >
-        {!scrollWheelZoomEnabled && totalActivos > 0 && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-[1000] shadow-sm tracking-wide transition-all duration-300">
+        {!scrollWheelZoomEnabled && fiscalizadoresConUbicacion.length > 0 && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full pointer-events-none z-[1000] shadow-sm tracking-wide">
             Click para activar zoom
           </div>
         )}
@@ -246,33 +293,17 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
           className="rounded-lg"
           scrollWheelZoom={false}
         >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-
-          {/* Ajustar vista para incluir todos los marcadores */}
-          <FitBounds data={fiscalizadoresConUbicacion} />
           <MapRefRegister mapRef={mapRef} />
-
-          {/* Renderizar marcadores */}
-          {fiscalizadoresConUbicacion.map((fiscalizador, index) => (
-            <Marker
-              key={`${fiscalizador.email}-${index}`}
-              position={[fiscalizador.latitud, fiscalizador.longitud]}
-              icon={createFiscalizadorIcon()}
-            >
-              <Popup>
-                <FiscalizadorPopup
-                  fiscalizador={fiscalizador}
-                  onNotify={setNotifyTarget}
-                />
-              </Popup>
-            </Marker>
-          ))}
+          <MapContent
+            fiscalizadores={fiscalizadoresConUbicacion}
+            selectedFiscalizadorEmail={selectedFiscalizadorEmail}
+            onNotify={setNotifyTarget}
+          />
+          {selectedFiscalizador && (
+            <FlyToSelected selectedFiscalizador={selectedFiscalizador} />
+          )}
         </MapContainer>
 
-        {/* Botón de pantalla completa */}
         <button
           onClick={() => setIsFullscreen(true)}
           className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 hover:bg-white text-slate-700 p-1.5 rounded-lg shadow-md border border-slate-200 transition-colors z-[1000]"
@@ -280,7 +311,6 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
           <Maximize2 size={16} />
         </button>
 
-        {/* Mensaje cuando no hay fiscalizadores */}
         {fiscalizadoresConUbicacion.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-[100]">
             <div className="text-center p-4">
@@ -292,7 +322,6 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
         )}
       </div>
 
-      {/* Modal pantalla completa */}
       <Modal
         isOpen={isFullscreen}
         onClose={() => setIsFullscreen(false)}
@@ -312,25 +341,14 @@ export function DashboardFiscalizadoresMap({ fiscalizadores, className = "" }) {
           zoom={14}
           style={{ height: "100%", width: "100%" }}
         >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          <MapContent
+            fiscalizadores={fiscalizadoresConUbicacion}
+            selectedFiscalizadorEmail={selectedFiscalizadorEmail}
+            onNotify={setNotifyTarget}
           />
-          <FitBounds data={fiscalizadoresConUbicacion} />
-          {fiscalizadoresConUbicacion.map((fiscalizador, index) => (
-            <Marker
-              key={`${fiscalizador.email}-${index}`}
-              position={[fiscalizador.latitud, fiscalizador.longitud]}
-              icon={createFiscalizadorIcon()}
-            >
-              <Popup>
-                <FiscalizadorPopup
-                  fiscalizador={fiscalizador}
-                  onNotify={setNotifyTarget}
-                />
-              </Popup>
-            </Marker>
-          ))}
+          {selectedFiscalizador && (
+            <FlyToSelected selectedFiscalizador={selectedFiscalizador} />
+          )}
         </MapContainer>
       </Modal>
 

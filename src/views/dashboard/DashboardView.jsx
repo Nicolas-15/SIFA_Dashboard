@@ -5,6 +5,7 @@ import { DashboardStatsCards } from "./components/DashboardStatsCards";
 import { DashboardHeatmap } from "./components/DashboardHeatMap";
 import { DashboardRecentActivity } from "./components/DashboardRecentActivity";
 import { DashboardFiscalizadoresMap } from "./components/DashboardFiscalizadoresMap";
+import { FiscalizadoresList } from "./components/FiscalizadoresList";
 import { useFiscalizadoresActivos } from "@/core/useFiscalizadoresActivos";
 import { useDashboardStats } from "@/core/useDashboardStats";
 import {
@@ -105,6 +106,7 @@ export function DashboardView() {
   const [recentInfractions, setRecentInfractions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedInfractionLocation, setSelectedInfractionLocation] = useState(null);
+  const [selectedFiscalizadorEmail, setSelectedFiscalizadorEmail] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -258,8 +260,21 @@ export function DashboardView() {
       </div>
 
       {isSupervisorOrAdmin && (
-        <div className="grid grid-cols-1 gap-4 md:gap-6">
-          <DashboardFiscalizadoresMap fiscalizadores={fiscalizadores} />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
+          <FiscalizadoresList
+            fiscalizadores={fiscalizadores}
+            selectedFiscalizadorEmail={selectedFiscalizadorEmail}
+            onSelectFiscalizador={(f) => {
+              const sameAsSelected = selectedFiscalizadorEmail === f.email;
+              setSelectedFiscalizadorEmail(sameAsSelected ? null : f.email);
+            }}
+            className="lg:col-span-2"
+          />
+          <DashboardFiscalizadoresMap
+            fiscalizadores={fiscalizadores}
+            selectedFiscalizadorEmail={selectedFiscalizadorEmail}
+            className="lg:col-span-3"
+          />
         </div>
       )}
     </div>
