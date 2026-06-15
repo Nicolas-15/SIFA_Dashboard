@@ -358,28 +358,31 @@ export function DashboardFiscalizadoresMap({
         backdropClassName="bg-black/95"
         className="bg-slate-900 border border-slate-700 w-full h-full rounded-lg overflow-hidden"
         headerClassName="px-4 py-3 border-b border-slate-800 bg-slate-950 shrink-0"
-        bodyClassName="p-0 flex-1 w-full relative"
-        titleClassName="text-xs font-bold text-slate-200 uppercase tracking-wider"
+        bodyClassName="p-0 flex-1 w-full relative flex"
+        titleClassName="text-xs font-bold text-white uppercase tracking-wider"
         closeButtonClassName="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors w-8 h-8 border-0 bg-transparent flex items-center justify-center shrink-0"
       >
-        <div className="absolute inset-y-2 right-2 z-[1000] flex flex-col gap-1 pointer-events-none overflow-y-auto">
+        <div className="w-56 shrink-0 border-r border-slate-800 bg-slate-900 p-2 flex flex-col gap-1 overflow-y-auto">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 pb-1 shrink-0">Fiscalizadores</span>
           {fiscalizadoresConUbicacion.map((f) => {
             const isSelected = selectedFiscalizadorEmail === f.email;
-            const deviceName = [f.marcaDispositivo, f.modeloDispositivo].filter(Boolean).join(" / ");
             return (
               <button
                 key={f.email}
                 onClick={() => onSelectFiscalizador?.(f)}
-                className={`pointer-events-auto shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                className={`shrink-0 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left ${
                   isSelected
-                    ? "bg-amber-500/90 text-white shadow-lg ring-1 ring-amber-300"
-                    : "bg-slate-900/80 backdrop-blur-sm text-slate-200 hover:bg-slate-800/90 ring-1 ring-white/10"
+                    ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40"
+                    : "text-slate-300 hover:bg-slate-800/80 ring-1 ring-transparent hover:ring-white/10"
                 }`}
               >
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full shrink-0" />
-                <span className="font-medium whitespace-nowrap max-w-[120px] truncate">{f.email}</span>
-                {deviceName && (
-                  <span className="text-[10px] text-slate-400 whitespace-nowrap truncate max-w-[100px] hidden sm:inline">{deviceName}</span>
+                <span className="font-medium whitespace-nowrap truncate flex-1">{f.email}</span>
+                {f.marcaDispositivo && (
+                  <span className="flex items-center gap-1 text-[10px] text-slate-500 whitespace-nowrap truncate max-w-[80px]">
+                    <Smartphone size={10} />
+                    {f.marcaDispositivo}
+                  </span>
                 )}
               </button>
             );
