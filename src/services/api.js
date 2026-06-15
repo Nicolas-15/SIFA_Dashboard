@@ -101,7 +101,7 @@ export const apiFetch = async (endpoint, options = {}) => {
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('Network error during fetch:', error);
-    throw new Error('No se pudo establecer conexión con el servidor. Por favor, verifique su conexión a internet.');
+    throw new Error('Fallo de conexión con el servidor, intente mas tarde.');
   }
   clearTimeout(timeoutId);
 
@@ -166,7 +166,9 @@ export const apiFetch = async (endpoint, options = {}) => {
       window.dispatchEvent(new Event('auth:forbidden'));
     }
 
-    if (!errorMessage || errorMessage.trim() === '') {
+    if (response.status >= 502 && response.status <= 503) {
+      errorMessage = 'Fallo de conexión con el servidor, intente mas tarde.';
+    } else if (!errorMessage || errorMessage.trim() === '') {
       errorMessage = HTTP_ERROR_MESSAGES[response.status] || `Error inesperado (Código: ${response.status})`;
     }
 
