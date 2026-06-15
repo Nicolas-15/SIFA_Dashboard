@@ -63,10 +63,7 @@ export const login = async (email, password) => {
     role: SYSTEM_ROLES.USER_APP // Fallback seguro: restringido
   };
 
-  localStorage.setItem('token', data.accessToken);
-  localStorage.setItem('refreshToken', data.refreshToken);
-
-  return { token: data.accessToken, user: mappedUser };
+  return { token: data.accessToken, refreshToken: data.refreshToken, user: mappedUser };
 };
 
 export const requestPasswordRecovery = async (email) => {

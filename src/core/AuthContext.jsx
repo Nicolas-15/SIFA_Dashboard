@@ -72,13 +72,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { token, user } = await authLogin(email, password);
+      const { token, refreshToken, user } = await authLogin(email, password);
       
       if (user.role === SYSTEM_ROLES.USER_APP) {
         throw new Error('Tu cuenta no tiene permisos para acceder a esta plataforma administrativa.');
       }
 
       localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
       setCurrentUser(user);
       setIsAuthenticated(true);
       return true;
