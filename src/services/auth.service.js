@@ -54,6 +54,7 @@ export const logout = async () => {
 export const login = async (email, password) => {
   const data = await apiFetch('/auth/api/v1/login', {
     method: 'POST',
+    headers: { 'X-Client-Origin': 'web' },
     body: JSON.stringify({ email, password })
   });
 
