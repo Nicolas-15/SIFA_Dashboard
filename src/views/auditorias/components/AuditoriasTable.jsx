@@ -12,6 +12,9 @@ import {
   ShieldCheck,
   Database,
   Hash,
+  FileCheck,
+  Key,
+  Unlock,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/Spinner";
@@ -50,16 +53,16 @@ function ActionBadge({ action }) {
     USUARIO_CREADO: {
       icon: UserPlus,
       label: "USUARIO_CREADO",
-      bg: "bg-emerald-100",
-      text: "text-emerald-700",
-      border: "border-emerald-200",
+      bg: "bg-cyan-100",
+      text: "text-cyan-700",
+      border: "border-cyan-200",
     },
     USUARIO_ACTIVADO: {
       icon: UserCheck,
       label: "USUARIO_ACTIVADO",
-      bg: "bg-emerald-100",
-      text: "text-emerald-700",
-      border: "border-emerald-200",
+      bg: "bg-teal-100",
+      text: "text-teal-700",
+      border: "border-teal-200",
     },
     USUARIO_DESACTIVADO: {
       icon: UserX,
@@ -78,9 +81,30 @@ function ActionBadge({ action }) {
     ROL_ACTUALIZADO: {
       icon: ShieldCheck,
       label: "ROL_ACTUALIZADO",
-      bg: "bg-blue-100",
-      text: "text-blue-700",
-      border: "border-blue-200",
+      bg: "bg-indigo-100",
+      text: "text-indigo-700",
+      border: "border-indigo-200",
+    },
+    PROCESAR_INFRACCION: {
+      icon: FileCheck,
+      label: "PROCESAR_INFRACCION",
+      bg: "bg-orange-100",
+      text: "text-orange-700",
+      border: "border-orange-200",
+    },
+    CAMBIO_CLAVE: {
+      icon: Key,
+      label: "CAMBIO_CLAVE",
+      bg: "bg-violet-100",
+      text: "text-violet-700",
+      border: "border-violet-200",
+    },
+    SOLICITUD_RECUPERACION_CLAVE: {
+      icon: Unlock,
+      label: "SOLICITUD_RECUPERACION_CLAVE",
+      bg: "bg-pink-100",
+      text: "text-pink-700",
+      border: "border-pink-200",
     },
     DEFAULT: {
       icon: Activity,
