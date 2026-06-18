@@ -17,6 +17,8 @@ import {
   CheckSquare,
   Square,
   HelpCircle,
+  Upload,
+  QrCode,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -26,11 +28,8 @@ import { DataTable } from "@/components/ui/DataTable";
 import { Spinner } from "@/components/ui/Spinner";
 import { Pagination } from "@/components/ui/Pagination";
 import { usePushNotifications } from "@/core/usePushNotifications";
-
-const TABS = [
-  { value: "send", label: "Enviar", icon: Send },
-  { value: "history", label: "Historial", icon: History },
-];
+import { AppMovilView } from "@/views/appMovil/AppMovilView";
+import { SYSTEM_ROLES } from "@/constants/roles";
 
 const TARGET_OPTIONS = [
   { value: "ALL", label: "Todos los dispositivos", icon: Users, desc: "Envía a todos los dispositivos registrados" },
@@ -207,7 +206,7 @@ function DeviceRow({ device, showCheckbox, selected, onToggle }) {
 }
 
 export function NotificacionesView() {
-  const { showToast } = useOutletContext();
+  const { showToast, currentUser } = useOutletContext();
   const {
     loading, result, error, send, reset,
     devices, devicesLoading, fetchDevices,
@@ -226,6 +225,17 @@ export function NotificacionesView() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
+
+  const TABS = [
+    { value: "send", label: "Enviar", icon: Send },
+    { value: "history", label: "Historial", icon: History },
+    ...(currentUser?.role === SYSTEM_ROLES.ADMIN
+      ? [{ value: "upload", label: "Subir APK", icon: Upload }]
+      : []),
+    ...(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR
+      ? [{ value: "download", label: "Descargar / QR", icon: QrCode }]
+      : []),
+  ];
 
   const isSelectMode = targetType === TARGET_TYPES.SELECT;
 
@@ -335,7 +345,9 @@ export function NotificacionesView() {
         })}
       </div>
 
-      {tab === "send" ? (
+      {tab === "upload" || tab === "download" ? (
+        <AppMovilView tab={tab} />
+      ) : tab === "send" ? (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-1">
           <div className="lg:col-span-3 flex flex-col gap-3">
             <Card padding="lg" className="flex-1">
