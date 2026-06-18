@@ -287,7 +287,7 @@ export function InfractionPhotoSection({
         >
           {/* Botón cerrar */}
           <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50 transition-all hover:rotate-90"
             onClick={() => setIsFullscreen(false)}
           >
             <X size={32} />

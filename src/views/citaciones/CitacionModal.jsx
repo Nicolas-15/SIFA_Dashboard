@@ -135,9 +135,12 @@ export function CitacionModal({ citacion, onClose, onReprogramar, showToast, cur
           </div>
           <div className="flex items-center gap-2">
             <StatusBadge status={inf?.status} />
-            <Button size="icon" variant="ghost" onClick={onClose}>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all hover:rotate-90 shrink-0"
+            >
               <X size={20} />
-            </Button>
+            </button>
           </div>
         </div>
 

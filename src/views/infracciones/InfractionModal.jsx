@@ -4,7 +4,6 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Button } from "@/components/ui/Button";
 
 import { InfractionNumeraciones } from "./components/InfractionNumeraciones";
 import {
@@ -118,9 +117,12 @@ export function InfractionModal({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" onClick={onClose}>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all hover:rotate-90 shrink-0"
+            >
               <X size={20} />
-            </Button>
+            </button>
           </div>
         </div>
 
