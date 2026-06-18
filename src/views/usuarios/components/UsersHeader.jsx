@@ -1,6 +1,7 @@
 import { Search, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { DebouncedSearchInput } from '@/components/ui/DebouncedSearchInput';
 
 export function UsersHeader({ search, setSearch, onNewUser, onRefresh, loading }) {
   return (
@@ -10,10 +11,10 @@ export function UsersHeader({ search, setSearch, onNewUser, onRefresh, loading }
         <p className="text-sm text-slate-500">Administra los accesos y roles del sistema.</p>
       </div>
       <div className="flex items-center gap-3">
-        <Input
+        <DebouncedSearchInput
           placeholder="Buscar usuario..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={setSearch}
           icon={Search}
           className="w-64 !py-2"
         />

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Search, X, RefreshCw, Calendar, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { DebouncedSearchInput } from "@/components/ui/DebouncedSearchInput";
 
 function useDebouncedCallback(fn, delay = 300) {
   const timerRef = useRef(null);
@@ -313,12 +314,12 @@ export function AuditoriasFilters({
       {/* Fila 1: Búsqueda + Actualizar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="sm:w-72">
-          <Input
+          <DebouncedSearchInput
             icon={Search}
             type="text"
             placeholder="Buscar por email o acción"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={setSearchQuery}
             className={searchQuery ? "!pr-8" : ""}
           />
         </div>
