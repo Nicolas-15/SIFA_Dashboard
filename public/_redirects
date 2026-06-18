@@ -1,5 +1,5 @@
-/auth/*   http://44.196.188.33/auth/:splat   200!
-/api/*    http://44.196.188.33/:splat        200!
-/core/*   http://44.196.188.33/core/:splat   200!
+/auth/*   http://32.197.72.219/auth/:splat   200!
+/api/*    http://32.197.72.219/:splat        200!
+/core/*   http://32.197.72.219/core/:splat   200!
 
 /*        /index.html                       200
