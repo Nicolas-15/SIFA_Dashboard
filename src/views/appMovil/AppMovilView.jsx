@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   Upload,
@@ -11,11 +11,14 @@ import {
   QrCode,
   Check,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { uploadApkWithProgress } from "@/services/apk.service";
+import { useFileDrop } from "@/core/useFileDrop";
+import { isValidApkFile } from "@/utils/fileValidation";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
 const APK_DOWNLOAD_URL =
@@ -43,7 +46,20 @@ export function AppMovilView({ tab: controlledTab } = {}) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [accepted, setAccepted] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
   const uploadXhrRef = useRef(null);
+
+  const validateAndSetFile = useCallback((file) => {
+    if (!file) return false;
+    if (!isValidApkFile(file)) {
+      showToast("Solo se permiten archivos .apk", "error");
+      return false;
+    }
+    setSelectedFile(file);
+    setAccepted(false);
+    setUploadError(null);
+    return true;
+  }, [showToast]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -51,20 +67,22 @@ export function AppMovilView({ tab: controlledTab } = {}) {
       setSelectedFile(null);
       return;
     }
-    if (!file.name.toLowerCase().endsWith(".apk")) {
-      showToast("Solo se permiten archivos .apk", "error");
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
+    const success = validateAndSetFile(file);
+    if (!success && fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
-    setSelectedFile(file);
-    setAccepted(false);
   };
+
+  const { isDragOver, dragHandlers } = useFileDrop({
+    onDrop: validateAndSetFile,
+    disabled: selectedFile !== null || uploadProgress !== null,
+  });
 
   const handleUpload = () => {
     if (!selectedFile || !accepted) return;
 
     setUploadProgress(0);
+    setUploadError(null);
 
     const { xhr, promise } = uploadApkWithProgress(selectedFile, (pct) => {
       setUploadProgress(pct);
@@ -79,7 +97,8 @@ export function AppMovilView({ tab: controlledTab } = {}) {
       })
       .catch((err) => {
         if (err.name !== 'AbortError') {
-          showToast(err.message, "error");
+          setUploadError(err.message || "Error al subir el archivo");
+          showToast(err.message || "Error al subir el archivo", "error");
         }
       })
       .finally(() => {
@@ -97,6 +116,7 @@ export function AppMovilView({ tab: controlledTab } = {}) {
   const handleReset = () => {
     setSelectedFile(null);
     setAccepted(false);
+    setUploadError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -160,22 +180,33 @@ export function AppMovilView({ tab: controlledTab } = {}) {
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3">
                     Archivo APK
                   </label>
-                  <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                  <div
+                    className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
                       selectedFile
                         ? "border-primary/30 bg-primary/[0.02] cursor-default"
-                        : "border-slate-300 hover:border-primary cursor-pointer"
+                        : isDragOver
+                          ? "border-primary bg-primary/5 scale-[1.02] cursor-grabbing"
+                          : "border-slate-300 hover:border-primary cursor-pointer"
                     }`}
                     onClick={() => !selectedFile && fileInputRef.current?.click()}
+                    {...dragHandlers}
                   >
                     <input
                       ref={fileInputRef}
                       type="file"
+                      accept=".apk"
                       onChange={handleFileChange}
                       className="hidden"
                     />
-                    <Upload size={32} className="mx-auto text-slate-400 mb-3" />
+                    <Upload size={32} className={`mx-auto mb-3 transition-all ${
+                      isDragOver ? "text-primary scale-110" : "text-slate-400"
+                    }`} />
                     <p className="text-sm font-semibold text-slate-700">
-                      {selectedFile ? selectedFile.name : "Haz clic para seleccionar un archivo APK"}
+                      {selectedFile
+                        ? selectedFile.name
+                        : isDragOver
+                          ? "Suelta el archivo aquí"
+                          : "Haz clic o arrastra un archivo APK"}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
                       {selectedFile
@@ -214,14 +245,14 @@ export function AppMovilView({ tab: controlledTab } = {}) {
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                   <Button
-                    variant="primary"
+                    variant={uploadError ? "danger" : "primary"}
                     size="lg"
                     onClick={handleUpload}
                     disabled={!selectedFile || !accepted}
                     className="sm:flex-1"
                   >
-                    <Upload size={18} />
-                    <span>Subir APK</span>
+                    {uploadError ? <RefreshCw size={18} /> : <Upload size={18} />}
+                    <span>{uploadError ? "Reintentar" : "Subir APK"}</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -233,6 +264,13 @@ export function AppMovilView({ tab: controlledTab } = {}) {
                     Limpiar
                   </Button>
                 </div>
+
+                {uploadError && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-700">{uploadError}</p>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
