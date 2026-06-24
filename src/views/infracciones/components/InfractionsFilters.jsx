@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, X, RefreshCw, Calendar, RotateCcw } from 'lucide-react';
+import { Search, X, RefreshCw, Calendar, RotateCcw, Download } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { DebouncedSearchInput } from '@/components/ui/DebouncedSearchInput';
+import { exportInfractionsCSV } from '@/services/infractions.service';
 
 function useDebouncedCallback(fn, delay = 300) {
   const timerRef = useRef(null);
@@ -91,6 +92,25 @@ export function InfractionsFilters({
     setRefreshing(true);
     await onRefresh?.();
     setRefreshing(false);
+  };
+
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      await exportInfractionsCSV({
+        startDate: toApiDate(localStartDate) || undefined,
+        endDate: toApiDate(localEndDate) || undefined,
+        user: userFilter || undefined,
+        status: activeFilter !== 'all' ? activeFilter : undefined,
+        search: searchQuery || undefined,
+      });
+    } catch {
+      // Error silencioso — el usuario ve que no descargó nada
+    } finally {
+      setExporting(false);
+    }
   };
 
   const validateDates = useCallback((startDisplay, endDisplay) => {
@@ -331,6 +351,17 @@ export function InfractionsFilters({
           >
             <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
             {refreshing ? 'Actualizando...' : 'Actualizar'}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleExportCSV}
+            disabled={exporting}
+            title="Exportar infracciones a CSV"
+            className="flex-1 sm:flex-none min-w-[120px] sm:min-w-0 max-w-[calc(50%-4px)] sm:max-w-none"
+          >
+            <Download size={13} className={exporting ? 'animate-pulse' : ''} />
+            {exporting ? 'Exportando...' : 'Exportar CSV'}
           </Button>
         </div>
       </div>

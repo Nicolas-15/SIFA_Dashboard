@@ -95,6 +95,38 @@ export const getProductividadFiscalizadorReporte = async (params = {}) => {
  * Retorna: totalInfracciones, cantidadPorEstado (GROUP BY), fechaInicio, fechaFin.
  * Si no se envían fechas, el backend filtra por el día actual.
  */
+export const exportInfractionsCSV = async (params = {}) => {
+  const { startDate, endDate, user, status, search } = params;
+
+  const queryParams = new URLSearchParams();
+  if (startDate) queryParams.set("startDate", startDate);
+  if (endDate) queryParams.set("endDate", endDate);
+  if (user) queryParams.set("user", user);
+  if (status) queryParams.set("status", status);
+  if (search) queryParams.set("search", search);
+
+  const token = localStorage.getItem("token");
+  const url = `/core/api/v1/infracciones/export/csv?${queryParams}`;
+
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al exportar CSV");
+  }
+
+  const blob = await response.blob();
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = `infracciones_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(downloadUrl);
+};
+
 export const getDashboardStats = async (params = {}) => {
   const { startDate, endDate, user, search } = params;
 
