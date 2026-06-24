@@ -120,12 +120,14 @@ export function BackupsModals({
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
             placeholder="eliminar"
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all"
+            disabled={submitting}
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:border-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
         <Switch
           checked={deleteConfirmed}
           onChange={setDeleteConfirmed}
+          disabled={submitting}
           label="Entiendo que esta acción es irreversible"
           className="p-3 bg-slate-50 rounded-xl"
         />

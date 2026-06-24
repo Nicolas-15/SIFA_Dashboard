@@ -1,4 +1,4 @@
-import { Download, Trash2, ShieldCheck, CalendarDays, Clock, Weight, FileText, Upload, User, HardDrive } from "lucide-react";
+import { Download, Trash2, RotateCcw, CalendarDays, Clock, Weight, FileText, Upload, User, HardDrive } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card } from "@/components/ui/Card";
 import { mapDbName, formatSize, formatSource, formatDate } from "../utils";
@@ -108,7 +108,7 @@ export function BackupsTable({ backups, downloading, onDownload, onRestoreSafe, 
                         onClick={() => onRestoreSafe(backup)}
                         className="w-9 h-9 flex items-center justify-center rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-all"
                       >
-                        <ShieldCheck size={16} />
+                        <RotateCcw size={16} />
                       </button>
                       <button
                         title="Eliminar"

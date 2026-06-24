@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import { HardDrive, ShieldCheck, Database, FolderTree, RefreshCw } from "lucide-react";
 import { useBackups } from "@/core/useBackups";
@@ -33,16 +33,30 @@ export function BackupsView() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showJobModal, setShowJobModal] = useState(false);
+  const [jobUserHidden, setJobUserHidden] = useState(false);
+  const prevJobIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentJob) return;
+    const isNewJob = currentJob.jobId !== prevJobIdRef.current;
+    prevJobIdRef.current = currentJob.jobId;
+
+    if (isNewJob) {
+      setJobUserHidden(false);
+      setShowJobModal(true);
+    } else if (["SUCCESS", "FAILED"].includes(currentJob.status)) {
+      setJobUserHidden(false);
+      setShowJobModal(true);
+    } else if (!jobUserHidden) {
+      setShowJobModal(true);
+    }
+  }, [currentJob, jobUserHidden]);
 
   // Restore safe modal state
   const [restoreSafeTarget, setRestoreSafeTarget] = useState(null);
   const [showSafeModal, setShowSafeModal] = useState(false);
   const [safeStep, setSafeStep] = useState("confirm"); // confirm → validate → result → executing
   const [restoreScope, setRestoreScope] = useState("full"); // full | database | storage
-
-  useEffect(() => {
-    if (currentJob) setShowJobModal(true);
-  }, [currentJob]);
 
   useEffect(() => {
     if (currentJob?.status === "FAILED") {
@@ -200,7 +214,7 @@ export function BackupsView() {
       <BackupsModals
         currentJob={currentJob}
         jobModalOpen={showJobModal}
-        onHideJob={() => setShowJobModal(false)}
+        onHideJob={() => { setShowJobModal(false); setJobUserHidden(true); }}
         onCloseJob={() => { setShowJobModal(false); stopPolling(); }}
         deleteTarget={deleteTarget}
         onDeleteClose={() => setDeleteTarget(null)}

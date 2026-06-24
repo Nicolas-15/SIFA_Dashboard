@@ -1,4 +1,4 @@
-import { CalendarDays, Clock, Weight, FileText, Upload, User, HardDrive, ShieldCheck, Download, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, Weight, FileText, Upload, User, HardDrive, RotateCcw, Download, Trash2 } from "lucide-react";
 import { mapDbName, formatSize, formatSource, formatDate } from "../utils";
 
 export function BackupsMobileCards({ backups, downloading, onDownload, onRestoreSafe, onDelete }) {
@@ -39,7 +39,7 @@ export function BackupsMobileCards({ backups, downloading, onDownload, onRestore
                   onClick={() => onRestoreSafe(backup)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all"
                 >
-                  <ShieldCheck size={15} />
+                  <RotateCcw size={15} />
                 </button>
                 <button
                   title="Eliminar"

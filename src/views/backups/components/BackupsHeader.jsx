@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { HardDrive, Loader, Upload } from "lucide-react";
+import { HardDrive, Loader, Upload, RotateCcw } from "lucide-react";
 
 export function BackupsHeader({ onCreateBackup, onUploadRestore, loading, hasJob, currentJob, onOpenJob }) {
   return (
@@ -11,10 +11,16 @@ export function BackupsHeader({ onCreateBackup, onUploadRestore, loading, hasJob
         {hasJob && currentJob && (
           <button
             onClick={onOpenJob}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-full hover:bg-primary/15 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-full hover:bg-primary/15 transition-all border border-primary/20 shadow-sm"
+            title="Ver progreso de la operación"
           >
+            <RotateCcw size={13} className="animate-spin" />
+            <span>
+              {currentJob.status === "RUNNING" ? "En proceso" :
+               currentJob.status === "PENDING" ? "En cola" :
+               `${currentJob.progress}%`}
+            </span>
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            {currentJob.status === "PENDING" ? "En cola" : `${currentJob.progress}%`}
           </button>
         )}
       </div>
