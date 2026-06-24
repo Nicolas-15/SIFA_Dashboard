@@ -116,11 +116,6 @@ export function InfractionModalFooter({
       {/* Rechazada */}
       {infraction.status === 'rejected' && (
         <div className="flex items-center gap-2">
-          {canAccept && (
-            <Button size="sm" variant="outline" onClick={onReopen} title="Deshacer y Reabrir">
-              <RotateCcw size={14} /> Reabrir a Pendiente
-            </Button>
-          )}
           <span className="px-4 py-1.5 bg-red-50 text-red-600 font-bold text-xs rounded-lg flex items-center gap-2 border border-red-200">
             <X size={15} /> Infracción Rechazada Devuelta
           </span>
