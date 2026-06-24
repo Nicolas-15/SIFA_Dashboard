@@ -1,4 +1,4 @@
-import { Receipt, User } from "lucide-react";
+import { Receipt, User, CalendarDays, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDate } from "@/utils/date";
@@ -53,11 +53,16 @@ export function DashboardRecentActivity({ infractions, onSelectInfraction, selec
                 <p className="text-xs text-slate-500 truncate mt-0.5">
                   {inf.tipoInfraccion.nombre}
                 </p>
-                <div className="flex items-center justify-between gap-2 mt-0.5">
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 font-semibold">
+                    <CalendarDays size={10} className="shrink-0" />
+                    {formatDate(inf.fecha)?.date}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 font-semibold">
+                    <Clock size={10} className="shrink-0" />
                     {formatDate(inf.fecha)?.time}
-                  </p>
-                  <div className="flex items-center gap-1 min-w-0">
+                  </span>
+                  <div className="flex items-center gap-1 min-w-0 ml-auto">
                     <User size={10} className="text-slate-400 shrink-0" />
                     <p className="text-[10px] text-slate-500 font-medium truncate">
                       {inf.idFiscalizador || ""}
