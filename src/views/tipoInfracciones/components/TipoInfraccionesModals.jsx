@@ -2,6 +2,7 @@ import { AlertTriangle, FileText, Calendar, Clock } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { formatDate, formatDateTime } from "@/utils/date";
 
 export function TipoInfraccionesModals({
   isModalOpen,
@@ -18,25 +19,6 @@ export function TipoInfraccionesModals({
   submitting,
   selectedItem,
 }) {
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-CL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatDateTime = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleString('es-CL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
   const renderCreateFooter = (
     <div className="flex items-center justify-end gap-3">
       <Button
@@ -162,7 +144,7 @@ export function TipoInfraccionesModals({
             <Input
               label="Fecha de creación"
               icon={Calendar}
-              value={formatDate(selectedItem?.createdAt)}
+              value={formatDate(selectedItem?.createdAt)?.date || '-'}
               disabled
               className="bg-slate-50"
             />

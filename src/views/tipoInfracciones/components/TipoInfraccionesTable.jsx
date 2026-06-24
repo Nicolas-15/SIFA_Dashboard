@@ -2,6 +2,7 @@ import { CheckCircle2, XCircle, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
+import { formatDate } from "@/utils/date";
 
 export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, search, handleEditClick, handleDeleteClick, isAdmin }) {
   return (
@@ -57,7 +58,7 @@ export function TipoInfraccionesTable({ loading, filteredTipoInfracciones, searc
                     )}
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-400 font-mono">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'}
+                    {formatDate(item.createdAt)?.date || '-'}
                   </td>
                   {isAdmin && (
                     <td className="px-6 py-4 text-center">

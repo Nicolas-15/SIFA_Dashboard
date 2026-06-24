@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MapPin, Clock, Wifi, Smartphone, Bell, Cpu, Monitor, Hash, ExternalLink, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { formatDateTime } from "@/utils/date";
 
 function AndroidIcon({ size, className }) {
   return (
@@ -121,7 +122,7 @@ export function FiscalizadoresMobileCards({ filtered, search, onNotify, onShowMa
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Último Reporte</span>
                   <div className="flex items-center gap-1.5 text-xs text-slate-600">
                     <Clock size={12} className="text-slate-400 shrink-0" />
-                    <span className="font-medium">{new Date(f.ultimaConexion).toLocaleString('es-CL')}</span>
+                    <span className="font-medium">{formatDateTime(f.ultimaConexion)}</span>
                   </div>
                 </div>
                 {hasCoords && (

@@ -1,6 +1,7 @@
 import { Clock, MapPin, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { EditableField } from "./EditableField";
 import { formatPlate } from "../utils/infractionFormatters";
+import { formatDateTime } from "@/utils/date";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /**
@@ -249,7 +250,7 @@ export function InfractionPhotoSection({
       >
         <span className="flex items-center gap-1">
           <Clock size={12} />{" "}
-          {new Date(infraction.fecha).toLocaleString("es-CL")}
+          {formatDateTime(infraction.fecha)}
         </span>
         <span className="flex items-center gap-1 truncate max-w-[50%]">
           <MapPin size={12} /> {location.address}

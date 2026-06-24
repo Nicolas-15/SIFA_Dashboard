@@ -18,20 +18,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/Spinner";
-
-// Función para formatear fecha y hora
-function formatDateTime(dateString) {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleString("es-CL", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
+import { formatDateTime } from "@/utils/date";
 
 // Componente para mostrar el badge de acción
 function ActionBadge({ action }) {
@@ -246,7 +233,6 @@ export function AuditoriasTable({
   }
 
   return (
-    <div className="overflow-auto flex-1">
       <table className="w-full text-left border-collapse min-w-[900px]">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 z-10">
@@ -346,6 +332,5 @@ export function AuditoriasTable({
           })}
         </tbody>
       </table>
-    </div>
   );
 }

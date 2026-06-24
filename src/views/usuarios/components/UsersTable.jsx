@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import { SYSTEM_ROLES } from '@/constants/roles';
+import { formatDate } from "@/utils/date";
 
 export function UsersTable({ loading, filteredUsers, search, currentUser, toggleStatus, handleEditClick }) {
   const getRoleBadgeStyles = (role) => {
@@ -68,7 +69,7 @@ export function UsersTable({ loading, filteredUsers, search, currentUser, toggle
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Pendiente'}</td>
+                  <td className="px-6 py-4 text-xs text-slate-400 font-mono">{formatDate(user.createdAt)?.date || 'Pendiente'}</td>
                   <td className="px-6 py-4">
                     {user.status === 'active' ? (
                       <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm"><CheckCircle2 size={16} /> Activo</div>

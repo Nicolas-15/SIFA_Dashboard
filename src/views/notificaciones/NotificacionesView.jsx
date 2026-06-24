@@ -30,6 +30,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { usePushNotifications } from "@/core/usePushNotifications";
 import { AppMovilView } from "@/views/appMovil/AppMovilView";
 import { SYSTEM_ROLES } from "@/constants/roles";
+import { formatDateTime } from "@/utils/date";
 
 const TARGET_OPTIONS = [
   { value: "ALL", label: "Todos los dispositivos", icon: Users, desc: "Envía a todos los dispositivos registrados" },
@@ -123,13 +124,7 @@ const HISTORY_COLUMNS = [
     className: "w-36",
     render: (row) => (
       <span className="text-xs text-slate-600">
-        {new Date(row.sentAt).toLocaleString("es-CL", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
+        {formatDateTime(row.sentAt)}
       </span>
     ),
   },

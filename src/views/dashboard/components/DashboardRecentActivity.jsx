@@ -1,6 +1,7 @@
 import { Receipt, User } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatDate } from "@/utils/date";
 
 export function DashboardRecentActivity({ infractions, onSelectInfraction, selectedInfractionId }) {
   const recentInfractions = [...infractions]
@@ -54,7 +55,7 @@ export function DashboardRecentActivity({ infractions, onSelectInfraction, selec
                 </p>
                 <div className="flex items-center justify-between gap-2 mt-0.5">
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                    {new Date(inf.fecha).toLocaleTimeString("es-CL")}
+                    {formatDate(inf.fecha)?.time}
                   </p>
                   <div className="flex items-center gap-1 min-w-0">
                     <User size={10} className="text-slate-400 shrink-0" />

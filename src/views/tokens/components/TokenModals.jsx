@@ -1,6 +1,7 @@
 import { Shield, ShieldOff, Clock, X, Mail, User, Key, Fingerprint, Hash, RefreshCw, Lock, Calendar } from 'lucide-react';
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { formatDateTime } from "@/utils/date";
 
 function maskToken(token) {
   if (!token) return '-';
@@ -19,8 +20,7 @@ function getExpiraInfo(selectedItem) {
   const expira = parseBackendDate(selectedItem.expiresAt);
   if (!expira) return info;
 
-  const fecha = expira.toLocaleString('es-CL');
-  info.fecha = fecha;
+  info.fecha = formatDateTime(expira);
 
   if (selectedItem.status !== 'active') return info;
 
@@ -138,8 +138,8 @@ export function TokenModals({
             'Expirado'
           }
         />
-        <DetailRow icon={Calendar} label="Creado" value={selectedItem?.createdAt ? parseBackendDate(selectedItem.createdAt)?.toLocaleString('es-CL') : '-'} />
-        <DetailRow icon={Calendar} label="Modificado" value={selectedItem?.modifiedAt ? parseBackendDate(selectedItem.modifiedAt)?.toLocaleString('es-CL') : '-'} />
+        <DetailRow icon={Calendar} label="Creado" value={selectedItem?.createdAt ? formatDateTime(parseBackendDate(selectedItem.createdAt)) : '-'} />
+        <DetailRow icon={Calendar} label="Modificado" value={selectedItem?.modifiedAt ? formatDateTime(parseBackendDate(selectedItem.modifiedAt)) : '-'} />
         <DetailRow icon={Clock} label="Expira">
           {expiraInfo.fecha}
           {expiraInfo.restante && (

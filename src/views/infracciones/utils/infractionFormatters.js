@@ -42,32 +42,15 @@ export function parseFromDatetimeLocal(val) {
   return `${dd}/${mm}/${yyyy} ${timePart}`;
 }
 
-// Convierte formato ISO con microsegundos (2026-05-18T12:54:09.123456) → "DD/MM/YYYY HH:MM"
+import { formatDateTime } from "@/utils/date";
+
 export function parseISODateTime(val) {
   if (!val) return "";
-
-  // Si ya es un objeto Date, convertirlo
-  if (val instanceof Date) {
-    const dd = String(val.getDate()).padStart(2, "0");
-    const mm = String(val.getMonth() + 1).padStart(2, "0");
-    const yyyy = val.getFullYear();
-    const hh = String(val.getHours()).padStart(2, "0");
-    const min = String(val.getMinutes()).padStart(2, "0");
-    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
-  }
-
-  // Si es string, parsearlo
+  if (val instanceof Date) return formatDateTime(val);
   try {
     const date = new Date(val);
-    if (isNaN(date.getTime())) return val; // Si no es fecha válida, retornar original
-
-    const dd = String(date.getDate()).padStart(2, "0");
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const yyyy = date.getFullYear();
-    const hh = String(date.getHours()).padStart(2, "0");
-    const min = String(date.getMinutes()).padStart(2, "0");
-
-    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    if (isNaN(date.getTime())) return val;
+    return formatDateTime(date);
   } catch {
     return val;
   }
