@@ -79,6 +79,71 @@ function clearAuth() {
   localStorage.removeItem('refreshToken');
 }
 
+export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
+  return new Promise((resolve, reject) => {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    const token = localStorage.getItem('token');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = async () => {
+      if (xhr.status === 401) {
+        const refreshTokenValue = localStorage.getItem('refreshToken');
+        if (refreshTokenValue) {
+          try {
+            const newToken = await refreshToken();
+            const retryXhr = new XMLHttpRequest();
+            retryXhr.open('POST', url);
+            retryXhr.setRequestHeader('Authorization', `Bearer ${newToken}`);
+            retryXhr.upload.onprogress = xhr.upload.onprogress;
+            retryXhr.onload = () => {
+              if (retryXhr.status >= 200 && retryXhr.status < 300) {
+                if (retryXhr.status === 204) resolve(null);
+                else resolve(JSON.parse(retryXhr.responseText));
+              } else {
+                reject(new Error(`Error ${retryXhr.status}`));
+              }
+            };
+            retryXhr.onerror = () => reject(new Error('Fallo de conexión con el servidor, intente más tarde.'));
+            retryXhr.send(formData);
+            return;
+          } catch {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.setItem('auth_error', 'expired');
+            window.dispatchEvent(new Event('auth:unauthorized'));
+            reject(new Error('Sesión expirada'));
+            return;
+          }
+        }
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (xhr.status === 204) resolve(null);
+        else resolve(JSON.parse(xhr.responseText));
+      } else {
+        reject(new Error(`Error ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Fallo de conexión con el servidor, intente más tarde.'));
+    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado'));
+    xhr.timeout = 300000;
+    xhr.send(formData);
+  });
+};
+
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   const token = localStorage.getItem('token');
@@ -89,8 +154,13 @@ export const apiFetch = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
+  if (options.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
+
+  const timeout = options.timeout || 15000;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
   const signal = options.signal
     ? combineAbortSignals(options.signal, controller.signal)
     : controller.signal;

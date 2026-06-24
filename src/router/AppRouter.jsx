@@ -20,6 +20,7 @@ import { TipoInfraccionesView } from "@/views/tipoInfracciones/TipoInfraccionesV
 import { TokenManagementView } from "@/views/tokens/TokenManagementView";
 import { CitacionesView } from "@/views/citaciones/CitacionesView";
 import { AuditoriasView } from "@/views/auditorias/AuditoriasView";
+import { BackupsView } from "@/views/backups/BackupsView";
 import { NotificacionesView } from "@/views/notificaciones/NotificacionesView";
 import { AccessDeniedView } from "@/views/auth/AccessDeniedView";
 
@@ -184,6 +185,14 @@ export const AppRouter = () => {
               element={
                 <AdminRoute>
                   <AuditoriasView />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="backups"
+              element={
+                <AdminRoute>
+                  <BackupsView />
                 </AdminRoute>
               }
             />

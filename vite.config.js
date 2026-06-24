@@ -32,6 +32,8 @@ export default defineConfig({
       "/core": {
         target: API_BASE_URL,
         changeOrigin: true,
+        proxyTimeout: 300000,
+        timeout: 300000,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req) => {
             if (req.headers['authorization']) {

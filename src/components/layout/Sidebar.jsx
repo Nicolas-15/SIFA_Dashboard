@@ -15,6 +15,7 @@ import {
   CalendarClock,
   FileSearch,
   Bell,
+  HardDrive,
 } from "lucide-react";
 import { SYSTEM_ROLES } from "@/constants/roles";
 
@@ -139,6 +140,13 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             icon={<FileSearch size={18} />}
             label="Auditorías"
             path="auditorias"
+          />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem
+            icon={<HardDrive size={18} />}
+            label="Backups"
+            path="backups"
           />
         )}
         {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
