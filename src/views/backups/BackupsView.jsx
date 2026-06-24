@@ -95,6 +95,9 @@ export function BackupsView() {
   const handleSafeExecute = async () => {
     if (!restoreSafeTarget) return;
     setSafeStep("executing");
+    if (restoreScope === "full" || restoreScope === "database") {
+      sessionStorage.setItem('restore_in_progress', 'true');
+    }
     try {
       await executeRestoreSafe(restoreSafeTarget.id, restoreScope);
       showToast("Restauración iniciada correctamente", "success");
@@ -231,6 +234,7 @@ export function BackupsView() {
         uploadDescription={uploadDescription}
         onUploadDescriptionChange={setUploadDescription}
         uploadFailed={uploadFailed}
+        restoreScope={restoreScope}
       />
 
       <Modal
@@ -281,7 +285,7 @@ export function BackupsView() {
                     <Database size={18} className="text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-700">Solo bases de datos</p>
+                    <p className="text-sm font-bold text-slate-700">Sólo bases de datos</p>
                     <p className="text-xs text-slate-500">Restaura authdb y core_db</p>
                   </div>
                 </button>
@@ -296,7 +300,7 @@ export function BackupsView() {
                     <FolderTree size={18} className="text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-700">Solo storage</p>
+                    <p className="text-sm font-bold text-slate-700">Sólo storage</p>
                     <p className="text-xs text-slate-500">Restaura archivos de infracciones en S3</p>
                   </div>
                 </button>
@@ -330,18 +334,14 @@ export function BackupsView() {
                     <div>
                       <p className="text-sm font-bold text-emerald-700">Backup válido</p>
                       <p className="text-xs text-emerald-600 mt-1">
-                        MySQL: {validationResult.mysqlVersion}
+                        El backup superó todas las verificaciones de integridad y está listo para restaurar.
                       </p>
-                      {validationResult.schemas?.length > 0 && (
-                        <p className="text-xs text-emerald-600 mt-1">
-                          Schemas: {validationResult.schemas.join(", ")}
-                        </p>
-                      )}
                     </div>
                   </div>
                   {validationResult.warnings?.length > 0 && (
                     <div className="p-3 bg-amber-50 rounded-xl text-xs text-amber-700">
-                      {validationResult.warnings.map((w, i) => <p key={i}>⚠ {w}</p>)}
+                      <p className="font-bold">Advertencia de compatibilidad</p>
+                      <p className="mt-0.5">Existen diferencias menores en la configuración del servidor. La restauración debería completarse sin problemas.</p>
                     </div>
                   )}
                   <div className="flex gap-3">

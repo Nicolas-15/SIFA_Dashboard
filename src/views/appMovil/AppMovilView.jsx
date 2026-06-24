@@ -52,7 +52,7 @@ export function AppMovilView({ tab: controlledTab } = {}) {
   const validateAndSetFile = useCallback((file) => {
     if (!file) return false;
     if (!isValidApkFile(file)) {
-      showToast("Solo se permiten archivos .apk", "error");
+      showToast("Sólo se permiten archivos .apk", "error");
       return false;
     }
     setSelectedFile(file);
@@ -211,7 +211,7 @@ export function AppMovilView({ tab: controlledTab } = {}) {
                     <p className="text-xs text-slate-500 mt-1">
                       {selectedFile
                         ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
-                        : "Solo archivos .apk — Máximo 50MB"}
+                        : "Sólo archivos .apk — Máximo 50MB"}
                     </p>
                   </div>
                 </div>

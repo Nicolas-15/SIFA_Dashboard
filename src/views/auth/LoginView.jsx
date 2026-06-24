@@ -17,7 +17,11 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
     const authError = localStorage.getItem('auth_error');
     if (authError) {
       let message = 'Sesión no autorizada o expirada.';
-      if (authError === 'revoked') {
+      const restoreFlag = sessionStorage.getItem('restore_in_progress');
+      if (restoreFlag === 'true') {
+        message = 'La sesión se cerró debido a que hay una restauración en curso. Vuelve a iniciar sesión.';
+        sessionStorage.removeItem('restore_in_progress');
+      } else if (authError === 'revoked') {
         message = 'Se ha iniciado sesión en otro dispositivo o la sesión fue revocada.';
       } else if (authError === 'unauthorized') {
         message = 'Redirigiendo debido a la invalidez del token.';

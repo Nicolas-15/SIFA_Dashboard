@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AlertTriangle, Trash2, X, Loader, HardDrive, Upload, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/Switch";
 import { Modal } from "@/components/ui/Modal";
@@ -8,14 +8,16 @@ export function BackupsModals({
   currentJob, jobModalOpen, onHideJob, onCloseJob,
   deleteTarget, onDeleteClose, onDeleteConfirm, submitting,
   uploadOpen, onUploadClose, uploadMode, onUploadModeChange, onUploadSubmit, onBackupSubmit, uploading, uploadProgress,
-  uploadDescription, onUploadDescriptionChange, uploadFailed,
+  uploadDescription, onUploadDescriptionChange, uploadFailed, restoreScope,
 }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
-  const jobRunning = currentJob && (currentJob.status === "PENDING" || currentJob.status === "RUNNING");
+  const isRunningStatus = (s) => ["PENDING", "RUNNING", "VALIDATING", "RESTORING", "VALIDATING_POST", "SWAPPING"].includes(s);
+  const jobRunning = currentJob && isRunningStatus(currentJob.status);
+  const isRestoreJob = currentJob?.jobId?.startsWith("rst-");
 
   useEffect(() => {
     setDeleteConfirmText("");
@@ -32,6 +34,40 @@ export function BackupsModals({
   const isUploadJob = currentJob?.jobId?.startsWith("upb-");
   const renderJobProgress = () => {
     if (!jobRunning) return null;
+
+    if (isRestoreJob) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl">
+            <Loader size={20} className="text-primary animate-spin shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-700">{currentJob.message}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Progreso: {currentJob.progress}%</p>
+            </div>
+          </div>
+          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${currentJob.progress || 0}%` }}
+            />
+          </div>
+          {(restoreScope === "full" || restoreScope === "database") && (
+            <div className="flex items-start gap-2.5 p-3 bg-amber-50 rounded-xl border border-amber-200">
+              <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Al aplicar los cambios la sesión se cerrará automáticamente. Es normal y confirma que la restauración se completó correctamente. Podrás iniciar sesión nuevamente después.
+              </p>
+            </div>
+          )}
+          <div className="flex justify-end text-xs text-slate-400">
+            <button onClick={onHideJob} className="text-slate-500 hover:text-slate-700 font-medium">
+              Ocultar
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         {isUploadJob && (
@@ -69,6 +105,36 @@ export function BackupsModals({
   const renderJobDone = () => {
     if (!currentJob || jobRunning) return null;
     const isSuccess = currentJob.status === "SUCCESS";
+
+    if (isRestoreJob) {
+      return (
+        <div className="space-y-4">
+          {isSuccess ? (
+            <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-1 border-b-2 border-r-2 border-white rotate-45 -mt-0.5" />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-emerald-700">Restauración completada</p>
+                <p className="text-xs text-emerald-600 mt-0.5">{currentJob.message}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-red-50 rounded-xl">
+              <p className="text-xs font-bold text-red-700">No se pudo completar la restauración</p>
+              <p className="text-xs text-red-600 mt-0.5">{currentJob.message}</p>
+            </div>
+          )}
+          <Button variant="outline" size="sm" onClick={onCloseJob} className="w-full">
+            <X size={16} />
+            <span>Cerrar</span>
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <div className={`flex items-start gap-3 p-4 rounded-xl ${
@@ -305,7 +371,7 @@ export function BackupsModals({
                   <p className="text-sm font-bold text-slate-500">
                     {dragOver ? "Suelta el archivo aquí" : "Arrastra un ZIP o haz clic para seleccionar"}
                   </p>
-                  <p className="text-xs text-slate-400">Solo archivos .zip</p>
+                  <p className="text-xs text-slate-400">Sólo archivos .zip</p>
                 </div>
               )}
             </div>

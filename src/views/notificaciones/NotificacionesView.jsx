@@ -34,7 +34,7 @@ import { formatDateTime } from "@/utils/date";
 
 const TARGET_OPTIONS = [
   { value: "ALL", label: "Todos los dispositivos", icon: Users, desc: "Envía a todos los dispositivos registrados" },
-  { value: "OUTDATED", label: "Solo desactualizados", icon: Package, desc: "Envía a dispositivos con versión distinta a la actual" },
+  { value: "OUTDATED", label: "Sólo desactualizados", icon: Package, desc: "Envía a dispositivos con versión distinta a la actual" },
   { value: "SELECT", label: "Seleccionar dispositivos", icon: Target, desc: "Elige manualmente los dispositivos a notificar" },
 ];
 
