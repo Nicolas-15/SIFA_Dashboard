@@ -97,11 +97,6 @@ export function InfractionModalFooter({
       {/* Exportada */}
       {infraction.status === 'exported' && (
         <div className="flex gap-2">
-          {canAccept && (
-            <Button size="sm" variant="outline" onClick={onReopen}>
-              <RotateCcw size={14} /> Reabrir a Pendiente
-            </Button>
-          )}
           {canExport && (
             <Button size="sm" variant="primary" isLoading={isExporting} loadingText="Generando PDF..." onClick={onExportPDF} disabled={isExporting} className="px-5">
               <Download size={14} /> Descargar PDF Nuevamente
