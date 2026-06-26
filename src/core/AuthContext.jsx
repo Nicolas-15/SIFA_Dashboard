@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as authLogin, decodeJWT, getUserFromToken } from '@/services/auth.service';
+import { login as authLogin, decodeJWT, getUserFromToken, refreshSession, logout as apiLogout } from '@/services/auth.service';
 import { SYSTEM_ROLES } from '@/constants/roles';
+import SessionLoadingScreen from '@/components/ui/SessionLoadingScreen';
 
 const AuthContext = createContext();
 
@@ -15,30 +16,51 @@ export const AuthProvider = ({ children }) => {
 
   // Restaurar sesión al inicializar desde el token en localStorage
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsInitializing(false);
-      return;
-    }
+    const restoreSession = async () => {
+      const token = localStorage.getItem('token');
+      const storedRefreshToken = localStorage.getItem('refreshToken');
 
-    const payload = decodeJWT(token);
-    // Si el token no se puede decodificar o está expirado, limpiar sesión
-    if (!payload || (payload.exp && payload.exp * 1000 < Date.now())) {
+      if (!token && !storedRefreshToken) {
+        setIsInitializing(false);
+        return;
+      }
+
+      // Si hay token, verificar si es válido localmente
+      if (token) {
+        const payload = decodeJWT(token);
+        if (payload && (!payload.exp || payload.exp * 1000 > Date.now())) {
+          const user = getUserFromToken(token);
+          if (user && user.role !== SYSTEM_ROLES.USER_APP) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            setIsInitializing(false);
+            return;
+          }
+        }
+      }
+
+      // Token expirado o ausente: intentar refresh silencioso
+      if (storedRefreshToken) {
+        try {
+          const newToken = await refreshSession();
+          const user = getUserFromToken(newToken);
+          if (user && user.role !== SYSTEM_ROLES.USER_APP) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            setIsInitializing(false);
+            return;
+          }
+        } catch (e) {
+          // Refresh falló, continuar con logout
+        }
+      }
+
+      localStorage.setItem('auth_error', 'expired');
       logout();
       setIsInitializing(false);
-      return;
-    }
+    };
 
-    // Token válido localmente: restaurar usuario desde el token
-    const user = getUserFromToken(token);
-    if (user && user.role !== SYSTEM_ROLES.USER_APP) {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-    } else {
-      logout();
-    }
-
-    setIsInitializing(false);
+    restoreSession();
   }, []);
 
   // Escuchar evento de 401 que lanza la API global
@@ -50,13 +72,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { token, user } = await authLogin(email, password);
+      const { token, refreshToken, user } = await authLogin(email, password);
       
       if (user.role === SYSTEM_ROLES.USER_APP) {
         throw new Error('Tu cuenta no tiene permisos para acceder a esta plataforma administrativa.');
       }
 
       localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
       setCurrentUser(user);
       setIsAuthenticated(true);
       return true;
@@ -66,14 +89,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setCurrentUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      await apiLogout();
+    } catch (err) {
+      console.warn('Logout API call failed, cleaning up locally:', err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.clear();
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   if (isInitializing) {
-    return <div className="h-screen w-full flex items-center justify-center bg-slate-900 text-white">Validando sesión...</div>;
+    return <SessionLoadingScreen />;
   }
 
   return (

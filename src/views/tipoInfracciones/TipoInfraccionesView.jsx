@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { useTipoInfracciones } from "@/core/useTipoInfracciones";
@@ -6,6 +6,7 @@ import { SYSTEM_ROLES } from "@/constants/roles";
 import { TipoInfraccionesHeader } from "./components/TipoInfraccionesHeader";
 import { TipoInfraccionesTable } from "./components/TipoInfraccionesTable";
 import { TipoInfraccionesModals } from "./components/TipoInfraccionesModals";
+import { TableCard } from "@/components/ui/TableCard";
 
 export function TipoInfraccionesView() {
   const { showToast, currentUser } = useOutletContext();
@@ -13,10 +14,17 @@ export function TipoInfraccionesView() {
   const {
     tipoInfracciones,
     loading,
+    error,
     fetchTipoInfracciones,
     createTipoInfraccion,
     updateTipoInfraccion,
     deleteTipoInfraccion,
+    page,
+    totalPages,
+    totalElements,
+    first,
+    last,
+    goToPage,
   } = useTipoInfracciones();
 
   const [search, setSearch] = useState("");
@@ -30,22 +38,6 @@ export function TipoInfraccionesView() {
     nombre: "",
     descripcion: "",
   });
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchTipoInfracciones().catch((err) => {
-        const isAuthError =
-          err.message.includes("401") ||
-          err.message.includes("403") ||
-          err.message.includes("Unauthorized") ||
-          err.message.includes("Forbidden");
-
-        if (!isAuthError) {
-          showToast("No se pudieron cargar los tipos de infracciones", "error");
-        }
-      });
-    }
-  }, [fetchTipoInfracciones, currentUser, showToast]);
 
   const handleNewClick = () => {
     setFormData({
@@ -134,6 +126,11 @@ export function TipoInfraccionesView() {
       .includes(search.toLowerCase())
   );
 
+  const handleRetry = () => {
+    showToast("Reintentando conexión con el servidor de tipos de infracciones...", "info");
+    fetchTipoInfracciones();
+  };
+
   return (
     <div className="flex flex-col h-full space-y-6">
       <TipoInfraccionesHeader
@@ -141,16 +138,56 @@ export function TipoInfraccionesView() {
         setSearch={setSearch}
         onNew={handleNewClick}
         isAdmin={isAdmin}
+        onRefresh={fetchTipoInfracciones}
+        loading={loading}
       />
 
-      <TipoInfraccionesTable
-        loading={loading}
-        filteredTipoInfracciones={filteredItems}
-        search={search}
-        handleEditClick={handleEditClick}
-        handleDeleteClick={handleDeleteClick}
-        isAdmin={isAdmin}
-      />
+      {error && tipoInfracciones.length > 0 && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+          No se pudieron cargar los tipos de infracciones.
+        </div>
+      )}
+
+      {error && tipoInfracciones.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center py-12 bg-white border border-slate-200 rounded-2xl shadow-sm min-h-[300px]">
+          <div className="text-center max-w-sm px-6">
+            <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h2 className="text-xl font-black text-slate-800 mb-2">
+              Servicio no disponible
+            </h2>
+            <p className="text-sm text-slate-500 mb-6">
+              No se pudo establecer conexión con el servidor para obtener los tipos de infracciones.
+            </p>
+            <button
+              onClick={handleRetry}
+              className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors shadow-sm"
+            >
+              Reintentar conexión
+            </button>
+          </div>
+        </div>
+      ) : (
+        <TableCard
+          totalElements={totalElements}
+          totalPages={totalPages}
+          page={page}
+          first={first}
+          last={last}
+          loading={loading}
+          onPageChange={goToPage}
+        >
+        <TipoInfraccionesTable
+          loading={loading}
+          filteredTipoInfracciones={filteredItems}
+          search={search}
+          handleEditClick={handleEditClick}
+          handleDeleteClick={handleDeleteClick}
+          isAdmin={isAdmin}
+        />
+      </TableCard>
+      )}
 
       <TipoInfraccionesModals
         isModalOpen={isModalOpen}

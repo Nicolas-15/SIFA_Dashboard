@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { SYSTEM_ROLES } from "@/constants/roles";
@@ -6,19 +6,28 @@ import { useUsers } from "@/core/useUsers";
 import { UsersHeader } from "./components/UsersHeader";
 import { UsersTable } from "./components/UsersTable";
 import { UserModals } from "./components/UserModals";
+import { TableCard } from "@/components/ui/TableCard";
 
 export function UserManagementView() {
   const { showToast, currentUser } = useOutletContext();
   const {
     users,
     loading,
+    error,
     fetchUsers,
     createUser,
     updateUser,
     toggleUserStatus,
+    page,
+    totalPages,
+    totalElements,
+    first,
+    last,
+    goToPage,
+    searchQuery,
+    setSearchQuery,
   } = useUsers();
 
-  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -35,23 +44,6 @@ export function UserManagementView() {
     role: SYSTEM_ROLES.DEFAULT,
     status: "active",
   });
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchUsers().catch((err) => {
-        // Detener el bucle si es 401 (No autorizado) o 403 (Prohibido)
-        const isAuthError =
-          err.message.includes("401") ||
-          err.message.includes("403") ||
-          err.message.includes("Unauthorized") ||
-          err.message.includes("Forbidden");
-
-        if (!isAuthError) {
-          showToast("No se pudieron cargar los usuarios", "error");
-        }
-      });
-    }
-  }, [fetchUsers, currentUser, showToast]);
 
   const handleRutChange = (e) => {
     let value = e.target.value.replace(/[^0-9kK]/g, "").toUpperCase();
@@ -173,28 +165,40 @@ export function UserManagementView() {
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    (u.name + " " + u.lastname + " " + u.rut + " " + u.email)
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
-
   return (
     <div className="flex flex-col h-full space-y-6">
       <UsersHeader
-        search={search}
-        setSearch={setSearch}
+        search={searchQuery}
+        setSearch={setSearchQuery}
         onNewUser={handleNewUserClick}
+        onRefresh={fetchUsers}
+        loading={loading}
       />
 
-      <UsersTable
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+          No se pudieron cargar los usuarios.
+        </div>
+      )}
+
+      <TableCard
+        totalElements={totalElements}
+        totalPages={totalPages}
+        page={page}
+        first={first}
+        last={last}
         loading={loading}
-        filteredUsers={filteredUsers}
-        search={search}
-        currentUser={currentUser}
-        toggleStatus={toggleStatus}
-        handleEditClick={handleEditClick}
-      />
+        onPageChange={goToPage}
+      >
+        <UsersTable
+          loading={loading}
+          filteredUsers={users}
+          search={searchQuery}
+          currentUser={currentUser}
+          toggleStatus={toggleStatus}
+          handleEditClick={handleEditClick}
+        />
+      </TableCard>
 
       <UserModals
         isModalOpen={isModalOpen}

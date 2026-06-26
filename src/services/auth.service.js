@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, refreshToken } from './api';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
 export const decodeJWT = (token) => {
@@ -19,10 +19,10 @@ export const getUserFromToken = (token) => {
   if (!payload) return null;
 
   let userRole = SYSTEM_ROLES.USER_APP; // Por defecto restringido
-  
+
   if (payload.roles) {
     const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
-    
+
     if (roles.some(r => ["ADMIN", "USER_ADMIN", "ROLE_ADMIN"].includes(r))) {
       userRole = SYSTEM_ROLES.ADMIN;
     } else if (roles.some(r => ["SUPERVISOR", "USER_SUPERVISOR", "ROLE_SUPERVISOR"].includes(r))) {
@@ -41,9 +41,20 @@ export const getUserFromToken = (token) => {
   };
 };
 
+export const refreshSession = async () => {
+  return refreshToken();
+};
+
+export const logout = async () => {
+  return apiFetch('/auth/api/v1/logout', {
+    method: 'POST'
+  });
+};
+
 export const login = async (email, password) => {
   const data = await apiFetch('/auth/api/v1/login', {
     method: 'POST',
+    headers: { 'X-Client-Origin': 'web' },
     body: JSON.stringify({ email, password })
   });
 
@@ -53,5 +64,19 @@ export const login = async (email, password) => {
     role: SYSTEM_ROLES.USER_APP // Fallback seguro: restringido
   };
 
-  return { token: data.accessToken, user: mappedUser };
+  return { token: data.accessToken, refreshToken: data.refreshToken, user: mappedUser };
+};
+
+export const requestPasswordRecovery = async (email) => {
+  return await apiFetch('/auth/api/v1/recovery/request', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+};
+
+export const resetPassword = async (email, code, newPassword) => {
+  return await apiFetch('/auth/api/v1/recovery/reset', {
+    method: 'POST',
+    body: JSON.stringify({ email, code, newPassword })
+  });
 };

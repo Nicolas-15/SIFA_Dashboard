@@ -1,4 +1,5 @@
 import { Clock, MapPin } from "lucide-react";
+import { formatDateTime } from "@/utils/date";
 
 /**
  * Fila superior del modal: Boleta, Parte, Fecha de Citación y Agente.
@@ -27,7 +28,7 @@ export function InfractionNumeraciones({ data }) {
         <input
           type="text"
           value={
-            data?.fecha ? new Date(data.fecha).toLocaleString("es-CL") : "-"
+            data?.fecha ? formatDateTime(data.fecha) : "-"
           }
           readOnly
           className="w-full text-sm rounded-lg border pe-3 py-2 border-transparent bg-transparent

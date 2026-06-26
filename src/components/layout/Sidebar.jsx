@@ -1,12 +1,30 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { X, User, Users, LayoutDashboard, Receipt, LogOut, AlertTriangle, ShieldCheck, FileWarning } from 'lucide-react';
-import { SYSTEM_ROLES } from '@/constants/roles';
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  X,
+  User,
+  Users,
+  LayoutDashboard,
+  Receipt,
+  LogOut,
+  AlertTriangle,
+  ShieldCheck,
+  FileWarning,
+  ShieldMinus,
+  Key,
+  CalendarClock,
+  FileSearch,
+  Bell,
+  HardDrive,
+} from "lucide-react";
+import { SYSTEM_ROLES } from "@/constants/roles";
 
 function NavItem({ icon, label, path, badge }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const active = location.pathname === `/${path}` || location.pathname.startsWith(`/${path}/`);
+  const active =
+    location.pathname === `/${path}` ||
+    location.pathname.startsWith(`/${path}/`);
 
   return (
     <button
@@ -14,20 +32,23 @@ function NavItem({ icon, label, path, badge }) {
       className={`
         w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
         transition-all duration-150 text-sm font-semibold
-        ${active
-          ? 'bg-primary text-white shadow-sm'
-          : 'text-slate-400 hover:bg-white/10 hover:text-white'
+        ${
+          active
+            ? "bg-primary text-white shadow-sm"
+            : "text-slate-400 hover:bg-white/10 hover:text-white"
         }
       `}
     >
       {icon}
       <span className="flex-1 text-left">{label}</span>
       {badge > 0 && (
-        <span className={`
+        <span
+          className={`
           min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-black
           flex items-center justify-center
-          ${active ? 'bg-white/20 text-white' : 'bg-red-500 text-white'}
-        `}>
+          ${active ? "bg-white/20 text-white" : "bg-red-500 text-white"}
+        `}
+        >
           {badge}
         </span>
       )}
@@ -40,7 +61,6 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
 
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
-
       {/* Logo */}
       <div className="p-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -54,10 +74,15 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
                 DASHBOARD
               </span>
             </h1>
-            <p className="text-[10px] font-semibold text-slate-400 mt-1">I. Municipalidad de El Quisco</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1">
+              I. Municipalidad de El Quisco
+            </p>
           </div>
         </div>
-        <button onClick={onClose} className="md:hidden p-1 text-slate-400 hover:text-white">
+        <button
+          onClick={onClose}
+          className="md:hidden p-1 text-slate-400 hover:text-white"
+        >
           <X size={18} />
         </button>
       </div>
@@ -69,24 +94,67 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
           label="Dashboard"
           path="dashboard"
         />
-<NavItem
-            icon={<Receipt size={18} />}
-            label="Infracciones"
-            path="infracciones"
-            badge={pendingCount}
+        <NavItem
+          icon={<Receipt size={18} />}
+          label="Infracciones"
+          path="infracciones"
+          badge={pendingCount}
+        />
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR ||
+          currentUser?.role === SYSTEM_ROLES.DEFAULT) && (
+          <NavItem
+            icon={<CalendarClock size={18} />}
+            label="Citaciones JPL"
+            path="citaciones"
           />
-          {(currentUser?.role === SYSTEM_ROLES.ADMIN || currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
-            <NavItem
-              icon={<FileWarning size={18} />}
-              label="Tipos de Infracciones"
-              path="tipo-infracciones"
-            />
-          )}
-          {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+        )}
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+          <NavItem
+            icon={<FileWarning size={18} />}
+            label="Tipos de Infracciones"
+            path="tipo-infracciones"
+          />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
             icon={<Users size={18} />}
             label="Gestión de Usuarios"
             path="usuarios"
+          />
+        )}
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+          <NavItem
+            icon={<ShieldMinus size={18} />}
+            label="Fiscalizadores"
+            path="usuarios-fiscalizadores"
+          />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem icon={<Key size={18} />} label="Tokens" path="tokens" />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem
+            icon={<FileSearch size={18} />}
+            label="Auditorías"
+            path="auditorias"
+          />
+        )}
+        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
+          <NavItem
+            icon={<HardDrive size={18} />}
+            label="Backups"
+            path="backups"
+          />
+        )}
+        {(currentUser?.role === SYSTEM_ROLES.ADMIN ||
+          currentUser?.role === SYSTEM_ROLES.SUPERVISOR) && (
+          <NavItem
+            icon={<Bell size={18} />}
+            label="Notificaciones"
+            path="notificaciones"
           />
         )}
       </nav>
@@ -124,10 +192,12 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-white truncate">
-                {currentUser ? `${currentUser.name} ${currentUser.lastname}` : 'Cargando...'}
+                {currentUser
+                  ? `${currentUser.name} ${currentUser.lastname}`
+                  : "Cargando..."}
               </p>
               <p className="text-[10px] text-slate-400">
-                {currentUser ? currentUser.role : '...'}
+                {currentUser ? currentUser.role : "..."}
               </p>
             </div>
             <button

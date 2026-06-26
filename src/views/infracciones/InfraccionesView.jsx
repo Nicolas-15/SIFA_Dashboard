@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { Pagination } from '@/components/ui/Pagination';
+import { TableCard } from '@/components/ui/TableCard';
+import { ListView } from '@/components/ui/ListView';
 
 import { InfractionsFilters } from './components/InfractionsFilters';
 import { InfractionsTable } from './components/InfractionsTable';
@@ -15,77 +18,121 @@ const FILTERS = [
 ];
 
 export function InfraccionesView() {
-  const { infractions, updateStatus, saveInfractionEdit: updateInfraction, showToast, headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser } = useOutletContext();
+  const {
+    infractions, stats, updateStatus, saveInfractionEdit: updateInfraction, showToast,
+    headerSearch, onClearHeaderSearch, fetchInfractions: onRefresh, currentUser,
+    loading, error, page, totalPages, totalElements, size, first, last,
+    goToPage, nextPage, prevPage,
+    dateRange, setDateRange, userFilter, setUserFilter, clearFilters,
+    activeFilter, setActiveFilter, searchQuery, setSearchQuery,
+  } = useOutletContext();
+
   const [selectedId, setSelectedId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(headerSearch);
-  const [activeFilter, setActiveFilter] = useState('all');
 
-  /* Sincronizar con el buscador del header cuando cambia */
   useEffect(() => {
-    setSearchQuery(headerSearch);
-  }, [headerSearch]);
+    if (headerSearch !== undefined) {
+      setSearchQuery(headerSearch);
+    }
+  }, [headerSearch, setSearchQuery]);
 
-  /* La infracción seleccionada siempre refleja el estado más reciente */
   const selectedInfraction = infractions.find(i => i.id === selectedId) ?? null;
 
-  const filters = FILTERS.map(f => ({
-    ...f,
-    count: f.key === 'all'
-      ? infractions.length
-      : infractions.filter(i => i.status === f.key).length,
-  }));
-
-  const filtered = infractions.filter(inf => {
-    const q = searchQuery.toLowerCase();
-    const matchSearch = !q
-      || (inf.vehicle?.plate || '').toLowerCase().includes(q)
-      || (inf.infractionDescription || '').toLowerCase().includes(q)
-      || (inf.numeroBoleta || '').toLowerCase().includes(q)
-      || (inf.numeroParte || '').toLowerCase().includes(q);
-    const matchFilter = activeFilter === 'all' || inf.status === activeFilter;
-    return matchSearch && matchFilter;
+  const filters = FILTERS.map(f => {
+    let count = 0;
+    if (f.key === 'all') {
+      count = stats?.totalInfracciones ?? 0;
+    } else {
+      count = stats?.cantidadPorEstado?.[f.key] ?? 0;
+    }
+    return { ...f, count };
   });
 
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col gap-4">
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold text-slate-800">Registro de Infracciones</h2>
-        <p className="text-sm text-slate-500 mt-0.5">{infractions.length} infracciones registradas</p>
-      </div>
+  // Los registros ya vienen filtrados del backend
+  const filtered = infractions;
 
-      <InfractionsFilters
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        filters={filters}
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
-        onClearHeaderSearch={onClearHeaderSearch}
-        onRefresh={onRefresh}
+  const mobilePagination = (
+    <div className="pt-2 text-center">
+      <p className="text-xs text-slate-500 font-medium pb-1">
+        {totalElements > 0
+          ? `${totalElements} infracciones registradas${totalPages > 1 ? ` (pág. ${page + 1} de ${totalPages})` : ''}`
+          : ''
+        }
+      </p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        first={first}
+        last={last}
+        onPageChange={goToPage}
+        loading={loading}
+        size={size}
       />
+    </div>
+  );
 
-      {/* ── Tabla — solo md+ ── */}
-      <div className="hidden md:block bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1">
-        <div className="overflow-auto h-full">
+  const handleRetry = () => {
+    showToast("Reintentando conexión con el servidor de infracciones...", "info");
+    onRefresh();
+  };
+
+  return (
+    <ListView
+      loadingLabel="infracciones"
+      title="Registro de Infracciones"
+      error={error}
+      onRetry={handleRetry}
+      filters={
+        <InfractionsFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filters={filters}
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+          onClearHeaderSearch={onClearHeaderSearch}
+          onRefresh={onRefresh}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          userFilter={userFilter}
+          onUserFilterChange={setUserFilter}
+          onClearFilters={clearFilters}
+          infractions={infractions}
+        />
+      }
+      loading={loading}
+      hasExistingData={infractions.length > 0}
+      table={
+        <TableCard
+          totalElements={totalElements}
+          totalPages={totalPages}
+          page={page}
+          first={first}
+          last={last}
+          loading={loading}
+          onPageChange={goToPage}
+          size={size}
+          resourceLabel="infracciones registradas"
+        >
           <InfractionsTable
             filtered={filtered}
             searchQuery={searchQuery}
             activeFilter={activeFilter}
             setSelectedId={setSelectedId}
           />
-        </div>
-      </div>
-
-      {/* ── Tarjetas — solo móvil ── */}
-      <div className="md:hidden flex-1 overflow-auto space-y-3 pb-4">
-        <InfractionsMobileCards
-          filtered={filtered}
-          searchQuery={searchQuery}
-          activeFilter={activeFilter}
-          setSelectedId={setSelectedId}
-        />
-      </div>
-
-      {/* Modal */}
+        </TableCard>
+      }
+      mobile={
+        <>
+          <InfractionsMobileCards
+            filtered={filtered}
+            searchQuery={searchQuery}
+            activeFilter={activeFilter}
+            setSelectedId={setSelectedId}
+          />
+          {mobilePagination}
+        </>
+      }
+    >
       {selectedInfraction && (
         <InfractionModal
           infraction={selectedInfraction}
@@ -96,6 +143,6 @@ export function InfraccionesView() {
           currentUser={currentUser}
         />
       )}
-    </div>
+    </ListView>
   );
 }

@@ -1,7 +1,8 @@
 import { Clock, MapPin, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { EditableField } from "./EditableField";
 import { formatPlate } from "../utils/infractionFormatters";
-import { useState, useEffect } from "react";
+import { formatDateTime } from "@/utils/date";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /**
  * Hook que carga múltiples imágenes autenticadas con JWT.
@@ -81,7 +82,17 @@ export function InfractionPhotoSection({
   const [isHovered, setIsHovered] = useState(false);
   const [isChangingImage, setIsChangingImage] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const hasMultiple = images.length > 1;
+
+  const SWIPE_THRESHOLD = 50;
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const wheelBlocked = useRef(false);
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [currentIndex]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -90,26 +101,88 @@ export function InfractionPhotoSection({
     img.src = images[nextIdx];
   }, [images, currentIndex]);
 
-  const goNext = (e) => {
-    e.stopPropagation();
+  const goNext = useCallback((e) => {
+    e?.stopPropagation?.();
     setIsChangingImage(true);
     setCurrentIndex((i) => (i + 1) % images.length);
     setTimeout(() => setIsChangingImage(false), 300);
-  };
-  const goPrev = (e) => {
-    e.stopPropagation();
+  }, [images.length]);
+  const goPrev = useCallback((e) => {
+    e?.stopPropagation?.();
     setIsChangingImage(true);
     setCurrentIndex((i) => (i - 1 + images.length) % images.length);
     setTimeout(() => setIsChangingImage(false), 300);
-  };
+  }, [images.length]);
+
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!hasMultiple) return;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartY.current);
+    if (deltaX > deltaY) {
+      e.preventDefault();
+    }
+  }, [hasMultiple]);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (!hasMultiple) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX > 0) {
+        goPrev();
+      } else {
+        goNext();
+      }
+    }
+  }, [hasMultiple, goNext, goPrev]);
+
+  const containerRef = useRef(null);
+  const fullscreenRef = useRef(null);
+
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    if (!hasMultiple || wheelBlocked.current) return;
+    wheelBlocked.current = true;
+    if (e.deltaY > 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+    setTimeout(() => { wheelBlocked.current = false; }, 400);
+  }, [hasMultiple, goNext, goPrev]);
+
+  const wheelHandler = useMemo(() => handleWheel, [handleWheel]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => el.removeEventListener("wheel", wheelHandler);
+  }, [wheelHandler]);
+
+  useEffect(() => {
+    const el = fullscreenRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => el.removeEventListener("wheel", wheelHandler);
+  }, [wheelHandler]);
 
   return (
     <div
-      className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56"
+      ref={containerRef}
+      className="rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative h-48 md:h-56 select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {(isLoading || isChangingImage) && (
+      {(isLoading || (!imageLoaded && images.length > 0) || isChangingImage) && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
           <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
         </div>
@@ -118,6 +191,7 @@ export function InfractionPhotoSection({
         <>
           <img
             src={images[currentIndex]}
+            onLoad={() => setImageLoaded(true)}
             className={`w-full h-full object-cover transition-opacity duration-200 cursor-pointer ${isChangingImage ? "opacity-50" : "opacity-100"}`}
             alt={`Evidencia ${currentIndex + 1} de ${images.length}`}
             onClick={() => setIsFullscreen(true)}
@@ -176,7 +250,7 @@ export function InfractionPhotoSection({
       >
         <span className="flex items-center gap-1">
           <Clock size={12} />{" "}
-          {new Date(infraction.fecha).toLocaleString("es-CL")}
+          {formatDateTime(infraction.fecha)}
         </span>
         <span className="flex items-center gap-1 truncate max-w-[50%]">
           <MapPin size={12} /> {location.address}
@@ -205,12 +279,16 @@ export function InfractionPhotoSection({
       {/* Modal pantalla completa */}
       {isFullscreen && images.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          ref={fullscreenRef}
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center select-none"
           onClick={() => setIsFullscreen(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Botón cerrar */}
           <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50"
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-50 transition-all hover:rotate-90"
             onClick={() => setIsFullscreen(false)}
           >
             <X size={32} />

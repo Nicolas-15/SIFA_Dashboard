@@ -2,7 +2,9 @@ import { useState, useCallback, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Search, Menu, Shield } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { Footer } from "./Footer";
 import { Toast } from "@/components/ui/Toast";
+import { Spinner } from "@/components/ui/Spinner";
 import { useAuth } from "@/core/AuthContext";
 import { useInfractions } from "@/core/useInfractions";
 
@@ -14,11 +16,17 @@ export function DashboardLayout() {
   const { currentUser, logout } = useAuth();
   const {
     infractions,
+    stats,
     loading,
     error,
     fetchInfractions,
     updateStatus,
     saveInfractionEdit,
+    page, totalPages, totalElements, size, first, last,
+    goToPage, nextPage, prevPage,
+    dateRange, setDateRange, userFilter, setUserFilter, 
+    activeFilter, setActiveFilter, searchQuery, setSearchQuery,
+    clearFilters, setSize,
   } = useInfractions();
 
   const navigate = useNavigate();
@@ -37,12 +45,10 @@ export function DashboardLayout() {
     [],
   );
 
-  const pendingCount = (infractions || []).filter(
-    (i) => i.status === "pending",
-  ).length;
+  const pendingCount = stats?.cantidadPorEstado?.pending ?? 0;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
@@ -55,38 +61,14 @@ export function DashboardLayout() {
   const todayCapitalized =
     todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1);
 
-  if (loading) {
+  if (loading && infractions.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+          <Spinner size="lg" />
           <p className="text-sm text-slate-500 font-medium">
             Cargando infracciones...
           </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center max-w-sm px-6">
-          <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-black text-slate-800 mb-2">
-            No se pudo conectar
-          </h2>
-          <p className="text-sm text-slate-500 mb-6">
-            El servidor de la API no está disponible.
-          </p>
-          <button
-            onClick={fetchInfractions}
-            className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-dark transition-colors"
-          >
-            Reintentar conexión
-          </button>
         </div>
       </div>
     );
@@ -141,6 +123,9 @@ export function DashboardLayout() {
           <Outlet
             context={{
               infractions,
+              stats,
+              loading,
+              error,
               updateStatus,
               saveInfractionEdit,
               showToast,
@@ -148,9 +133,16 @@ export function DashboardLayout() {
               onClearHeaderSearch: () => setHeaderSearch(""),
               fetchInfractions,
               currentUser,
+              page, totalPages, totalElements, size, first, last,
+              goToPage, nextPage, prevPage,
+              dateRange, setDateRange, userFilter, setUserFilter, 
+              activeFilter, setActiveFilter, searchQuery, setSearchQuery,
+              clearFilters, setSize,
             }}
           />
         </div>
+
+        <Footer />
       </main>
 
       {/* Toast */}

@@ -1,7 +1,11 @@
 import { apiFetch } from './api';
 
-export const getTipoInfracciones = async () => {
-  return apiFetch('/core/api/v1/tipoInfracciones/all');
+export const getTipoInfracciones = async (params = {}) => {
+  const { page = 0, size = 10 } = params;
+  const queryParams = new URLSearchParams();
+  queryParams.set("page", page);
+  queryParams.set("size", size);
+  return apiFetch(`/core/api/v1/tipoInfracciones/all?${queryParams}`);
 };
 
 export const getTipoInfraccionById = async (id) => {

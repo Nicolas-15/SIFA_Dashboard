@@ -4,7 +4,6 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Button } from "@/components/ui/Button";
 
 import { InfractionNumeraciones } from "./components/InfractionNumeraciones";
 import {
@@ -28,6 +27,8 @@ export function InfractionModal({
 
   // ── Estado local ────────────────────────────────────────────────────────────
   const [confirmAccept, setConfirmAccept] = useState(false);
+  const [confirmReject, setConfirmReject] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [isExporting, setIsExporting] = useState(false);
 
   // ── RBAC ────────────────────────────────────────────────────────────────────
@@ -46,8 +47,13 @@ export function InfractionModal({
 
   // ── Handlers de estado ──────────────────────────────────────────────────────
   const handleReject = () => {
-    updateStatus(infraction.id, "rejected");
+    if (!rejectionReason.trim()) {
+      showToast("Por favor, ingrese un motivo de rechazo.", "error");
+      return;
+    }
+    updateStatus(infraction.id, "rejected", rejectionReason);
     showToast("Infracción rechazada y anulada");
+    setConfirmReject(false);
     onClose();
   };
 
@@ -111,14 +117,41 @@ export function InfractionModal({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" onClick={onClose}>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all hover:rotate-90 shrink-0"
+            >
               <X size={20} />
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* ── Body ── */}
         <div className="overflow-y-auto flex-1 p-4 md:p-6 space-y-5">
+          {infraction.status === 'rejected' && infraction.motivoRechazo && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex flex-col gap-1 text-sm animate-in fade-in duration-200">
+              <span className="font-bold text-xs uppercase tracking-wider text-red-800">Motivo del Rechazo</span>
+              <p className="italic">"{infraction.motivoRechazo}"</p>
+            </div>
+          )}
+
+          {confirmReject && (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-xl space-y-2 animate-in slide-in-from-top-4 duration-300">
+              <label htmlFor="rejectionReason" className="block text-xs font-bold uppercase tracking-wider text-red-800">
+                Motivo del Rechazo <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="rejectionReason"
+                rows={3}
+                className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-slate-800 placeholder-slate-400"
+                placeholder="Escriba aquí el motivo detallado de la anulación o rechazo..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           <InfractionNumeraciones data={infraction} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -143,8 +176,14 @@ export function InfractionModal({
             canAccept={canAccept}
             canExport={canExport}
             confirmAccept={confirmAccept}
+            confirmReject={confirmReject}
             isExporting={isExporting}
             onReject={handleReject}
+            onStartConfirmReject={() => setConfirmReject(true)}
+            onCancelConfirmReject={() => {
+              setConfirmReject(false);
+              setRejectionReason("");
+            }}
             onStartConfirmAccept={() => setConfirmAccept(true)}
             onCancelConfirmAccept={() => setConfirmAccept(false)}
             onAccept={handleAccept}
