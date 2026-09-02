@@ -13,7 +13,6 @@ import {
   ShieldMinus,
   Key,
   CalendarClock,
-  FileSearch,
   Bell,
   HardDrive,
 } from "lucide-react";
@@ -134,13 +133,6 @@ export function Sidebar({ onClose, pendingCount = 0, onLogout, currentUser }) {
         )}
         {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem icon={<Key size={18} />} label="Tokens" path="tokens" />
-        )}
-        {currentUser?.role === SYSTEM_ROLES.ADMIN && (
-          <NavItem
-            icon={<FileSearch size={18} />}
-            label="Auditorías"
-            path="auditorias"
-          />
         )}
         {currentUser?.role === SYSTEM_ROLES.ADMIN && (
           <NavItem
