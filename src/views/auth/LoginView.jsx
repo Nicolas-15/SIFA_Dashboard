@@ -14,7 +14,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const authError = localStorage.getItem('auth_error');
+    const authError = localStorage.getItem('auth_error') || sessionStorage.getItem('auth_error');
     if (authError) {
       let message = 'Sesión no autorizada o expirada.';
       const restoreFlag = sessionStorage.getItem('restore_in_progress');
@@ -34,6 +34,7 @@ export function LoginView({ onLogin, onNavigateToRecovery, error: extError }) {
         key: Date.now()
       });
       localStorage.removeItem('auth_error');
+      sessionStorage.removeItem('auth_error');
     }
   }, []);
 

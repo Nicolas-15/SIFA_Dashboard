@@ -26,12 +26,16 @@ function combineAbortSignals(...signals) {
 let isRefreshing = false;
 let refreshPromise = null;
 
+/**
+ * Renueva los tokens de sesión.
+ *
+ * Con cookies httpOnly, el refresh token se envía automáticamente en la
+ * cookie refresh_token (Path=/auth/api/v1). No es necesario almacenarlo
+ * en localStorage ni enviarlo en el body de la petición.
+ *
+ * @returns {Promise<void>} Resuelve cuando el refresh fue exitoso
+ */
 export async function refreshToken() {
-  const storedRefreshToken = localStorage.getItem('refreshToken');
-  if (!storedRefreshToken) {
-    throw new Error('No refresh token disponible');
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -39,8 +43,7 @@ export async function refreshToken() {
   try {
     response = await fetch(`${API_BASE_URL}/auth/api/v1/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      credentials: 'include',
       signal: controller.signal,
     });
   } catch (error) {
@@ -51,45 +54,48 @@ export async function refreshToken() {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     throw new Error(errorBody?.message || 'Sesión expirada');
   }
+}
 
-  const data = await response.json();
-  localStorage.setItem('token', data.accessToken);
-  if (data.refreshToken) {
-    localStorage.setItem('refreshToken', data.refreshToken);
+/**
+ * Restablece el estado de autenticación y notifica a la aplicación.
+ *
+ * Al usar cookies httpOnly, el frontend no puede limpiar los tokens
+ * directamente. La cookie se elimina en el servidor cuando el endpoint
+ * de logout responde con el header Set-Cookie de expiración.
+ *
+ * @param {string} errorType Tipo de error ('expired', 'revoked', 'unauthorized')
+ */
+function notifyAuthError(errorType) {
+  if (errorType) {
+    // Se usa sessionStorage (no localStorage) para la flag de error,
+    // que es temporal y solo relevante para la sesión actual
+    const target = sessionStorage.getItem('restore_in_progress') ? sessionStorage : localStorage;
+    target.setItem('auth_error', errorType);
   }
-  return data.accessToken;
+  window.dispatchEvent(new Event('auth:unauthorized'));
 }
 
-function isTokenLocallyExpired(token) {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return !payload.exp || payload.exp * 1000 <= Date.now();
-  } catch {
-    return true;
-  }
-}
-
-function clearAuth() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
-}
-
+/**
+ * Sube un archivo con barra de progreso.
+ *
+ * Usa XMLHttpRequest y envía las cookies automáticamente
+ * (credentials: 'include') en lugar de un header manual.
+ *
+ * @param {string} endpoint Endpoint del servidor
+ * @param {FormData} formData Datos del formulario (con el archivo)
+ * @param {Function} onProgress Callback de progreso (0-100)
+ * @returns {Promise<object|null>} Respuesta del servidor
+ */
 export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
   return new Promise((resolve, reject) => {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    const token = localStorage.getItem('token');
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
-
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    }
+    // Enviar cookies httpOnly en la petición
+    xhr.withCredentials = true;
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
@@ -99,33 +105,27 @@ export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
 
     xhr.onload = async () => {
       if (xhr.status === 401) {
-        const refreshTokenValue = localStorage.getItem('refreshToken');
-        if (refreshTokenValue) {
-          try {
-            const newToken = await refreshToken();
-            const retryXhr = new XMLHttpRequest();
-            retryXhr.open('POST', url);
-            retryXhr.setRequestHeader('Authorization', `Bearer ${newToken}`);
-            retryXhr.upload.onprogress = xhr.upload.onprogress;
-            retryXhr.onload = () => {
-              if (retryXhr.status >= 200 && retryXhr.status < 300) {
-                if (retryXhr.status === 204) resolve(null);
-                else resolve(JSON.parse(retryXhr.responseText));
-              } else {
-                reject(new Error(`Error ${retryXhr.status}`));
-              }
-            };
-            retryXhr.onerror = () => reject(new Error('Fallo de conexión con el servidor, intente más tarde.'));
-            retryXhr.send(formData);
-            return;
-          } catch {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            localStorage.setItem('auth_error', 'expired');
-            window.dispatchEvent(new Event('auth:unauthorized'));
-            reject(new Error('Sesión expirada'));
-            return;
-          }
+        try {
+          await refreshToken();
+          const retryXhr = new XMLHttpRequest();
+          retryXhr.open('POST', url);
+          retryXhr.withCredentials = true;
+          retryXhr.upload.onprogress = xhr.upload.onprogress;
+          retryXhr.onload = () => {
+            if (retryXhr.status >= 200 && retryXhr.status < 300) {
+              if (retryXhr.status === 204) resolve(null);
+              else resolve(JSON.parse(retryXhr.responseText));
+            } else {
+              reject(new Error(`Error ${retryXhr.status}`));
+            }
+          };
+          retryXhr.onerror = () => reject(new Error('Fallo de conexión con el servidor, intente más tarde.'));
+          retryXhr.send(formData);
+          return;
+        } catch {
+          notifyAuthError('expired');
+          reject(new Error('Sesión expirada'));
+          return;
         }
       }
 
@@ -144,13 +144,24 @@ export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
   });
 };
 
+/**
+ * Cliente HTTP central de la aplicación.
+ *
+ * Con cookies httpOnly de autenticación:
+ * - No se lee ningún token de localStorage
+ * - credentials: 'include' envía las cookies automáticamente
+ * - El refresh es automático (el servidor rota cookies)
+ * - Los errores 401 detonan logout via evento auth:unauthorized
+ *
+ * @param {string} endpoint Ruta del endpoint (o URL completa)
+ * @param {object} options Opciones de fetch (method, body, headers, etc.)
+ * @returns {Promise<object|null>} Respuesta parseada del servidor
+ */
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-  const token = localStorage.getItem('token');
 
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
     ...options.headers,
   };
 
@@ -167,7 +178,12 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   let response;
   try {
-    response = await fetch(url, { ...options, headers, signal });
+    response = await fetch(url, {
+      ...options,
+      headers,
+      signal,
+      credentials: 'include',
+    });
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('Network error during fetch:', error);
@@ -175,12 +191,10 @@ export const apiFetch = async (endpoint, options = {}) => {
   }
   clearTimeout(timeoutId);
 
-  const shouldRefresh = (
-    response.status === 401 ||
-    (response.status === 403 && isTokenLocallyExpired(localStorage.getItem('token')))
-  ) && localStorage.getItem('refreshToken');
-
-  if (shouldRefresh) {
+  // Con cookies httpOnly, el acceso 401 puede deberse a un access token expirado.
+  // El servidor rota automáticamente las cookies en el refresh, por lo que
+  // intentamos refrescar solo cuando la cookie refresh_token podría estar presente.
+  if (response.status === 401) {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -191,19 +205,11 @@ export const apiFetch = async (endpoint, options = {}) => {
       }
       await refreshPromise;
     } catch {
-      clearAuth();
-      localStorage.setItem('auth_error', 'expired');
-      window.dispatchEvent(new Event('auth:unauthorized'));
+      notifyAuthError('expired');
       throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
     }
 
-    const retryHeaders = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      ...options.headers,
-    };
-
-    response = await fetch(url, { ...options, headers: retryHeaders });
+    response = await fetch(url, { ...options, headers, credentials: 'include' });
 
     if (response.ok) {
       if (response.status === 204) return null;
@@ -223,15 +229,11 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
 
     if (response.status === 401) {
-      clearAuth();
-
-      if (errorMessage && (errorMessage.includes('otro dispositivo') || errorMessage.includes('revocado') || errorMessage.includes('invalidada'))) {
-        localStorage.setItem('auth_error', 'revoked');
-      } else {
-        localStorage.setItem('auth_error', 'unauthorized');
-      }
-
-      window.dispatchEvent(new Event('auth:unauthorized'));
+      notifyAuthError(errorMessage
+        ? (errorMessage.includes('otro dispositivo') || errorMessage.includes('revocado') || errorMessage.includes('invalidada')
+          ? 'revoked'
+          : 'unauthorized')
+        : 'unauthorized');
     } else if (response.status === 403) {
       window.dispatchEvent(new Event('auth:forbidden'));
     }

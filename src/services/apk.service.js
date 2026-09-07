@@ -1,9 +1,14 @@
+/**
+ * Sube un archivo APK con barra de progreso.
+ *
+ * Con cookies httpOnly, la autenticación viaja automáticamente en la cookie
+ * (credentials: 'include'). No se lee ningún token de localStorage.
+ *
+ * @param {File} file Archivo APK a subir
+ * @param {Function} onProgress Callback de progreso (0-100)
+ * @returns {{ xhr: XMLHttpRequest, promise: Promise }} Control de la subida
+ */
 export function uploadApkWithProgress(file, onProgress) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    throw new Error('Sesión no iniciada');
-  }
-
   const formData = new FormData();
   formData.append('file', file);
 
@@ -18,8 +23,7 @@ export function uploadApkWithProgress(file, onProgress) {
 
     xhr.addEventListener('load', () => {
       if (xhr.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        // La cookie de acceso expiró: notificar para redirigir al login
         window.dispatchEvent(new Event('auth:unauthorized'));
         reject(new Error('Sesión expirada'));
         return;
@@ -44,7 +48,8 @@ export function uploadApkWithProgress(file, onProgress) {
     });
 
     xhr.open('POST', '/core/api/v1/apk/upload');
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    // Enviar cookies httpOnly en la petición
+    xhr.withCredentials = true;
     xhr.send(formData);
   });
 

@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-//const API_BASE_URL = "http://3.214.183.222";
+//const API_BASE_URL = "http://100.51.132.81";
 //const API_BASE_URL = "http://52.3.93.209";
 const API_BASE_URL = "http://localhost:9000";
 

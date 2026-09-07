@@ -21,17 +21,16 @@ function useAuthImages(urls) {
     }
 
     setIsLoading(true);
-    const token = localStorage.getItem("token");
     let objectUrls = [];
 
     Promise.all(
       urls.map((url) => {
         if (!url) return Promise.resolve(null);
         if (url.startsWith("http")) return Promise.resolve(url);
-        if (!token) return Promise.resolve(null);
 
+        // La autenticación viaja en la cookie httpOnly
         return fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
         })
           .then((res) => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
