@@ -105,11 +105,11 @@ export const exportInfractionsCSV = async (params = {}) => {
   if (status) queryParams.set("status", status);
   if (search) queryParams.set("search", search);
 
-  const token = localStorage.getItem("token");
   const url = `/core/api/v1/infracciones/export/csv?${queryParams}`;
 
+  // La autenticación viaja en la cookie httpOnly (credentials: 'include')
   const response = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: "include",
   });
 
   if (!response.ok) {

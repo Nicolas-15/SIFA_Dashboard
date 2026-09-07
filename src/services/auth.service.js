@@ -1,56 +1,73 @@
-import { apiFetch, refreshToken } from './api';
+import { apiFetch } from './api';
 import { SYSTEM_ROLES } from '@/constants/roles';
 
-export const decodeJWT = (token) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-};
-
-export const getUserFromToken = (token) => {
-  const payload = decodeJWT(token);
-  if (!payload) return null;
-
-  let userRole = SYSTEM_ROLES.USER_APP; // Por defecto restringido
-
-  if (payload.roles) {
-    const roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
-
-    if (roles.some(r => ["ADMIN", "USER_ADMIN", "ROLE_ADMIN"].includes(r))) {
-      userRole = SYSTEM_ROLES.ADMIN;
-    } else if (roles.some(r => ["SUPERVISOR", "USER_SUPERVISOR", "ROLE_SUPERVISOR"].includes(r))) {
-      userRole = SYSTEM_ROLES.SUPERVISOR;
-    } else if (roles.some(r => ["DEFAULT", "USER_DEFAULT", "ROLE_DEFAULT", "USER_JPL", "ROLE_JPL", "JPL"].includes(r))) {
-      userRole = SYSTEM_ROLES.DEFAULT;
-    }
+/**
+ * Mapea los roles del backend a los roles del sistema del frontend.
+ *
+ * El backend retorna roles completos (ej: "USER_ADMIN") en la lista
+ * `roles` de la respuesta del usuario. Este helper los convierte al
+ * enum interno del dashboard.
+ *
+ * @param {string[]} roles Lista de roles del backend
+ * @returns {string} Rol del sistema (SYSTEM_ROLES)
+ */
+const mapBackendRolesToSystemRole = (roles) => {
+  if (!Array.isArray(roles) || roles.length === 0) {
+    return SYSTEM_ROLES.USER_APP; // Fallback seguro: restringido
   }
 
-  return {
-    name: payload.name || payload.sub,
-    lastname: payload.lastname || '',
-    rut: payload.rut || '',
-    email: payload.email || payload.sub,
-    role: userRole
-  };
+  if (roles.some(r => r.includes('ADMIN'))) {
+    return SYSTEM_ROLES.ADMIN;
+  }
+  if (roles.some(r => r.includes('SUPERVISOR'))) {
+    return SYSTEM_ROLES.SUPERVISOR;
+  }
+  if (roles.some(r => r.includes('JPL') || r.includes('DEFAULT'))) {
+    return SYSTEM_ROLES.DEFAULT;
+  }
+  return SYSTEM_ROLES.USER_APP;
 };
 
-export const refreshSession = async () => {
-  return refreshToken();
-};
+/**
+ * Convierte la respuesta del usuario del backend al formato del frontend.
+ *
+ * Con cookies httpOnly, el backend envía la información del usuario
+ * directamente en la respuesta (sin tokens). Este helper normaliza
+ * los campos para el estado de la aplicación.
+ *
+ * @param {object} data Respuesta del backend (email, name, lastname, rut, roles)
+ * @returns {object} Usuario mapeado con el rol del sistema
+ */
+const mapUserData = (data) => ({
+  name: data.name || data.email,
+  lastname: data.lastname || '',
+  rut: data.rut || '',
+  email: data.email,
+  role: mapBackendRolesToSystemRole(data.roles),
+});
 
+/**
+ * Cierra la sesión del usuario.
+ * El servidor revoca el token y limpia las cookies httpOnly en la respuesta.
+ *
+ * @returns {Promise<object|null>} Respuesta del servidor
+ */
 export const logout = async () => {
   return apiFetch('/auth/api/v1/logout', {
     method: 'POST'
   });
 };
 
+/**
+ * Inicia sesión de un usuario.
+ *
+ * Con cookies httpOnly, la respuesta del login solo contiene la
+ * información del usuario (los tokens se guardan en cookies en el navegador).
+ *
+ * @param {string} email Correo del usuario
+ * @param {string} password Contraseña del usuario
+ * @returns {Promise<object>} Usuario mapeado { name, lastname, rut, email, role }
+ */
 export const login = async (email, password) => {
   const data = await apiFetch('/auth/api/v1/login', {
     method: 'POST',
@@ -58,13 +75,22 @@ export const login = async (email, password) => {
     body: JSON.stringify({ email, password })
   });
 
-  const mappedUser = getUserFromToken(data.accessToken) || {
-    name: email,
-    email: email,
-    role: SYSTEM_ROLES.USER_APP // Fallback seguro: restringido
-  };
+  return { user: mapUserData(data) };
+};
 
-  return { token: data.accessToken, refreshToken: data.refreshToken, user: mappedUser };
+/**
+ * Verifica el estado de la sesión actual.
+ *
+ * Llama al endpoint /status que lee el access token de la cookie
+ * httpOnly (inaccesible desde JavaScript) y valida si la sesión sigue
+ * siendo válida. Se usa al cargar la aplicación para restaurar la sesión.
+ *
+ * @returns {Promise<object|null>} Estado de la sesión { valid, user, error }
+ */
+export const checkSessionStatus = async () => {
+  return apiFetch('/auth/api/v1/status', {
+    method: 'GET'
+  });
 };
 
 export const requestPasswordRecovery = async (email) => {
