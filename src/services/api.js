@@ -10,6 +10,10 @@ const HTTP_ERROR_MESSAGES = {
   503: 'Servicio no disponible temporalmente. Intente nuevamente en unos momentos.'
 };
 
+// El login responde 401 solo cuando las credenciales son inválidas.
+// No debe tramitarse como sesión expirada ni disparar refresh/logout.
+const LOGIN_ENDPOINT = '/auth/api/v1/login';
+
 function combineAbortSignals(...signals) {
   const controller = new AbortController();
   const onAbort = () => controller.abort();
@@ -151,7 +155,9 @@ export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
  * - No se lee ningún token de localStorage
  * - credentials: 'include' envía las cookies automáticamente
  * - El refresh es automático (el servidor rota cookies)
- * - Los errores 401 detonan logout via evento auth:unauthorized
+ * - Los errores 401 detonan logout via evento auth:unauthorized.
+ *   Excepción: el 401 del login significa credenciales inválidas, por lo que
+ *   no se refresca ni se dispara el logout y se propaga el mensaje del servidor.
  *
  * @param {string} endpoint Ruta del endpoint (o URL completa)
  * @param {object} options Opciones de fetch (method, body, headers, etc.)
@@ -159,6 +165,8 @@ export const uploadFileWithProgress = (endpoint, formData, onProgress) => {
  */
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  // Las credenciales inválidas devuelven 401 en el login, no una sesión caducada.
+  const isLoginRequest = url.endsWith(LOGIN_ENDPOINT);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -194,7 +202,9 @@ export const apiFetch = async (endpoint, options = {}) => {
   // Con cookies httpOnly, el acceso 401 puede deberse a un access token expirado.
   // El servidor rota automáticamente las cookies en el refresh, por lo que
   // intentamos refrescar solo cuando la cookie refresh_token podría estar presente.
-  if (response.status === 401) {
+  // El login queda excluido: su 401 indica credenciales inválidas, no una sesión
+  // que renovar.
+  if (response.status === 401 && !isLoginRequest) {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -228,7 +238,7 @@ export const apiFetch = async (endpoint, options = {}) => {
         : String(rawError);
     }
 
-    if (response.status === 401) {
+    if (response.status === 401 && !isLoginRequest) {
       notifyAuthError(errorMessage
         ? (errorMessage.includes('otro dispositivo') || errorMessage.includes('revocado') || errorMessage.includes('invalidada')
           ? 'revoked'
